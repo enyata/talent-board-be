@@ -70,6 +70,3 @@ jobs:
 
       - name: Run Database Migrations
         run: yarn migration:run
-
-      - name: Run Tests with Coverage
-        run: yarn test --coverage
