@@ -1,0 +1,11 @@
+{
+  "path-intellisense.showHiddenFiles": true,
+  "files.autoSave": "onFocusChange",
+  "editor.codeActionsOnSave": {
+    "source.removeUnusedImports": "always",
+    "source.organizeImports": "always",
+    "source.sortImports": "always"
+  },
+  "typescript.format.semicolons": "remove",
+  "prettier.trailingComma": "es5"
+}
