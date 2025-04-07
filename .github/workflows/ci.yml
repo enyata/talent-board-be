@@ -71,8 +71,5 @@ jobs:
       - name: Run Database Migrations
         run: yarn migration:run
 
-      - name: Seed Test Database
-        run: yarn ts-node src/seeders/testSeeder.ts
-
       - name: Run Tests with Coverage
         run: yarn test --coverage
