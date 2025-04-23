@@ -15,6 +15,7 @@ import { MethodNotAllowedError } from "./exceptions/methodNotAllowedError";
 import { NotFoundError } from "./exceptions/notFoundError";
 import globalErrorHandler from "./middlewares/errorHandler";
 import router from "./routes/index.route";
+import "./strategies/google.strategy";
 
 const app: Express = express();
 app.disable("x-powered-by");
