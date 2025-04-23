@@ -1,4 +1,3 @@
-// src/__tests__/jwt.test.ts
 import jwt from "jsonwebtoken";
 import { AppError } from "../exceptions/appError";
 import { signToken, verifyToken } from "../utils/jwt";
@@ -6,7 +5,6 @@ import { signToken, verifyToken } from "../utils/jwt";
 jest.mock("jsonwebtoken", () => ({
   sign: jest.fn(),
   verify: jest.fn(),
-  TokenExpiredError: class TokenExpiredError extends Error {},
 }));
 
 describe("JWT Utility Functions", () => {
