@@ -15,8 +15,9 @@
     "migration:run": "ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:run -d ./src/datasource.ts",
     "migration:revert": "ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:revert -d ./src/datasource.ts",
     "reset-db": "ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm schema:drop -d ./src/datasource.ts && yarn migration:run",
+    "seed:test": "ts-node -r tsconfig-paths/register ./src/seeders/testSeeder.ts",
     "test": "NODE_ENV=test jest --runInBand",
-    "test:watch": "jest --watch"
+    "test:watch": "NODE_ENV=test jest --watch"
   },
   "repository": {
     "type": "git",

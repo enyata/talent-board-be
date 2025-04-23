@@ -5,7 +5,7 @@ export default {
 
   DB_USER: "test_user",
   DB_HOST: "localhost",
-  DB_PORT: 5432,
+  DB_PORT: 5433,
   DB_PASSWORD: "test_password",
   DB_NAME: "test_db",
 
@@ -22,4 +22,6 @@ export default {
 
   GOOGLE_CLIENT_ID: "google_client_id",
   GOOGLE_CLIENT_SECRET: "google_client_secret",
+
+  REDIS_URL: "redis://localhost:6380",
 };

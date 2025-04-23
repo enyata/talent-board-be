@@ -1,4 +1,3 @@
-// src/seeders/testSeeder.ts
 import { DataSource } from "typeorm";
 import AppDataSource from "../datasource";
 import { UserEntity } from "../entities/user.entity";
