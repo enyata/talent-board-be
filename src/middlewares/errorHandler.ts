@@ -1,8 +1,12 @@
 import config from "config";
 import type { NextFunction, Request, Response } from "express";
+import { JsonWebTokenError } from "jsonwebtoken";
 import { AppError } from "../exceptions/appError";
 import { IResponseError } from "../interfaces";
 import log from "../utils/logger";
+
+const handleJWTError = (err: any) =>
+  new AppError("Invalid or expired token", 401);
 
 export const sendErrorDev = (err: any, req: Request, res: Response) => {
   if (req.originalUrl.startsWith("/api")) {
@@ -53,6 +57,7 @@ const errorHandler = (
   if (env === "development") {
     sendErrorDev(err, req, res);
   } else if (env === "production") {
+    if (err instanceof JsonWebTokenError) err = handleJWTError(err);
     sendErrorProd(err, req, res);
   }
 };

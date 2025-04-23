@@ -15,6 +15,7 @@ import { MethodNotAllowedError } from "./exceptions/methodNotAllowedError";
 import { NotFoundError } from "./exceptions/notFoundError";
 import globalErrorHandler from "./middlewares/errorHandler";
 import router from "./routes/index.route";
+import "./strategies/google.strategy";
 
 const app: Express = express();
 app.disable("x-powered-by");
@@ -81,7 +82,7 @@ app.get("/health", async (req: Request, res: Response) => {
     });
   }
 });
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/" + config.API_PREFIX, router);
 app.use("/openapi.json", (_req: Request, res: Response) => {
   res.setHeader("Content-Type", "application/json");
