@@ -20,7 +20,9 @@ const bootstrap = async () => {
     await AppDataSource.initialize();
     log.info("Database connected successfully");
     createServer(sslOptions, app).listen(port, () => {
-      log.info(`🚀 Server running securely at https://localhost:${port}`);
+      log.info(
+        `🚀 Server running securely at https://localhost:${port} [${config.get<string>("NODE_ENV")}]`,
+      );
     });
   } catch (error) {
     log.error("Failed to start the server", error);

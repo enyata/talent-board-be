@@ -4,9 +4,10 @@ import { JwtHeader, SigningKeyCallback, verify } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 import passport from "passport";
 import { Strategy as CustomStrategy } from "passport-custom";
-import { UnauthorizedError } from "../exceptions/unauthorizedError";
-import { createHttpsAgent } from "../utils/createHttpsAgent";
-import log from "../utils/logger";
+import { UnauthorizedError } from "../../exceptions/unauthorizedError";
+import { createHttpsAgent } from "../../utils/createHttpsAgent";
+import log from "../../utils/logger";
+import { LINKEDIN_CALLBACK_PATH } from "../auth.constants";
 
 const client = jwksClient({
   jwksUri: "https://www.linkedin.com/oauth/openid/jwks",
@@ -33,7 +34,7 @@ passport.use(
 
       const clientId = config.get<string>("LINKEDIN_CLIENT_ID");
       const clientSecret = config.get<string>("LINKEDIN_CLIENT_SECRET");
-      const redirectUri = `${config.get<string>("BASE_URL")}/${config.get<string>("API_PREFIX")}/auth/linkedin/callback`;
+      const redirectUri = `${config.get<string>("BASE_URL")}/${config.get<string>("API_PREFIX")}${LINKEDIN_CALLBACK_PATH}`;
 
       const tokenRes = await axios.post(
         "https://www.linkedin.com/oauth/v2/accessToken",

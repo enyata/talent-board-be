@@ -8,17 +8,3 @@ export interface IResponseError {
 export interface CustomJwtPayload extends JwtPayload {
   id: string;
 }
-
-export interface GoogleProfile {
-  first_name: string;
-  last_name: string;
-  email: string;
-  avatar?: string;
-}
-
-export interface LinkedInProfile {
-  first_name: string;
-  last_name: string;
-  email: string;
-  avatar?: string;
-}

@@ -1,21 +1,22 @@
 import config from "config";
 import type { NextFunction, Request, Response } from "express";
-import AppDataSource from "../datasource";
-import { UnauthorizedError } from "../exceptions/unauthorizedError";
-import asyncHandler from "../middlewares/asyncHandler";
-import { LinkedInAuthService } from "../services/linkedinAuth.service";
-import { createSendToken } from "../utils/createSendToken";
+import AppDataSource from "../../datasource";
+import { UnauthorizedError } from "../../exceptions/unauthorizedError";
+import asyncHandler from "../../middlewares/asyncHandler";
+import { createSendToken } from "../../utils/createSendToken";
+import { LINKEDIN_SCOPES } from "../auth.constants";
+import { LinkedInAuthService } from "./linkedin.service";
 
 const linkedInAuthService = new LinkedInAuthService();
 
 export const linkedInOAuth = (_req: Request, res: Response) => {
   const clientId = config.get<string>("LINKEDIN_CLIENT_ID");
   const redirectUri = `${config.get<string>("BASE_URL")}/${config.get<string>("API_PREFIX")}/auth/linkedin/callback`;
-  const scope = "openid profile email";
+  const scope = LINKEDIN_SCOPES;
 
   const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(
     redirectUri,
-  )}&scope=${encodeURIComponent(scope)}`;
+  )}&scope=${encodeURIComponent(scope.join(" "))}`;
 
   res.redirect(authUrl);
 };

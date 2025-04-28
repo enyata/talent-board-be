@@ -1,14 +1,15 @@
 import config from "config";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import log from "../utils/logger";
+import log from "../../utils/logger";
+import { GOOGLE_CALLBACK_PATH } from "../auth.constants";
 
 passport.use(
   new GoogleStrategy(
     {
       clientID: config.get<string>("GOOGLE_CLIENT_ID"),
       clientSecret: config.get<string>("GOOGLE_CLIENT_SECRET"),
-      callbackURL: `${config.get<string>("BASE_URL")}/${config.get<string>("API_PREFIX")}/auth/google/callback`,
+      callbackURL: `${config.get<string>("BASE_URL")}/${config.get<string>("API_PREFIX")}${GOOGLE_CALLBACK_PATH}`,
     },
     async (_accessToken, _refreshToken, profile, done) => {
       try {

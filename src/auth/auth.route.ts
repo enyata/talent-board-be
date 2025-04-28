@@ -1,19 +1,13 @@
-import { Router } from "express";
+import express from "express";
 import passport from "passport";
-import {
-  googleOAuth,
-  googleOAuthCallback,
-} from "../controllers/googleAuth.controller";
+import { googleOAuth, googleOAuthCallback } from "./google/google.controller";
 import {
   linkedInOAuth,
   linkedInOAuthCallback,
-} from "../controllers/linkedinAuth.controller";
+} from "./linkedin/linkedin.controller";
 
-const router = Router();
+const router = express.Router();
 
-/**
- * Google OAuth
- */
 router.get("/google", googleOAuth);
 router.get(
   "/google/callback",
@@ -21,9 +15,6 @@ router.get(
   googleOAuthCallback,
 );
 
-/**
- * LinkedIn OAuth
- */
 router.get("/linkedin", linkedInOAuth);
 router.get(
   "/linkedin/callback",

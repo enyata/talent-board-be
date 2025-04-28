@@ -1,15 +1,16 @@
 import type { NextFunction, Request, Response } from "express";
 import passport from "passport";
-import AppDataSource from "../datasource";
-import { UnauthorizedError } from "../exceptions/unauthorizedError";
-import asyncHandler from "../middlewares/asyncHandler";
-import { GoogleAuthService } from "../services/googleAuth.service";
-import { createSendToken } from "../utils/createSendToken";
+import AppDataSource from "../../datasource";
+import { UnauthorizedError } from "../../exceptions/unauthorizedError";
+import asyncHandler from "../../middlewares/asyncHandler";
+import { createSendToken } from "../../utils/createSendToken";
+import { GOOGLE_SCOPES } from "../auth.constants";
+import { GoogleAuthService } from "./google.service";
 
 const googleAuthService = new GoogleAuthService();
 
 export const googleOAuth = passport.authenticate("google", {
-  scope: ["profile", "email"],
+  scope: GOOGLE_SCOPES,
 });
 
 export const googleOAuthCallback = asyncHandler(

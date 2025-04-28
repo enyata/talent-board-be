@@ -1,59 +1,43 @@
 import compression from "compression";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import type { Express, NextFunction, Request, Response } from "express";
-import express from "express";
+import express, { Express, NextFunction, Request, Response } from "express";
 import helmet from "helmet";
 import hpp from "hpp";
 import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
 
+import corsOptions from "../config/corsOptions";
 import config from "../config/default";
+import helmetOptions from "../config/helmetOptions";
+import hppOptions from "../config/hppOptions";
 import swaggerSpec from "../config/swaggerConfig";
+import "./auth/loadStrategies";
 import AppDataSource from "./datasource";
 import { MethodNotAllowedError } from "./exceptions/methodNotAllowedError";
 import { NotFoundError } from "./exceptions/notFoundError";
 import globalErrorHandler from "./middlewares/errorHandler";
 import router from "./routes/index.route";
-import "./strategies/google.strategy";
-import "./strategies/linkedin.strategy";
 
 const app: Express = express();
 app.disable("x-powered-by");
 
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'", "accounts.google.com"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "accounts.google.com"],
-        frameSrc: ["accounts.google.com"],
-        connectSrc: ["'self'", "https://accounts.google.com"],
-      },
-    },
-  }),
-);
+app.use(helmet(helmetOptions));
+if (
+  config.NODE_ENV === "production" &&
+  !["localhost", "127.0.0.1"].includes(config.BASE_URL)
+) {
+  app.use(
+    helmet.hsts({
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    }),
+  );
+}
 
-app.options("*", cors());
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowedHeaders: [
-      "Origin",
-      "X-Requested-With",
-      "Content-Type",
-      "Authorization",
-    ],
-    credentials: true,
-  }),
-);
-
-app.use(
-  hpp({
-    whitelist: ["legal", "dispute resolution"],
-  }),
-);
+app.use(cors(corsOptions));
+app.use(hpp(hppOptions));
 
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
@@ -85,25 +69,28 @@ app.get("/health", async (req: Request, res: Response) => {
     });
   }
 });
+
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.use("/" + config.API_PREFIX, router);
 app.use("/openapi.json", (_req: Request, res: Response) => {
   res.setHeader("Content-Type", "application/json");
   res.send(swaggerSpec);
 });
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  if (res.headersSent) {
-    return next();
+app.use(`/${config.API_PREFIX}`, router);
+app.all("*", (req: Request, res: Response, next: NextFunction) => {
+  if (res.headersSent) return next();
+  if (
+    req.method !== "GET" &&
+    req.method !== "POST" &&
+    req.method !== "PATCH" &&
+    req.method !== "DELETE"
+  ) {
+    return next(
+      new MethodNotAllowedError(
+        `Method ${req.method} not allowed on ${req.originalUrl}`,
+      ),
+    );
   }
-  next(
-    new MethodNotAllowedError(
-      `Method ${req.method} not allowed on ${req.originalUrl}`,
-    ),
-  );
-});
-
-app.use("*", (req: Request, res: Response, next: NextFunction) => {
   next(new NotFoundError(`Can't find ${req.originalUrl} on this server!`));
 });
 

@@ -1,12 +1,12 @@
 import { EntityManager } from "typeorm";
-import { UserEntity, UserProvider } from "../entities/user.entity";
-import { LinkedInProfile } from "../interfaces";
-import log from "../utils/logger";
-import { sanitizeUser } from "../utils/sanitizeUser";
+import { UserEntity, UserProvider } from "../../entities/user.entity";
+import log from "../../utils/logger";
+import { sanitizeUser } from "../../utils/sanitizeUser";
+import { GoogleProfile } from "./google.interface";
 
-export class LinkedInAuthService {
+export class GoogleAuthService {
   async authenticateOrCreateUser(
-    profileData: LinkedInProfile,
+    profileData: GoogleProfile,
     entityManager: EntityManager,
   ): Promise<Partial<UserEntity>> {
     const { email } = profileData;
@@ -19,12 +19,12 @@ export class LinkedInAuthService {
       if (!user) {
         user = tx.create(UserEntity, {
           ...profileData,
-          provider: UserProvider.LINKEDIN,
+          provider: UserProvider.GOOGLE,
         });
         await tx.save(user);
-        log.info("New user registered via LinkedIn");
+        log.info("New user registered via Google");
       } else {
-        log.info("Existing user logged in via LinkedIn");
+        log.info("Existing user logged in via Google");
       }
 
       const sanitizedUser = sanitizeUser(user);
