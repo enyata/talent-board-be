@@ -3,6 +3,16 @@ import { Column, Entity, OneToMany } from "typeorm";
 import ExtendedBaseEntity from "./base.entity";
 import { RefreshToken } from "./refreshToken.entity";
 
+export enum UserProvider {
+  GOOGLE = "google",
+  LINKEDIN = "linkedin",
+}
+
+export enum UserRole {
+  TALENT = "talent",
+  RECRUITER = "recruiter",
+}
+
 @Entity({ name: "users" })
 export class UserEntity extends ExtendedBaseEntity {
   @Column({ name: "first_name" })
@@ -24,19 +34,19 @@ export class UserEntity extends ExtendedBaseEntity {
   @Column({
     name: "provider",
     type: "enum",
-    enum: ["google", "linkedin"],
+    enum: UserProvider,
   })
   @Expose()
-  provider: "google" | "linkedin";
+  provider: UserProvider;
 
   @Column({
     name: "role",
     type: "enum",
-    enum: ["talent", "recruiter"],
+    enum: UserRole,
     nullable: true,
   })
   @Expose()
-  role: "talent" | "recruiter";
+  role: UserRole;
 
   @Column({ name: "profile_completed", default: false })
   @Expose()

@@ -1,6 +1,6 @@
 import { DataSource } from "typeorm";
 import AppDataSource from "../datasource";
-import { UserEntity } from "../entities/user.entity";
+import { UserEntity, UserProvider, UserRole } from "../entities/user.entity";
 import log from "../utils/logger";
 
 export const seedTestDatabase = async (dataSource: DataSource) => {
@@ -25,8 +25,8 @@ export const seedTestDatabase = async (dataSource: DataSource) => {
     last_name: "Talent",
     email: "talent@example.com",
     avatar: "https://example.com/talent-avatar.png",
-    provider: "google",
-    role: "talent",
+    provider: UserProvider.GOOGLE,
+    role: UserRole.TALENT,
     profile_completed: false,
     refreshTokens: [],
   });
@@ -36,8 +36,8 @@ export const seedTestDatabase = async (dataSource: DataSource) => {
     last_name: "Recruiter",
     email: "recruiter@example.com",
     avatar: "https://example.com/recruiter-avatar.png",
-    provider: "google",
-    role: "recruiter",
+    provider: UserProvider.GOOGLE,
+    role: UserRole.RECRUITER,
     profile_completed: false,
     refreshTokens: [],
   });

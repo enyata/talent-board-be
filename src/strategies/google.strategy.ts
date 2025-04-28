@@ -19,7 +19,7 @@ passport.use(
           avatar: profile.photos?.[0]?.value || null,
         };
 
-        log.info(`Google profile received for: ${profileData.email}`);
+        log.info("Google profile received");
         return done(null, profileData);
       } catch (error) {
         log.error("Google OAuth error", error);

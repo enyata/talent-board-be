@@ -16,9 +16,11 @@ import { NotFoundError } from "./exceptions/notFoundError";
 import globalErrorHandler from "./middlewares/errorHandler";
 import router from "./routes/index.route";
 import "./strategies/google.strategy";
+import "./strategies/linkedin.strategy";
 
 const app: Express = express();
 app.disable("x-powered-by");
+
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -31,6 +33,7 @@ app.use(
     },
   }),
 );
+
 app.options("*", cors());
 app.use(
   cors({

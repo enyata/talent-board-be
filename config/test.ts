@@ -23,5 +23,8 @@ export default {
   GOOGLE_CLIENT_ID: "google_client_id",
   GOOGLE_CLIENT_SECRET: "google_client_secret",
 
+  LINKEDIN_CLIENT_ID: "linkedin_client_id",
+  LINKEDIN_CLIENT_SECRET: "linkedin_client_secret",
+
   REDIS_URL: "redis://localhost:6380",
 };
