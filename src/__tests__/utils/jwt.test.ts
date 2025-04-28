@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
-import { AppError } from "../exceptions/appError";
-import { signToken, verifyToken } from "../utils/jwt";
+import { AppError } from "../../exceptions/appError";
+import { signToken, verifyToken } from "../../utils/jwt";
 
 jest.mock("jsonwebtoken", () => ({
   sign: jest.fn(),

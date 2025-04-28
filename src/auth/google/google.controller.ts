@@ -1,10 +1,10 @@
+import { GOOGLE_SCOPES } from "@/auth/auth.constants";
+import AppDataSource from "@/datasource";
+import { UnauthorizedError } from "@/exceptions/unauthorizedError";
+import asyncHandler from "@/middlewares/asyncHandler";
+import { createSendToken } from "@/utils/createSendToken";
 import type { NextFunction, Request, Response } from "express";
 import passport from "passport";
-import AppDataSource from "../../datasource";
-import { UnauthorizedError } from "../../exceptions/unauthorizedError";
-import asyncHandler from "../../middlewares/asyncHandler";
-import { createSendToken } from "../../utils/createSendToken";
-import { GOOGLE_SCOPES } from "../auth.constants";
 import { GoogleAuthService } from "./google.service";
 
 const googleAuthService = new GoogleAuthService();

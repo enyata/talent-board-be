@@ -1,9 +1,9 @@
+import { AppError } from "@/exceptions/appError";
+import { IResponseError } from "@/interfaces";
+import log from "@/utils/logger";
 import config from "config";
 import type { NextFunction, Request, Response } from "express";
 import { JsonWebTokenError } from "jsonwebtoken";
-import { AppError } from "../exceptions/appError";
-import { IResponseError } from "../interfaces";
-import log from "../utils/logger";
 
 const handleJWTError = (err: any) =>
   new AppError("Invalid or expired token", 401);

@@ -7,17 +7,17 @@ import hpp from "hpp";
 import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
 
+import "@/auth/loadStrategies";
+import AppDataSource from "@/datasource";
+import { MethodNotAllowedError } from "@/exceptions/methodNotAllowedError";
+import { NotFoundError } from "@/exceptions/notFoundError";
+import globalErrorHandler from "@/middlewares/errorHandler";
+import router from "@/routes/index.route";
 import corsOptions from "../config/corsOptions";
 import config from "../config/default";
 import helmetOptions from "../config/helmetOptions";
 import hppOptions from "../config/hppOptions";
 import swaggerSpec from "../config/swaggerConfig";
-import "./auth/loadStrategies";
-import AppDataSource from "./datasource";
-import { MethodNotAllowedError } from "./exceptions/methodNotAllowedError";
-import { NotFoundError } from "./exceptions/notFoundError";
-import globalErrorHandler from "./middlewares/errorHandler";
-import router from "./routes/index.route";
 
 const app: Express = express();
 app.disable("x-powered-by");

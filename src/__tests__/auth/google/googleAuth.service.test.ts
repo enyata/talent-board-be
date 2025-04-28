@@ -1,9 +1,9 @@
 import { EntityManager } from "typeorm";
-import { GoogleProfile } from "../auth/google/google.interface";
-import { GoogleAuthService } from "../auth/google/google.service";
+import { GoogleProfile } from "../../../auth/google/google.interface";
+import { GoogleAuthService } from "../../../auth/google/google.service";
 
-jest.mock("../entities/user.entity", () => {
-  const actual = jest.requireActual("../entities/user.entity");
+jest.mock("../../../entities/user.entity.ts", () => {
+  const actual = jest.requireActual("../../../entities/user.entity.ts");
   return {
     ...actual,
     UserProvider: {
@@ -12,7 +12,7 @@ jest.mock("../entities/user.entity", () => {
   };
 });
 
-import { UserProvider } from "../entities/user.entity";
+import { UserProvider } from "../../../entities/user.entity";
 
 const mockManager = {
   transaction: jest.fn(),

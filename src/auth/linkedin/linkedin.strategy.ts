@@ -1,13 +1,13 @@
+import { LINKEDIN_CALLBACK_PATH } from "@/auth/auth.constants";
+import { UnauthorizedError } from "@/exceptions/unauthorizedError";
+import { createHttpsAgent } from "@/utils/createHttpsAgent";
+import log from "@/utils/logger";
 import axios from "axios";
 import config from "config";
 import { JwtHeader, SigningKeyCallback, verify } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 import passport from "passport";
 import { Strategy as CustomStrategy } from "passport-custom";
-import { UnauthorizedError } from "../../exceptions/unauthorizedError";
-import { createHttpsAgent } from "../../utils/createHttpsAgent";
-import log from "../../utils/logger";
-import { LINKEDIN_CALLBACK_PATH } from "../auth.constants";
 
 const client = jwksClient({
   jwksUri: "https://www.linkedin.com/oauth/openid/jwks",

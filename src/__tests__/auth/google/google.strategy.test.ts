@@ -1,7 +1,7 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import "../auth/google/google.strategy";
-import { closeLogger } from "../utils/logger";
+import "../../../auth/google/google.strategy";
+import { closeLogger } from "../../../utils/logger";
 
 jest.spyOn(passport, "use");
 

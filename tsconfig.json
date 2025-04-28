@@ -17,8 +17,18 @@
     "types": ["node", "express"],
     "resolveJsonModule": true,
     "baseUrl": "./",
-    "paths": { "@/*": ["src/*"] }
+    "paths": {
+      "@/*": ["src/*"],
+      "@tests/*": ["src/__tests__/*"]
+    }
   },
-  "include": ["src/**/*", "config"],
-  "exclude": ["node_modules", "test", "build", "**/*.test.ts", "**/*.spec.ts"]
+  "include": ["src/**/*", "config", "testUtils"],
+  "exclude": [
+    "node_modules",
+    "test",
+    "build",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/__tests__/**"
+  ]
 }

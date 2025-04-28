@@ -1,10 +1,10 @@
+import { LINKEDIN_SCOPES } from "@/auth/auth.constants";
+import AppDataSource from "@/datasource";
+import { UnauthorizedError } from "@/exceptions/unauthorizedError";
+import asyncHandler from "@/middlewares/asyncHandler";
+import { createSendToken } from "@/utils/createSendToken";
 import config from "config";
 import type { NextFunction, Request, Response } from "express";
-import AppDataSource from "../../datasource";
-import { UnauthorizedError } from "../../exceptions/unauthorizedError";
-import asyncHandler from "../../middlewares/asyncHandler";
-import { createSendToken } from "../../utils/createSendToken";
-import { LINKEDIN_SCOPES } from "../auth.constants";
 import { LinkedInAuthService } from "./linkedin.service";
 
 const linkedInAuthService = new LinkedInAuthService();

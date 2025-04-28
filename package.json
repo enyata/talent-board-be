@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only ./src/index.ts",
+    "dev": "ts-node-dev --respawn --transpile-only --require tsconfig-paths/register ./src/index.ts",
     "start": "ts-node --transpile-only src/index.ts",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.json",
     "prepare": "husky",
-    "commitlint": "ts-node commitlint.config.ts",
+    "commitlint": "commitlint --config commitlint.config.ts",
     "db:dev:up": "docker compose up -d --remove-orphans",
     "db:dev:rm": "docker compose rm -s -f -v",
     "migration:create": "ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:create src/migrations/migration",
@@ -98,11 +98,6 @@
   "lint-staged": {
     "*.{js,ts,json,md}": [
       "prettier --write"
-    ]
-  },
-  "commitlint": {
-    "extends": [
-      "./commitlint.config.ts"
     ]
   }
 }

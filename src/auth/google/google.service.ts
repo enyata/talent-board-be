@@ -1,7 +1,7 @@
+import { UserEntity, UserProvider } from "@/entities/user.entity";
+import log from "@/utils/logger";
+import { sanitizeUser } from "@/utils/sanitizeUser";
 import { EntityManager } from "typeorm";
-import { UserEntity, UserProvider } from "../../entities/user.entity";
-import log from "../../utils/logger";
-import { sanitizeUser } from "../../utils/sanitizeUser";
 import { GoogleProfile } from "./google.interface";
 
 export class GoogleAuthService {

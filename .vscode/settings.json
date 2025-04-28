@@ -7,5 +7,11 @@
     "source.sortImports": "always"
   },
   "typescript.format.semicolons": "remove",
-  "prettier.trailingComma": "es5"
+  "prettier.trailingComma": "es5",
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "javascript.preferences.importModuleSpecifier": "non-relative",
+  "path-intellisense.mappings": {
+    "@": "${workspaceRoot}/src",
+    "@tests": "${workspaceRoot}/src/__tests__"
+  }
 }
