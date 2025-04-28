@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import "../strategies/google.strategy";
+import "../auth/google/google.strategy";
 import { closeLogger } from "../utils/logger";
 
 jest.spyOn(passport, "use");
@@ -29,9 +29,10 @@ describe("Google Strategy", () => {
     const verifyCallback = jest.fn(
       (_accessToken, _refreshToken, profile, done) => {
         const profileData = {
-          givenName: profile.name?.givenName ?? "Google",
-          familyName: profile.name?.familyName ?? "User",
-          email: profile.emails?.[0]?.value!,
+          first_name: profile.name?.givenName || "Google",
+          last_name: profile.name?.familyName || "User",
+          email: profile.emails?.[0]?.value,
+          avatar: profile.photos?.[0]?.value || null,
         };
         done(null, profileData);
       },
@@ -40,6 +41,7 @@ describe("Google Strategy", () => {
     const profileMock = {
       name: { givenName: "John", familyName: "Doe" },
       emails: [{ value: "johndoe@gmail.com" }],
+      photos: [{ value: "http://avatar.com/john.png" }],
     };
 
     verifyCallback(
@@ -48,10 +50,11 @@ describe("Google Strategy", () => {
       profileMock,
       (err, profile) => {
         expect(err).toBeNull();
-        expect(profile).toMatchObject({
-          givenName: "John",
-          familyName: "Doe",
+        expect(profile).toEqual({
+          first_name: "John",
+          last_name: "Doe",
           email: "johndoe@gmail.com",
+          avatar: "http://avatar.com/john.png",
         });
       },
     );

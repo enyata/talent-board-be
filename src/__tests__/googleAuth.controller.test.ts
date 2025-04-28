@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { googleOAuthCallback } from "../controllers/googleAuth.controller";
+import { googleOAuthCallback } from "../auth/google/google.controller";
+import { GoogleAuthService } from "../auth/google/google.service";
 import AppDataSource from "../datasource";
-import { GoogleAuthService } from "../services/googleAuth.service";
 import * as createTokenUtil from "../utils/createSendToken";
 
-jest.mock("../services/googleAuth.service");
+jest.mock("../auth/google/google.service");
 jest.mock("../utils/createSendToken");
 
 const mockUser = { id: "user-123", email: "jane.doe@example.com" };
