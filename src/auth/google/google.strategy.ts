@@ -1,5 +1,5 @@
-import { GOOGLE_CALLBACK_PATH } from "@/auth/auth.constants";
-import log from "@/utils/logger";
+import { GOOGLE_CALLBACK_PATH } from "@src/auth/auth.constants";
+import log from "@src/utils/logger";
 import config from "config";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";

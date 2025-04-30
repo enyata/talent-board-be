@@ -1,4 +1,4 @@
-import { UserEntity } from "@/entities/user.entity";
+import { UserEntity } from "@src/entities/user.entity";
 import { ClassTransformOptions, plainToInstance } from "class-transformer";
 
 export const sanitizeUser = (user: UserEntity): Partial<UserEntity> => {

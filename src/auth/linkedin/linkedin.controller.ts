@@ -1,8 +1,8 @@
-import { LINKEDIN_SCOPES } from "@/auth/auth.constants";
-import AppDataSource from "@/datasource";
-import { UnauthorizedError } from "@/exceptions/unauthorizedError";
-import asyncHandler from "@/middlewares/asyncHandler";
-import { createSendToken } from "@/utils/createSendToken";
+import { LINKEDIN_SCOPES } from "@src/auth/auth.constants";
+import AppDataSource from "@src/datasource";
+import { UnauthorizedError } from "@src/exceptions/unauthorizedError";
+import asyncHandler from "@src/middlewares/asyncHandler";
+import { createSendToken } from "@src/utils/createSendToken";
 import config from "config";
 import type { NextFunction, Request, Response } from "express";
 import { LinkedInAuthService } from "./linkedin.service";

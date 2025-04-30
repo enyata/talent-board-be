@@ -16,13 +16,12 @@
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "types": ["node", "express"],
     "resolveJsonModule": true,
-    "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"],
-      "@tests/*": ["src/__tests__/*"]
+      "@src/*": ["./src/*"],
+      "@tests/*": ["./src/__tests__/*"]
     }
   },
-  "include": ["src/**/*", "config", "testUtils"],
+  "include": ["src/**/*", "config"],
   "exclude": [
     "node_modules",
     "test",

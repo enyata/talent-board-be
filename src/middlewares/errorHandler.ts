@@ -1,6 +1,6 @@
-import { AppError } from "@/exceptions/appError";
-import { IResponseError } from "@/interfaces";
-import log from "@/utils/logger";
+import { AppError } from "@src/exceptions/appError";
+import { IResponseError } from "@src/interfaces";
+import log from "@src/utils/logger";
 import config from "config";
 import type { NextFunction, Request, Response } from "express";
 import { JsonWebTokenError } from "jsonwebtoken";

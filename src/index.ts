@@ -4,7 +4,7 @@ import { readFileSync } from "fs";
 import { createServer } from "https";
 import "reflect-metadata";
 
-import app from "@/app";
+import app from "./app";
 import AppDataSource from "./datasource";
 import log from "./utils/logger";
 

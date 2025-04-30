@@ -1,6 +1,6 @@
-import { UserEntity, UserProvider } from "@/entities/user.entity";
-import log from "@/utils/logger";
-import { sanitizeUser } from "@/utils/sanitizeUser";
+import { UserEntity, UserProvider } from "@src/entities/user.entity";
+import log from "@src/utils/logger";
+import { sanitizeUser } from "@src/utils/sanitizeUser";
 import { EntityManager } from "typeorm";
 import { LinkedInProfile } from "./linkedin.interface";
 

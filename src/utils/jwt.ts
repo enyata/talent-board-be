@@ -1,5 +1,5 @@
-import { AppError } from "@/exceptions/appError";
-import { CustomJwtPayload } from "@/interfaces";
+import { AppError } from "@src/exceptions/appError";
+import { CustomJwtPayload } from "@src/interfaces";
 import config from "config";
 import { sign, verify } from "jsonwebtoken";
 

@@ -1,7 +1,7 @@
-import { LINKEDIN_CALLBACK_PATH } from "@/auth/auth.constants";
-import { UnauthorizedError } from "@/exceptions/unauthorizedError";
-import { createHttpsAgent } from "@/utils/createHttpsAgent";
-import log from "@/utils/logger";
+import { LINKEDIN_CALLBACK_PATH } from "@src/auth/auth.constants";
+import { UnauthorizedError } from "@src/exceptions/unauthorizedError";
+import { createHttpsAgent } from "@src/utils/createHttpsAgent";
+import log from "@src/utils/logger";
 import axios from "axios";
 import config from "config";
 import { JwtHeader, SigningKeyCallback, verify } from "jsonwebtoken";
