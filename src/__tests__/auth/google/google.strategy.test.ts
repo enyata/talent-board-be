@@ -1,62 +1,79 @@
 import passport from "passport";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import "../../../auth/google/google.strategy";
 import { closeLogger } from "../../../utils/logger";
 
-jest.spyOn(passport, "use");
+jest.mock("config", () => ({
+  get: (key: string) => {
+    const map: Record<string, string> = {
+      GOOGLE_CLIENT_ID: "test-client-id",
+      GOOGLE_CLIENT_SECRET: "test-secret",
+      BASE_URL: "http://localhost:8000",
+      API_PREFIX: "api/v1",
+    };
+    return map[key];
+  },
+}));
 
 describe("Google Strategy", () => {
-  beforeAll(() => {
-    passport.use(
-      new GoogleStrategy(
-        {
-          clientID: "GOOGLE_CLIENT_ID",
-          clientSecret: "GOOGLE_CLIENT_SECRET",
-          callbackURL: "http://localhost:8000/api/v1/auth/google/callback",
-        },
-        (_accessToken, _refreshToken, profile, done) => {
-          done(null, profile);
-        },
-      ),
-    );
-  });
+  const strategy = (passport as any)._strategies.google;
 
   afterAll(async () => {
     await closeLogger();
   });
 
-  it("should extract user profile correctly", async () => {
-    const verifyCallback = jest.fn(
-      (_accessToken, _refreshToken, profile, done) => {
-        const profileData = {
-          first_name: profile.name?.givenName || "Google",
-          last_name: profile.name?.familyName || "User",
-          email: profile.emails?.[0]?.value,
-          avatar: profile.photos?.[0]?.value || null,
-        };
-        done(null, profileData);
-      },
-    );
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
+  it("should register the Google strategy under the 'google' key", () => {
+    expect(strategy).toBeDefined();
+    expect((strategy as any).name).toBe("google");
+  });
+
+  it("should extract full user profile correctly", async () => {
     const profileMock = {
-      name: { givenName: "John", familyName: "Doe" },
-      emails: [{ value: "johndoe@gmail.com" }],
-      photos: [{ value: "http://avatar.com/john.png" }],
+      name: { givenName: "Jane", familyName: "Doe" },
+      emails: [{ value: "jane.doe@example.com" }],
+      photos: [{ value: "https://avatar.com/jane.png" }],
     };
 
-    verifyCallback(
-      "mockAccessToken",
-      "mockRefreshToken",
-      profileMock,
-      (err, profile) => {
-        expect(err).toBeNull();
-        expect(profile).toEqual({
-          first_name: "John",
-          last_name: "Doe",
-          email: "johndoe@gmail.com",
-          avatar: "http://avatar.com/john.png",
-        });
-      },
-    );
+    const done = jest.fn();
+
+    await strategy._verify("access-token", "refresh-token", profileMock, done);
+
+    expect(done).toHaveBeenCalledWith(null, {
+      first_name: "Jane",
+      last_name: "Doe",
+      email: "jane.doe@example.com",
+      avatar: "https://avatar.com/jane.png",
+    });
+  });
+
+  it("should apply default fallbacks if profile fields are missing", async () => {
+    const profileMock = {
+      name: {},
+      emails: [],
+      photos: [],
+    };
+
+    const done = jest.fn();
+
+    await strategy._verify("access-token", "refresh-token", profileMock, done);
+
+    expect(done).toHaveBeenCalledWith(null, {
+      first_name: "Google",
+      last_name: "User",
+      email: "",
+      avatar: null,
+    });
+  });
+
+  it("should handle unexpected errors and call done with error", async () => {
+    const badProfile = null as any;
+    const done = jest.fn();
+
+    await strategy._verify("access-token", "refresh-token", badProfile, done);
+
+    expect(done).toHaveBeenCalledWith(expect.any(Error), null);
   });
 });
