@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["es5", "es6"],
+    "lib": ["es5", "es6", "esnext"],
     "target": "ES2021",
     "module": "commonjs",
     "moduleResolution": "node",
