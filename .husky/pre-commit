@@ -1,5 +1,7 @@
-yarn
+echo "🔍 Running Pre-Commit Hooks..."
 
-yarn lint-staged
+yarn || { echo '❌ Yarn install failed!'; exit 1; }
+yarn lint-staged || { echo '❌ Lint staged files failed!'; exit 1; }
+yarn build || { echo '❌ Build failed! Please fix errors before committing.'; exit 1; }
 
-yarn build
+echo "✅ Pre-Commit checks passed successfully!"

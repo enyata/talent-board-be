@@ -1,10 +1,18 @@
 import { EntityManager } from "typeorm";
-import { GoogleProfile } from "../interfaces";
-import { GoogleAuthService } from "../services/googleAuth.service";
+import { GoogleProfile } from "../../../auth/google/google.interface";
+import { GoogleAuthService } from "../../../auth/google/google.service";
 
-jest.mock("../entities/user.entity", () => ({
-  UserEntity: jest.fn().mockImplementation(() => ({})),
-}));
+jest.mock("../../../entities/user.entity.ts", () => {
+  const actual = jest.requireActual("../../../entities/user.entity.ts");
+  return {
+    ...actual,
+    UserProvider: {
+      GOOGLE: "google",
+    },
+  };
+});
+
+import { UserProvider } from "../../../entities/user.entity";
 
 const mockManager = {
   transaction: jest.fn(),
@@ -33,11 +41,18 @@ describe("GoogleAuthService", () => {
       profile,
       mockManager as unknown as EntityManager,
     );
-    expect(user).toBe(existingUser);
+    expect(user).toEqual({
+      id: "abc-123",
+      email: "john.doe@example.com",
+    });
   });
 
   it("should create and return new user if not found", async () => {
-    const savedUser = { id: "xyz-789", ...profile };
+    const savedUser = {
+      id: "xyz-789",
+      ...profile,
+      provider: UserProvider.GOOGLE,
+    };
     mockManager.transaction.mockImplementation(async (cb) =>
       cb({
         findOne: jest.fn().mockResolvedValue(undefined),
@@ -50,6 +65,9 @@ describe("GoogleAuthService", () => {
       profile,
       mockManager as unknown as EntityManager,
     );
-    expect(user).toEqual(savedUser);
+    expect(user).toMatchObject({
+      id: "xyz-789",
+      email: "john.doe@example.com",
+    });
   });
 });

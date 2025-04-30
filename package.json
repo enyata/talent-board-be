@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only ./src/index.ts",
-    "start": "ts-node --transpile-only src/index.ts",
-    "build": "tsc",
+    "dev": "ts-node-dev --respawn --transpile-only --require tsconfig-paths/register ./src/index.ts",
+    "start": "node build/src/index.js",
+    "build": "rimraf build && tsc -p tsconfig.json && tsc-alias",
     "prepare": "husky",
-    "commitlint": "ts-node commitlint.config.ts",
+    "commitlint": "commitlint --config commitlint.config.ts",
     "db:dev:up": "docker compose up -d --remove-orphans",
     "db:dev:rm": "docker compose rm -s -f -v",
     "migration:create": "ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:create src/migrations/migration",
@@ -33,6 +33,7 @@
   "description": "A talent board application where recruiters hire top talents",
   "dependencies": {
     "argon2": "^0.41.1",
+    "axios": "^1.9.0",
     "bullmq": "^5.47.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
@@ -48,9 +49,11 @@
     "html-to-text": "^9.0.5",
     "ioredis": "^5.6.0",
     "jsonwebtoken": "^9.0.2",
+    "jwks-rsa": "^3.2.0",
     "morgan": "^1.10.0",
     "nodemailer": "^6.10.0",
     "passport": "^0.7.0",
+    "passport-custom": "^1.1.1",
     "passport-google-oauth20": "^2.0.0",
     "pg": "^8.14.1",
     "pino": "^9.6.0",
@@ -89,17 +92,13 @@
     "prettier": "^3.5.3",
     "ts-jest": "^29.3.1",
     "ts-node-dev": "^2.0.0",
+    "tsc-alias": "^1.8.15",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3"
   },
   "lint-staged": {
     "*.{js,ts,json,md}": [
       "prettier --write"
-    ]
-  },
-  "commitlint": {
-    "extends": [
-      "./commitlint.config.ts"
     ]
   }
 }

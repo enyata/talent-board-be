@@ -13,7 +13,7 @@ export default {
   DB_PASSWORD: process.env.DB_PASSWORD,
   DB_NAME: process.env.DB_NAME,
   DATABASE_URL: process.env.DATABASE_URL,
-  BASE_URL: process.env.BASE_URL ?? "http://localhost:8000",
+  BASE_URL: process.env.BASE_URL ?? "https://localhost:8000",
 
   accessTokenTtl: process.env.ACCESS_TOKEN_TTL,
   refreshTokenTtl: process.env.REFRESH_TOKEN_TTL,
@@ -28,6 +28,9 @@ export default {
 
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+
+  LINKEDIN_CLIENT_ID: process.env.LINKEDIN_CLIENT_ID,
+  LINKEDIN_CLIENT_SECRET: process.env.LINKEDIN_CLIENT_SECRET,
 
   EMAIL_PROVIDER: process.env.EMAIL_PROVIDER || "gmail",
   EMAIL_FROM: process.env.EMAIL_FROM || "noreply@talent-board.enyata.com",

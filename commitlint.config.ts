@@ -32,4 +32,4 @@ const config: UserConfig = {
   },
 };
 
-export default config;
+module.exports = config;

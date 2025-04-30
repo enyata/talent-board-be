@@ -1,8 +1,8 @@
+import { RefreshToken } from "@src/entities/refreshToken.entity";
+import { UserEntity } from "@src/entities/user.entity";
 import config from "config";
 import type { CookieOptions, Request, Response } from "express";
 import { EntityManager } from "typeorm";
-import { RefreshToken } from "../entities/refreshToken.entity";
-import { UserEntity } from "../entities/user.entity";
 import { signToken } from "./jwt";
 
 export const createSendToken = async (

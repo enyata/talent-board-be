@@ -7,6 +7,11 @@ const config: Config = {
   transform: {
     "^.+\\.ts$": ["ts-jest", { tsconfig: "tsconfig.jest.json" }],
   },
+  moduleNameMapper: {
+    "^@src/(.*)$": "<rootDir>/src/$1",
+    "^@tests/(.*)$": "<rootDir>/src/__tests__/$1",
+  },
+  moduleDirectories: ["node_modules", "src"],
   collectCoverage: true,
   coverageDirectory: "coverage",
   coverageReporters: ["json", "lcov", "text", "clover"],

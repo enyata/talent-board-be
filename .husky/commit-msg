@@ -1,1 +1,17 @@
-yarn commitlint ${1}
+echo "🔍 Running Commitlint..."
+
+yarn commitlint --edit "$1"
+status=$?
+
+if [ $status -ne 0 ]; then
+  echo "❌ Commitlint failed. Please fix your commit message."
+  exit 1
+fi
+
+echo ""
+echo "📝 Commit message preview:"
+echo "--------------------------------"
+cat "$1"
+echo "--------------------------------"
+
+exit 0

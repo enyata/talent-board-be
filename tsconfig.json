@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["es5", "es6"],
+    "lib": ["es5", "es6", "esnext"],
     "target": "ES2021",
     "module": "commonjs",
     "moduleResolution": "node",
@@ -16,9 +16,18 @@
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "types": ["node", "express"],
     "resolveJsonModule": true,
-    "baseUrl": "./",
-    "paths": { "@/*": ["src/*"] }
+    "paths": {
+      "@src/*": ["./src/*"],
+      "@tests/*": ["./src/__tests__/*"]
+    }
   },
   "include": ["src/**/*", "config"],
-  "exclude": ["node_modules", "test", "build", "**/*.test.ts", "**/*.spec.ts"]
+  "exclude": [
+    "node_modules",
+    "test",
+    "build",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/__tests__/**"
+  ]
 }

@@ -5,7 +5,5 @@
     "source.removeUnusedImports": "always",
     "source.organizeImports": "always",
     "source.sortImports": "always"
-  },
-  "typescript.format.semicolons": "remove",
-  "prettier.trailingComma": "es5"
+  }
 }
