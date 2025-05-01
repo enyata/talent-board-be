@@ -1,0 +1,7 @@
+node_modules
+build
+coverage
+data
+*.log
+.env
+.env.example

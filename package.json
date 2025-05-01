@@ -4,7 +4,7 @@
   "main": "index.ts",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only --require tsconfig-paths/register ./src/index.ts",
-    "start": "node build/src/index.js",
+    "start": "NODE_ENV=production node build/src/index.js",
     "build": "rimraf build && tsc -p tsconfig.json && tsc-alias",
     "prepare": "husky",
     "commitlint": "commitlint --config commitlint.config.ts",

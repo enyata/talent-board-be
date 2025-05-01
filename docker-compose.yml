@@ -1,29 +1,22 @@
 services:
   postgres:
+    image: postgres:17-alpine
     container_name: postgres
-    image: postgres:latest
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
-    environment:
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_NAME}
     volumes:
       - ./data/db:/var/lib/postgresql/data
     restart: always
 
-  adminer:
-    image: adminer
-    container_name: adminer
-    ports:
-      - "8080:8080"
-    restart: always
-    depends_on:
-      - postgres
-
   redis:
-    image: redis:latest
+    image: redis:7-alpine
     container_name: redis
+    env_file: .env
     ports:
       - "6379:6379"
     command: ["redis-server", "--appendonly", "yes"]
@@ -31,6 +24,36 @@ services:
       - redis_data:/data
     restart: always
 
+  adminer:
+    image: adminer:4.8.1
+    container_name: adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    restart: always
+
+  backend:
+    container_name: talentboard-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=development
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      NODE_ENV: development
+      DB_HOST: postgres
+      REDIS_HOST: redis
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: yarn dev
+    depends_on:
+      - postgres
+      - redis
+
 volumes:
-  data:
   redis_data:
