@@ -35,7 +35,7 @@ export const createSendToken = async (
     secure: req.secure || req.headers["x-forwarded-proto"] === "https",
   };
 
-  res.cookie("refreshToken", refreshToken, cookieOptions);
+  res.cookie("refresh_token", refreshToken, cookieOptions);
 
   res.status(statusCode).json({
     status: "success",
