@@ -27,7 +27,7 @@ export const sendErrorProd = (err: any, req: Request, res: Response) => {
       let response = {
         status: appError.status,
         message: appError.message,
-        statusCode: appError.statusCode,
+        status_code: appError.statusCode,
       } as IResponseError;
 
       return res.status(appError.statusCode).json(response);
@@ -38,7 +38,7 @@ export const sendErrorProd = (err: any, req: Request, res: Response) => {
     return res.status(500).json({
       status: "error",
       message: "Something went wrong!",
-      statusCode: 500,
+      status_code: 500,
     });
   }
 };

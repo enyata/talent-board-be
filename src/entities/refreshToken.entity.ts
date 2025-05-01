@@ -10,7 +10,7 @@ export class RefreshToken extends ExtendedBaseEntity {
   @Column({ name: "is_valid", type: "boolean", default: true })
   is_valid: boolean;
 
-  @ManyToOne(() => UserEntity, (user) => user.refreshTokens, {
+  @ManyToOne(() => UserEntity, (user) => user.refresh_tokens, {
     onDelete: "CASCADE",
   })
   @JoinColumn({ name: "user_id" })

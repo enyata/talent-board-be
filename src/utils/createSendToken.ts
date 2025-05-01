@@ -41,6 +41,6 @@ export const createSendToken = async (
     status: "success",
     message,
     data: { user },
-    tokens: { accessToken, refreshToken },
+    tokens: { access_token: accessToken, refresh_token: refreshToken },
   });
 };

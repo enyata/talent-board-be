@@ -53,5 +53,5 @@ export class UserEntity extends ExtendedBaseEntity {
   profile_completed: boolean;
 
   @OneToMany(() => RefreshToken, (refresh) => refresh.user)
-  refreshTokens: RefreshToken[];
+  refresh_tokens: RefreshToken[];
 }

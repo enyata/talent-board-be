@@ -28,7 +28,7 @@ export const seedTestDatabase = async (dataSource: DataSource) => {
     provider: UserProvider.GOOGLE,
     role: UserRole.TALENT,
     profile_completed: false,
-    refreshTokens: [],
+    refresh_tokens: [],
   });
 
   const recruiterUser = userRepo.create({
@@ -39,7 +39,7 @@ export const seedTestDatabase = async (dataSource: DataSource) => {
     provider: UserProvider.GOOGLE,
     role: UserRole.RECRUITER,
     profile_completed: false,
-    refreshTokens: [],
+    refresh_tokens: [],
   });
 
   await userRepo.save([talentUser, recruiterUser]);

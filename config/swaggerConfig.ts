@@ -48,7 +48,7 @@ const swaggerDefinition: SwaggerDefinition = {
         scheme: "bearer",
         bearerFormat: "JWT",
       },
-      OAuth2: {
+      OAuth2_Google: {
         type: "oauth2",
         description: "Google OAuth2 authentication",
         flows: {
@@ -62,6 +62,21 @@ const swaggerDefinition: SwaggerDefinition = {
           },
         },
       },
+      OAuth2_LinkedIn: {
+        type: "oauth2",
+        description: "LinkedIn OAuth2 authentication",
+        flows: {
+          authorizationCode: {
+            authorizationUrl: "https://www.linkedin.com/oauth/v2/authorization",
+            tokenUrl: "https://www.linkedin.com/oauth/v2/accessToken",
+            scopes: {
+              email: "Access email address",
+              profile: "Access basic profile info",
+              openid: "OpenID Connect",
+            },
+          },
+        },
+      },
     },
     schemas: {
       ErrorResponse: {
@@ -69,12 +84,45 @@ const swaggerDefinition: SwaggerDefinition = {
         properties: {
           status: { type: "string", example: "error" },
           message: { type: "string", example: "Something went wrong!" },
-          statusCode: { type: "number", example: 500 },
+          status_code: { type: "number", example: 500 },
         },
+      },
+      User: {
+        type: "object",
+        properties: {
+          id: { type: "string", example: "a1b2c3d4-uuid" },
+          first_name: { type: "string", example: "Jane" },
+          last_name: { type: "string", example: "Doe" },
+          email: { type: "string", example: "jane.doe@example.com" },
+          avatar: {
+            type: "string",
+            nullable: true,
+            example: "https://avatar.com/jane.png",
+          },
+          provider: {
+            type: "string",
+            enum: ["google", "linkedin"],
+            example: "google",
+          },
+        },
+      },
+      AccessToken: {
+        type: "string",
+        description: "JWT access token",
+        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      },
+      RefreshToken: {
+        type: "string",
+        description: "JWT refresh token",
+        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
       },
     },
   },
-  security: [{ bearerAuth: [] }, { OAuth2: [] }],
+  security: [
+    { bearerAuth: [] },
+    { OAuth2_Google: [] },
+    { OAuth2_LinkedIn: [] },
+  ],
   externalDocs: {
     url: config.get<string>("SWAGGER_JSON_URL") || "",
   },
@@ -89,7 +137,7 @@ const options = {
     "./src/schema/*.ts",
     "./src/docs/*.ts",
   ],
-  oauth2RedirectUrl: `http://localhost:${PORT}/api-docs/oauth2-redirect.html`,
+  oauth2RedirectUrl: `http://localhost:${PORT}/docs/oauth2-redirect.html`,
 };
 
 const specs = swaggerJsdoc(options);
