@@ -1,10 +1,12 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class Migration1745418605537 implements MigrationInterface {
+export class Onboarding1746228962929 implements MigrationInterface {
+  name = "Onboarding1746228962929";
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       CREATE TYPE "public"."users_provider_enum" AS ENUM('google', 'linkedin');
       CREATE TYPE "public"."users_role_enum" AS ENUM('talent', 'recruiter');
+      CREATE TYPE "public"."users_experience_level_enum" AS ENUM('entry', 'intermediate', 'expert');
 
       CREATE TABLE "users" (
         "id" uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -15,9 +17,22 @@ export class Migration1745418605537 implements MigrationInterface {
         "provider" "public"."users_provider_enum" NOT NULL,
         "role" "public"."users_role_enum",
         "profile_completed" boolean NOT NULL DEFAULT false,
+
+        -- Onboarding fields (all nullable)
+        "location" character varying,
+        "portfolio_url" character varying,
+        "linkedin_profile" character varying,
+        "resume_path" character varying,
+        "skills" text,
+        "experience_level" "public"."users_experience_level_enum",
+        "work_email" character varying,
+        "company_industry" character varying,
+        "roles_looking_for" text,
+
         "created_at" TIMESTAMP NOT NULL DEFAULT now(),
         "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
         "deleted_at" TIMESTAMP,
+
         CONSTRAINT "UQ_users_email" UNIQUE ("email"),
         CONSTRAINT "PK_users_id" PRIMARY KEY ("id")
       );
@@ -44,6 +59,7 @@ export class Migration1745418605537 implements MigrationInterface {
       ALTER TABLE "refresh_tokens" DROP CONSTRAINT "FK_refresh_tokens_user_id";
       DROP TABLE "refresh_tokens";
       DROP TABLE "users";
+      DROP TYPE "public"."users_experience_level_enum";
       DROP TYPE "public"."users_role_enum";
       DROP TYPE "public"."users_provider_enum";
     `);
