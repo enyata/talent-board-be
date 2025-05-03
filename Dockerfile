@@ -26,8 +26,6 @@ COPY --from=builder /app/config ./config
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 
-RUN yarn install --production --frozen-lockfile
-
 RUN if [ "$NODE_ENV" = "development" ]; then yarn install --frozen-lockfile; else yarn install --frozen-lockfile --production; fi
 
 CMD ["node", "build/src/index.js"]
