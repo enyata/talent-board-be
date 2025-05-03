@@ -5,10 +5,9 @@ import { NextFunction, Request, Response } from "express";
 import { OnboardingService } from "./onboarding.service";
 import { TalentOnboardingDTO } from "./schemas/talentOnboarding.schema";
 
-const service = new OnboardingService();
-
 export const onboardTalent = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
+    const service = new OnboardingService();
     const entityManager = AppDataSource.manager;
     const userId = req.user.id;
     const resumePath = req.file?.path;

@@ -4,10 +4,9 @@ import { ConflictError } from "@src/exceptions/conflictError";
 import { NotFoundError } from "@src/exceptions/notFoundError";
 import { TalentOnboardingDTO } from "./schemas/talentOnboarding.schema";
 
-const userRepo = AppDataSource.getRepository(UserEntity);
-
 export class OnboardingService {
   async onboardTalent(userId: string, payload: TalentOnboardingDTO) {
+    const userRepo = AppDataSource.getRepository(UserEntity);
     const user = await userRepo.findOne({ where: { id: userId } });
 
     if (!user) {
