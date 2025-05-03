@@ -4,6 +4,7 @@ import config from "config";
 import type { CookieOptions, Request, Response } from "express";
 import { EntityManager } from "typeorm";
 import { signToken } from "./jwt";
+import { sanitizeUser } from "./sanitizeUser";
 
 export const createSendToken = async (
   user: Partial<UserEntity>,
@@ -21,10 +22,16 @@ export const createSendToken = async (
     expiresIn: config.get<string>("refreshTokenTtl"),
   });
 
-  await entityManager.save(RefreshToken, {
-    token: refreshToken,
-    user: { id: user.id } as UserEntity,
+  const userRef = await entityManager.findOneByOrFail(UserEntity, {
+    id: user.id,
   });
+
+  const refresh = entityManager.create(RefreshToken, {
+    token: refreshToken,
+    user: userRef,
+    is_valid: true,
+  });
+  await entityManager.save(refresh);
 
   const expires =
     Number(config.get<string>("cookieExpires")) * 24 * 60 * 60 * 1000;
@@ -40,7 +47,7 @@ export const createSendToken = async (
   res.status(statusCode).json({
     status: "success",
     message,
-    data: { user },
+    data: { user: sanitizeUser(userRef) },
     tokens: { access_token: accessToken, refresh_token: refreshToken },
   });
 };

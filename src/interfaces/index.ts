@@ -7,4 +7,5 @@ export interface IResponseError {
 
 export interface CustomJwtPayload extends JwtPayload {
   id: string;
+  role: "talent" | "recruiter";
 }
