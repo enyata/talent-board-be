@@ -40,6 +40,10 @@ const swaggerDefinition: SwaggerDefinition = {
       name: "Authentication",
       description: "Authentication routes",
     },
+    {
+      name: "Onboarding",
+      description: "Onboarding routes",
+    },
   ],
   components: {
     securitySchemes: {

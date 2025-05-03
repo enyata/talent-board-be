@@ -3,7 +3,7 @@ import { CorsOptions } from "cors";
 
 const devOrigins = [
   "https://localhost:3000",
-  "http://localhost:3000",
+  "http://localhost:8000",
   "https://accounts.google.com",
   "https://www.linkedin.com",
 ];
