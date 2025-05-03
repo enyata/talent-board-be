@@ -29,7 +29,7 @@ export const linkedInOAuthCallback = asyncHandler(
       return next(new UnauthorizedError("LinkedIn authentication failed"));
     }
 
-    const profile = req.user as {
+    const profile = req.user as unknown as {
       first_name: string;
       last_name: string;
       email: string;

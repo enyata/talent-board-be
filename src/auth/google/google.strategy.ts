@@ -21,7 +21,7 @@ passport.use(
         };
 
         log.info("Google profile received");
-        return done(null, profileData);
+        return done(null, profileData as unknown as Express.User);
       } catch (error) {
         log.error("Google OAuth error", error);
         return done(error, null);

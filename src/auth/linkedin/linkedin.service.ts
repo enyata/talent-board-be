@@ -8,7 +8,7 @@ export class LinkedInAuthService {
   async authenticateOrCreateUser(
     profileData: LinkedInProfile,
     entityManager: EntityManager,
-  ): Promise<Partial<UserEntity>> {
+  ): Promise<Record<string, any>> {
     const { email } = profileData;
 
     return await entityManager.transaction(async (tx) => {
@@ -20,6 +20,7 @@ export class LinkedInAuthService {
         user = tx.create(UserEntity, {
           ...profileData,
           provider: UserProvider.LINKEDIN,
+          profile_completed: false,
         });
         await tx.save(user);
         log.info("New user registered via LinkedIn");
@@ -27,9 +28,7 @@ export class LinkedInAuthService {
         log.info("Existing user logged in via LinkedIn");
       }
 
-      const sanitizedUser = sanitizeUser(user);
-
-      return sanitizedUser;
+      return sanitizeUser(user);
     });
   }
 }
