@@ -99,6 +99,11 @@ const swaggerDefinition: SwaggerDefinition = {
             nullable: true,
             example: "https://avatar.com/jane.png",
           },
+          role: {
+            type: "string",
+            nullable: true,
+            example: "talent",
+          },
           provider: {
             type: "string",
             enum: ["google", "linkedin"],
