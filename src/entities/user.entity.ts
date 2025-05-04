@@ -133,7 +133,7 @@ export class UserEntity extends ExtendedBaseEntity {
   @IsString()
   company_industry: string;
 
-  @Column("text", { name: "roles_looking_for", nullable: true })
+  @Column("text", { name: "roles_looking_for", nullable: true, array: true })
   @Expose({ groups: ["recruiter"] })
   @IsOptional()
   @IsArray()
