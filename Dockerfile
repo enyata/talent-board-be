@@ -18,8 +18,12 @@ WORKDIR /app
 
 COPY --from=builder /app/package.json /app/yarn.lock ./
 COPY --from=builder /app/build ./build
-COPY --from=builder /app/config ./config
+COPY --from=builder /app/build/config ./config
 
-RUN yarn install --frozen-lockfile --production
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
+ENV NODE_CONFIG_DIR=/app/config
+
+RUN if [ "$NODE_ENV" = "development" ]; then yarn install --frozen-lockfile; else yarn install --frozen-lockfile --production; fi
 
 CMD ["node", "build/src/index.js"]
