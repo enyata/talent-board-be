@@ -8,7 +8,7 @@ export class GoogleAuthService {
   async authenticateOrCreateUser(
     profileData: GoogleProfile,
     entityManager: EntityManager,
-  ): Promise<Partial<UserEntity>> {
+  ): Promise<Record<string, any>> {
     const { email } = profileData;
 
     return await entityManager.transaction(async (tx) => {
@@ -20,6 +20,7 @@ export class GoogleAuthService {
         user = tx.create(UserEntity, {
           ...profileData,
           provider: UserProvider.GOOGLE,
+          profile_completed: false,
         });
         await tx.save(user);
         log.info("New user registered via Google");
@@ -27,9 +28,7 @@ export class GoogleAuthService {
         log.info("Existing user logged in via Google");
       }
 
-      const sanitizedUser = sanitizeUser(user);
-
-      return sanitizedUser;
+      return sanitizeUser(user);
     });
   }
 }

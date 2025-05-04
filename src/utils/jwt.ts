@@ -1,4 +1,3 @@
-import { AppError } from "@src/exceptions/appError";
 import { CustomJwtPayload } from "@src/interfaces";
 import config from "config";
 import { sign, verify } from "jsonwebtoken";
@@ -30,6 +29,6 @@ export const verifyToken = (
   try {
     return verify(token, publicKey) as CustomJwtPayload;
   } catch (error) {
-    throw new AppError("Invalid or expired token", 401);
+    return null;
   }
 };

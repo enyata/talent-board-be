@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken";
-import { AppError } from "../../exceptions/appError";
 import { signToken, verifyToken } from "../../utils/jwt";
 
 jest.mock("jsonwebtoken", () => ({
@@ -53,12 +52,13 @@ describe("JWT Utility Functions", () => {
       expect(result).toEqual(mockPayload);
     });
 
-    it("should throw AppError for expired/invalid token", () => {
-      (jwt.verify as jest.Mock).mockImplementation(() => {
+    it("should return null for invalid token", () => {
+      jest.spyOn(jwt, "verify").mockImplementation(() => {
         throw new Error("Invalid token");
       });
 
-      expect(() => verifyToken("invalid", mockPublicKeyName)).toThrow(AppError);
+      const result = verifyToken("invalid", mockPublicKeyName);
+      expect(result).toBeNull();
     });
   });
 });

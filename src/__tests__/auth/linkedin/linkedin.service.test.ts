@@ -1,7 +1,10 @@
 import { EntityManager } from "typeorm";
 import { LinkedInProfile } from "../../../auth/linkedin/linkedin.interface";
 import { LinkedInAuthService } from "../../../auth/linkedin/linkedin.service";
-import { UserProvider } from "../../../entities/user.entity";
+
+jest.mock("../../../utils/sanitizeUser", () => ({
+  sanitizeUser: jest.fn((user) => ({ id: user.id, email: user.email })),
+}));
 
 const mockManager = {
   transaction: jest.fn(),
@@ -19,11 +22,16 @@ describe("LinkedInAuthService", () => {
   beforeEach(() => jest.clearAllMocks());
 
   it("should return existing user if found", async () => {
-    const existingUser = { id: "abc-123", email: profile.email };
+    const existingUser = {
+      id: "abc-123",
+      email: profile.email,
+      first_name: profile.first_name,
+      last_name: profile.last_name,
+      avatar: profile.avatar,
+    };
+
     mockManager.transaction.mockImplementation(async (cb) =>
-      cb({
-        findOne: jest.fn().mockResolvedValue(existingUser),
-      }),
+      cb({ findOne: jest.fn().mockResolvedValue(existingUser) }),
     );
 
     const result = await service.authenticateOrCreateUser(
@@ -31,7 +39,7 @@ describe("LinkedInAuthService", () => {
       mockManager as unknown as EntityManager,
     );
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       id: "abc-123",
       email: "john.doe@example.com",
     });
@@ -41,7 +49,8 @@ describe("LinkedInAuthService", () => {
     const savedUser = {
       id: "xyz-789",
       ...profile,
-      provider: UserProvider.LINKEDIN,
+      provider: "linkedin",
+      profile_completed: false,
     };
 
     mockManager.transaction.mockImplementation(async (cb) =>

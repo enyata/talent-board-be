@@ -14,7 +14,7 @@ const mockReq = {
     last_name: "Doe",
     email: "jane.doe@example.com",
     avatar: "https://avatar.com/jane.png",
-  },
+  } as unknown,
 } as Partial<Request> as Request;
 
 const mockRes = {

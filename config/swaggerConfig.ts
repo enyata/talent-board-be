@@ -40,6 +40,10 @@ const swaggerDefinition: SwaggerDefinition = {
       name: "Authentication",
       description: "Authentication routes",
     },
+    {
+      name: "Onboarding",
+      description: "Onboarding routes",
+    },
   ],
   components: {
     securitySchemes: {
@@ -98,6 +102,11 @@ const swaggerDefinition: SwaggerDefinition = {
             type: "string",
             nullable: true,
             example: "https://avatar.com/jane.png",
+          },
+          role: {
+            type: "string",
+            nullable: true,
+            example: "talent",
           },
           provider: {
             type: "string",

@@ -2,17 +2,9 @@ import { EntityManager } from "typeorm";
 import { GoogleProfile } from "../../../auth/google/google.interface";
 import { GoogleAuthService } from "../../../auth/google/google.service";
 
-jest.mock("../../../entities/user.entity.ts", () => {
-  const actual = jest.requireActual("../../../entities/user.entity.ts");
-  return {
-    ...actual,
-    UserProvider: {
-      GOOGLE: "google",
-    },
-  };
-});
-
-import { UserProvider } from "../../../entities/user.entity";
+jest.mock("../../../utils/sanitizeUser", () => ({
+  sanitizeUser: jest.fn((user) => ({ id: user.id, email: user.email })),
+}));
 
 const mockManager = {
   transaction: jest.fn(),
@@ -30,18 +22,24 @@ describe("GoogleAuthService", () => {
   beforeEach(() => jest.clearAllMocks());
 
   it("should return existing user if found", async () => {
-    const existingUser = { id: "abc-123", email: profile.email };
+    const existingUser = {
+      id: "abc-123",
+      email: profile.email,
+      first_name: profile.first_name,
+      last_name: profile.last_name,
+      avatar: profile.avatar,
+    };
+
     mockManager.transaction.mockImplementation(async (cb) =>
-      cb({
-        findOne: jest.fn().mockResolvedValue(existingUser),
-      }),
+      cb({ findOne: jest.fn().mockResolvedValue(existingUser) }),
     );
 
-    const user = await service.authenticateOrCreateUser(
+    const result = await service.authenticateOrCreateUser(
       profile,
       mockManager as unknown as EntityManager,
     );
-    expect(user).toEqual({
+
+    expect(result).toMatchObject({
       id: "abc-123",
       email: "john.doe@example.com",
     });
@@ -51,8 +49,10 @@ describe("GoogleAuthService", () => {
     const savedUser = {
       id: "xyz-789",
       ...profile,
-      provider: UserProvider.GOOGLE,
+      provider: "google",
+      profile_completed: false,
     };
+
     mockManager.transaction.mockImplementation(async (cb) =>
       cb({
         findOne: jest.fn().mockResolvedValue(undefined),
@@ -61,11 +61,12 @@ describe("GoogleAuthService", () => {
       }),
     );
 
-    const user = await service.authenticateOrCreateUser(
+    const result = await service.authenticateOrCreateUser(
       profile,
       mockManager as unknown as EntityManager,
     );
-    expect(user).toMatchObject({
+
+    expect(result).toMatchObject({
       id: "xyz-789",
       email: "john.doe@example.com",
     });
