@@ -14,6 +14,8 @@ export const recruiterOnboardingSchema = z.object({
       invalid_type_error: "Roles must be an array of strings.",
     })
     .min(1, "At least one role is required"),
+  // add resume if needed for verification of recruiter's credentials
+  resume_path: z.string().min(1, "Resume upload failed").optional(),
 });
 
 export type RecruiterOnboardingDTO = z.infer<typeof recruiterOnboardingSchema>;

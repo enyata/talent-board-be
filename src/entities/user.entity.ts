@@ -98,7 +98,7 @@ export class UserEntity extends ExtendedBaseEntity {
   linkedin_profile: string;
 
   @Column({ name: "resume_path", nullable: true })
-  @Expose({ groups: ["talent"] })
+  @Expose({ groups: ["talent", "recruiter"] })
   @IsOptional()
   @IsString()
   resume_path: string;
