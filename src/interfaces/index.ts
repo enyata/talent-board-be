@@ -9,3 +9,10 @@ export interface CustomJwtPayload extends JwtPayload {
   id: string;
   role: "talent" | "recruiter";
 }
+
+export interface UploadConfig {
+  destinationFolder: string;
+  fieldname: string;
+  allowedMimeTypes: string[];
+  maxSizeMB?: number;
+}
