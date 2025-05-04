@@ -1,4 +1,3 @@
-// src/__tests__/onboarding/onboarding.service.test.ts
 import { Repository } from "typeorm";
 import AppDataSource from "../../datasource";
 import {
@@ -23,13 +22,23 @@ describe("OnboardingService", () => {
   let mockRepo: Partial<Repository<UserEntity>>;
 
   const userId = "user-id-1";
-  const dto = {
+
+  const talentDto = {
     location: "Lagos",
     portfolio_url: "https://portfolio.com",
     linkedin_profile: "https://linkedin.com/in/sample",
     resume_path: "uploads/resumes/sample.pdf",
     skills: ["Node.js", "TypeScript"],
     experience_level: ExperienceLevel.INTERMEDIATE as ExperienceLevel,
+  };
+
+  const recruiterDto = {
+    location: "Lagos",
+    linkedin_profile: "https://linkedin.com/in/sample",
+    work_email: "recruiter@company.com",
+    company_industry: "Tech",
+    roles_looking_for: ["Frontend Developer", "Backend Developer"],
+    resume_path: "uploads/resumes/sample.pdf",
   };
 
   beforeEach(() => {
@@ -46,14 +55,40 @@ describe("OnboardingService", () => {
     (mockRepo.findOne as jest.Mock).mockResolvedValue(user);
     (mockRepo.save as jest.Mock).mockImplementation((input) => input);
 
-    const result = await service.onboardUser(userId, dto, UserRole.TALENT);
+    const result = await service.onboardUser(
+      userId,
+      talentDto,
+      UserRole.TALENT,
+    );
 
     expect(result.role).toBe(UserRole.TALENT);
     expect(result.profile_completed).toBe(true);
     expect(mockRepo.save).toHaveBeenCalledWith(
       expect.objectContaining({
-        ...dto,
+        ...talentDto,
         role: UserRole.TALENT,
+        profile_completed: true,
+      }),
+    );
+  });
+
+  it("should onboard a new recruiter successfully", async () => {
+    const user = { id: userId, profile_completed: false } as UserEntity;
+    (mockRepo.findOne as jest.Mock).mockResolvedValue(user);
+    (mockRepo.save as jest.Mock).mockImplementation((input) => input);
+
+    const result = await service.onboardUser(
+      userId,
+      recruiterDto,
+      UserRole.RECRUITER,
+    );
+
+    expect(result.role).toBe(UserRole.RECRUITER);
+    expect(result.profile_completed).toBe(true);
+    expect(mockRepo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ...recruiterDto,
+        role: UserRole.RECRUITER,
         profile_completed: true,
       }),
     );
@@ -63,7 +98,7 @@ describe("OnboardingService", () => {
     (mockRepo.findOne as jest.Mock).mockResolvedValue(null);
 
     await expect(
-      service.onboardUser(userId, dto, UserRole.TALENT),
+      service.onboardUser(userId, talentDto, UserRole.TALENT),
     ).rejects.toThrow(NotFoundError);
   });
 
@@ -72,7 +107,7 @@ describe("OnboardingService", () => {
     (mockRepo.findOne as jest.Mock).mockResolvedValue(onboardedUser);
 
     await expect(
-      service.onboardUser(userId, dto, UserRole.TALENT),
+      service.onboardUser(userId, talentDto, UserRole.TALENT),
     ).rejects.toThrow(ConflictError);
   });
 });
