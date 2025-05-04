@@ -1,31 +1,31 @@
 import type { NextFunction, Request, Response } from "express";
 
-export const parseFormDataFields = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void => {
-  const fieldsToParseAsJson = ["skills"];
+/**
+ * Creates middleware to parse specified request fields as JSON arrays.
+ * @param fieldsToParse Array of field names to parse
+ */
+export const parseFormDataFields =
+  (fieldsToParse: string[]) =>
+  (req: Request, res: Response, next: NextFunction): void => {
+    for (const field of fieldsToParse) {
+      if (req.body[field]) {
+        try {
+          const parsed = JSON.parse(req.body[field]);
 
-  for (const field of fieldsToParseAsJson) {
-    if (req.body[field]) {
-      try {
-        const parsed = JSON.parse(req.body[field]);
+          if (!Array.isArray(parsed)) {
+            return void res.status(400).json({
+              error: `${field} must be a JSON array`,
+            });
+          }
 
-        if (!Array.isArray(parsed)) {
+          req.body[field] = parsed;
+        } catch {
           return void res.status(400).json({
-            error: `${field} must be a JSON array`,
+            error: `${field} must be a valid JSON array string`,
           });
         }
-
-        req.body[field] = parsed;
-      } catch {
-        return void res.status(400).json({
-          error: `${field} must be a valid JSON array string`,
-        });
       }
     }
-  }
 
-  next();
-};
+    next();
+  };
