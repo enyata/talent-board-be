@@ -46,7 +46,7 @@ describe("OnboardingService", () => {
     (mockRepo.findOne as jest.Mock).mockResolvedValue(user);
     (mockRepo.save as jest.Mock).mockImplementation((input) => input);
 
-    const result = await service.onboardTalent(userId, dto);
+    const result = await service.onboardUser(userId, dto, UserRole.TALENT);
 
     expect(result.role).toBe(UserRole.TALENT);
     expect(result.profile_completed).toBe(true);
@@ -62,17 +62,17 @@ describe("OnboardingService", () => {
   it("should throw NotFoundError if user is not found", async () => {
     (mockRepo.findOne as jest.Mock).mockResolvedValue(null);
 
-    await expect(service.onboardTalent(userId, dto)).rejects.toThrow(
-      NotFoundError,
-    );
+    await expect(
+      service.onboardUser(userId, dto, UserRole.TALENT),
+    ).rejects.toThrow(NotFoundError);
   });
 
   it("should throw ConflictError if user is already onboarded", async () => {
     const onboardedUser = { id: userId, profile_completed: true } as UserEntity;
     (mockRepo.findOne as jest.Mock).mockResolvedValue(onboardedUser);
 
-    await expect(service.onboardTalent(userId, dto)).rejects.toThrow(
-      ConflictError,
-    );
+    await expect(
+      service.onboardUser(userId, dto, UserRole.TALENT),
+    ).rejects.toThrow(ConflictError);
   });
 });
