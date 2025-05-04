@@ -10,22 +10,20 @@ import { talentOnboardingSchema } from "./schemas/talentOnboarding.schema";
 
 const router = Router();
 
+router.use(deserializeUser);
+router.use(uploadResume);
+router.use(injectResumePath);
+
 router.patch(
   "/talent",
-  deserializeUser,
-  uploadResume,
   parseFormDataFields(["skills"]),
-  injectResumePath,
   validateData(talentOnboardingSchema, ["body"]),
   onboardTalent,
 );
 
 router.patch(
   "/recruiter",
-  deserializeUser,
-  uploadResume,
   parseFormDataFields(["roles_looking_for"]),
-  injectResumePath,
   validateData(recruiterOnboardingSchema, ["body"]),
   onboardRecruiter,
 );

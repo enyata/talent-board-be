@@ -11,9 +11,7 @@ jest.mock("@src/datasource", () => ({
   },
 }));
 
-jest.mock("@src/onboarding/onboarding.service");
-
-const mockOnboardTalent = jest.fn();
+const mockOnboardUser = jest.fn();
 const mockCreateSendToken = jest.fn();
 
 describe("onboardTalent controller", () => {
@@ -24,9 +22,9 @@ describe("onboardTalent controller", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    (OnboardingService as jest.Mock).mockImplementation(() => {
-      return { onboardTalent: mockOnboardTalent };
-    });
+    jest
+      .spyOn(OnboardingService.prototype, "onboardUser")
+      .mockImplementation(mockOnboardUser);
 
     jest
       .spyOn(tokenUtils, "createSendToken")
@@ -35,17 +33,8 @@ describe("onboardTalent controller", () => {
     mockReq = {
       user: { id: "mock-user-id", role: UserRole.TALENT },
       file: {
-        fieldname: "resume",
-        originalname: "resume.pdf",
-        encoding: "7bit",
-        mimetype: "application/pdf",
-        destination: "uploads/resumes/",
-        filename: "mock-resume.pdf",
         path: "uploads/resumes/mock-resume.pdf",
-        size: 12345,
-        stream: {} as any,
-        buffer: Buffer.from(""),
-      },
+      } as Express.Multer.File,
       body: {
         location: "Lagos",
         portfolio_url: "https://portfolio.com",
@@ -65,15 +54,16 @@ describe("onboardTalent controller", () => {
 
   it("should onboard a new talent and send token", async () => {
     const mockUser = { id: "mock-user-id", email: "test@example.com" };
-    mockOnboardTalent.mockResolvedValue(mockUser);
+    mockOnboardUser.mockResolvedValue(mockUser);
 
     await onboardTalent(mockReq as Request, mockRes as Response, mockNext);
 
-    expect(mockOnboardTalent).toHaveBeenCalled();
-    const calledArgs = mockOnboardTalent.mock.calls[0];
+    expect(mockOnboardUser).toHaveBeenCalled();
 
-    expect(calledArgs[0]).toBe("mock-user-id");
-    expect(calledArgs[1]).toMatchObject({
+    const [userIdArg, payloadArg, roleArg] = mockOnboardUser.mock.calls[0];
+
+    expect(userIdArg).toBe("mock-user-id");
+    expect(payloadArg).toMatchObject({
       location: "Lagos",
       portfolio_url: "https://portfolio.com",
       linkedin_profile: "https://linkedin.com/in/sample",
@@ -81,6 +71,7 @@ describe("onboardTalent controller", () => {
       experience_level: "intermediate",
       resume_path: "uploads/resumes/mock-resume.pdf",
     });
+    expect(roleArg).toBe(UserRole.TALENT);
 
     expect(mockCreateSendToken).toHaveBeenCalledWith(
       mockUser,
