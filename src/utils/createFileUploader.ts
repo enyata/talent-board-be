@@ -1,6 +1,7 @@
 import { AppError } from "@src/exceptions/appError";
 import { UploadConfig } from "@src/interfaces";
 import { Request } from "express";
+import fs from "fs";
 import multer, { StorageEngine } from "multer";
 import path from "path";
 
@@ -10,6 +11,10 @@ export const createFileUploader = ({
   allowedMimeTypes,
   maxSizeMB = 2,
 }: UploadConfig) => {
+  if (!fs.existsSync(destinationFolder)) {
+    fs.mkdirSync(destinationFolder, { recursive: true });
+  }
+
   const storage: StorageEngine = multer.diskStorage({
     destination: (
       _req: Request,
