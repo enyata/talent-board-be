@@ -11,6 +11,7 @@ const devOrigins = [
 const prodOrigins = [
   "https://accounts.google.com",
   "https://www.linkedin.com",
+  `${config.get<string>("BASE_URL")}`,
   //TODO: Add live frontend domain here
 ];
 
