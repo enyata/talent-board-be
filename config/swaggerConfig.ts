@@ -5,6 +5,7 @@ import { version } from "../package.json";
 const PORT = config.get<number>("PORT") || 3000;
 const NODE_ENV = config.get<string>("NODE_ENV") || "development";
 const BASE_URL = config.get<string>("BASE_URL") || `http://localhost:${PORT}`;
+const isCompiled = config.get<string>("NODE_ENV") === "production";
 
 const swaggerDefinition: SwaggerDefinition = {
   openapi: "3.1.0",
@@ -139,14 +140,10 @@ const swaggerDefinition: SwaggerDefinition = {
 
 const options = {
   swaggerDefinition,
-  apis: [
-    "./src/routes/*.ts",
-    "./src/controllers/*.ts",
-    "./src/services/*.ts",
-    "./src/schema/*.ts",
-    "./src/docs/*.ts",
-  ],
-  oauth2RedirectUrl: `http://localhost:${PORT}/docs/oauth2-redirect.html`,
+  apis: isCompiled
+    ? ["./build/src/routes/**/*.js", "./build/src/docs/**/*.js"]
+    : ["./src/routes/**/*.ts", "./src/docs/**/*.ts"],
+  oauth2RedirectUrl: `${BASE_URL}/docs/oauth2-redirect.html`,
 };
 
 const specs = swaggerJsdoc(options);
