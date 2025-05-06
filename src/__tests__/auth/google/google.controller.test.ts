@@ -14,13 +14,18 @@ const mockReq = {
     last_name: "Doe",
     email: "jane.doe@example.com",
     avatar: "https://avatar.com/jane.png",
-  } as unknown,
-} as Partial<Request> as Request;
+  },
+  query: {
+    state: "http://localhost:3000",
+  },
+} as unknown as Request;
 
 const mockRes = {
   status: jest.fn().mockReturnThis(),
   json: jest.fn().mockReturnThis(),
   cookie: jest.fn().mockReturnThis(),
+  redirect: jest.fn().mockReturnThis(),
+  locals: {},
 } as unknown as Response;
 
 const mockNext = jest.fn();
@@ -33,6 +38,16 @@ describe("googleOAuthCallback", () => {
     (
       GoogleAuthService.prototype.authenticateOrCreateUser as jest.Mock
     ).mockResolvedValue(mockUser);
+    (createTokenUtil.createSendToken as jest.Mock).mockImplementation(
+      async (_user, _status, _msg, _req, res, _tx, options) => {
+        res.locals.access_token = "test-access-token";
+        res.locals.refresh_token = "test-refresh-token";
+        options?.mode === "redirect" &&
+          res.redirect(
+            `${_req.query.state}?access_token=${res.locals.access_token}&refresh_token=${res.locals.refresh_token}`,
+          );
+      },
+    );
   });
 
   it("should respond with success and tokens", async () => {
@@ -49,6 +64,11 @@ describe("googleOAuthCallback", () => {
       mockReq,
       mockRes,
       AppDataSource.manager,
+      { mode: "redirect" },
+    );
+
+    expect(mockRes.redirect).toHaveBeenCalledWith(
+      expect.stringContaining("http://localhost:3000"),
     );
   });
 

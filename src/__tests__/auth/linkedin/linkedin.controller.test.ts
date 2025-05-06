@@ -17,14 +17,18 @@ const mockReq = {
     last_name: "Edin",
     email: "linked.in@example.com",
     avatar: "https://avatar.com/link.png",
-  } as unknown,
-} as Partial<Request> as Request;
+  },
+  query: {
+    state: "http://localhost:3000",
+  },
+} as unknown as Request;
 
 const mockRes = {
   redirect: jest.fn(),
   status: jest.fn().mockReturnThis(),
   json: jest.fn().mockReturnThis(),
   cookie: jest.fn().mockReturnThis(),
+  locals: {},
 } as unknown as Response;
 
 const mockNext = jest.fn();
@@ -36,10 +40,23 @@ describe("LinkedIn OAuth Controller", () => {
     (
       LinkedInAuthService.prototype.authenticateOrCreateUser as jest.Mock
     ).mockResolvedValue(mockUser);
+    (createTokenUtil.createSendToken as jest.Mock).mockImplementation(
+      async (_user, _status, _msg, _req, res, _tx, options) => {
+        res.locals.access_token = "test-access-token";
+        res.locals.refresh_token = "test-refresh-token";
+        options?.mode === "redirect" &&
+          res.redirect(
+            `${_req.query.state}?access_token=${res.locals.access_token}&refresh_token=${res.locals.refresh_token}`,
+          );
+      },
+    );
   });
 
   it("should redirect to LinkedIn auth URL", () => {
-    linkedInOAuth({} as Request, mockRes);
+    const reqWithState = {
+      query: { state: "http://localhost:3000" },
+    } as unknown as Request;
+    linkedInOAuth(reqWithState, mockRes);
     expect(mockRes.redirect).toHaveBeenCalledWith(
       expect.stringContaining(
         "https://www.linkedin.com/oauth/v2/authorization",
@@ -61,6 +78,7 @@ describe("LinkedIn OAuth Controller", () => {
       mockReq,
       mockRes,
       AppDataSource.manager,
+      { mode: "redirect" },
     );
   });
 
