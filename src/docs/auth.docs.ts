@@ -13,6 +13,13 @@ export const googleOAuth = `
  *     summary: Initiate Google OAuth authentication
  *     tags: [Authentication]
  *     description: Redirects the user to Google's OAuth 2.0 authentication page.
+ *     parameters:
+ *       - in: query
+ *         name: state
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Optional frontend redirect URL
  *     responses:
  *       302:
  *         description: Redirects to Google's authentication page.
@@ -32,33 +39,23 @@ export const googleOAuthCallback = `
  *   get:
  *     summary: Handle Google OAuth callback
  *     tags: [Authentication]
- *     description: Processes authentication response from Google and logs in the user.
+ *     description: Processes authentication response from Google and redirects with access and refresh tokens.
+ *     parameters:
+ *       - in: query
+ *         name: code
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Authorization code from Google
+ *       - in: query
+ *         name: state
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Frontend redirect URL to append tokens to
  *     responses:
- *       200:
- *         description: Successfully authenticated with Google
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: "success"
- *                 message:
- *                   type: string
- *                   example: "Google OAuth successful"
- *                 data:
- *                   type: object
- *                   properties:
- *                     user:
- *                       $ref: '#/components/schemas/User'
- *                     tokens:
- *                       type: object
- *                       properties:
- *                         access_token:
- *                           $ref: '#/components/schemas/AccessToken'
- *                         refresh_token:
- *                           $ref: '#/components/schemas/RefreshToken'
+ *       302:
+ *         description: Redirects to frontend with access and refresh tokens as query parameters.
  *       401:
  *         description: Unauthorized - Google authentication failed
  *         content:
@@ -86,6 +83,13 @@ export const linkedInOAuth = `
  *     summary: Initiate LinkedIn OAuth authentication
  *     tags: [Authentication]
  *     description: Redirects the user to LinkedIn's OAuth 2.0 authentication page.
+ *     parameters:
+ *       - in: query
+ *         name: state
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: Optional frontend redirect URL
  *     responses:
  *       302:
  *         description: Redirects to LinkedIn's authentication page.
@@ -105,33 +109,23 @@ export const linkedInOAuthCallback = `
  *   get:
  *     summary: Handle LinkedIn OAuth callback
  *     tags: [Authentication]
- *     description: Processes authentication response from LinkedIn and logs in the user.
+ *     description: Processes authentication response from LinkedIn and redirects with access and refresh tokens.
+ *     parameters:
+ *       - in: query
+ *         name: code
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Authorization code from LinkedIn
+ *       - in: query
+ *         name: state
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Frontend redirect URL to append tokens to
  *     responses:
- *       200:
- *         description: Successfully authenticated with LinkedIn
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: "success"
- *                 message:
- *                   type: string
- *                   example: "LinkedIn OAuth successful"
- *                 data:
- *                   type: object
- *                   properties:
- *                     user:
- *                       $ref: '#/components/schemas/User'
- *                     tokens:
- *                       type: object
- *                       properties:
- *                         access_token:
- *                           $ref: '#/components/schemas/AccessToken'
- *                         refresh_token:
- *                           $ref: '#/components/schemas/RefreshToken'
+ *       302:
+ *         description: Redirects to frontend with access and refresh tokens as query parameters.
  *       401:
  *         description: Unauthorized - LinkedIn authentication failed
  *         content:
