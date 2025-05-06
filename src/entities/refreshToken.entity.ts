@@ -20,6 +20,14 @@ export class RefreshToken extends ExtendedBaseEntity {
   @IsBoolean()
   is_valid: boolean;
 
+  @Column({ name: "user_agent", nullable: true })
+  @IsString()
+  user_agent?: string;
+
+  @Column({ name: "ip_address", nullable: true })
+  @IsString()
+  ip_address?: string;
+
   @Exclude()
   @ManyToOne(() => UserEntity, (user) => user.refresh_tokens, {
     onDelete: "CASCADE",

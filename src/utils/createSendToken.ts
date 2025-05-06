@@ -28,10 +28,29 @@ export const createSendToken = async (
     id: user.id,
   });
 
+  const ipAddress =
+    req.headers["x-forwarded-for"]?.toString().split(",")[0] ||
+    req.socket.remoteAddress ||
+    "unknown";
+  const userAgent = req.headers["user-agent"] || "unknown";
+
+  await entityManager.update(
+    RefreshToken,
+    {
+      user: { id: user.id },
+      ip_address: ipAddress,
+      user_agent: userAgent,
+      is_valid: true,
+    },
+    { is_valid: false },
+  );
+
   const refresh = entityManager.create(RefreshToken, {
     token: refreshToken,
     user: userRef,
     is_valid: true,
+    ip_address: ipAddress,
+    user_agent: userAgent,
   });
   await entityManager.save(refresh);
 
