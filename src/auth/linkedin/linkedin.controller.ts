@@ -9,14 +9,15 @@ import { LinkedInAuthService } from "./linkedin.service";
 
 const linkedInAuthService = new LinkedInAuthService();
 
-export const linkedInOAuth = (_req: Request, res: Response) => {
+export const linkedInOAuth = (req: Request, res: Response) => {
   const clientId = config.get<string>("LINKEDIN_CLIENT_ID");
   const redirectUri = `${config.get<string>("BASE_URL")}/${config.get<string>("API_PREFIX")}/auth/linkedin/callback`;
   const scope = LINKEDIN_SCOPES;
+  const frontendRedirectUri = req.query.state as string;
 
-  const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(
-    redirectUri,
-  )}&scope=${encodeURIComponent(scope.join(" "))}`;
+  const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope.join(" "))}&state=${encodeURIComponent(
+    frontendRedirectUri,
+  )}`;
 
   res.redirect(authUrl);
 };
@@ -41,6 +42,12 @@ export const linkedInOAuthCallback = asyncHandler(
       entityManager,
     );
 
+    const redirectUri = decodeURIComponent(
+      (req.query.state as string) ||
+        config.get<string>("FRONTEND_URL") ||
+        "http://localhost:3000",
+    );
+
     await createSendToken(
       user,
       200,
@@ -48,6 +55,11 @@ export const linkedInOAuthCallback = asyncHandler(
       req,
       res,
       entityManager,
+      { mode: "redirect" },
+    );
+
+    res.redirect(
+      `${redirectUri}?access_token=${res.locals.access_token}&refresh_token=${res.locals.refresh_token}`,
     );
   },
 );

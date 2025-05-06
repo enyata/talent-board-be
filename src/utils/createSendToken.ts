@@ -1,5 +1,6 @@
 import { RefreshToken } from "@src/entities/refreshToken.entity";
 import { UserEntity } from "@src/entities/user.entity";
+import { CreateSendTokenOptions } from "@src/interfaces";
 import config from "config";
 import type { CookieOptions, Request, Response } from "express";
 import { EntityManager } from "typeorm";
@@ -13,6 +14,7 @@ export const createSendToken = async (
   req: Request,
   res: Response,
   entityManager: EntityManager,
+  options: CreateSendTokenOptions = { mode: "json" },
 ) => {
   const accessToken = signToken(user.id, "accessTokenPrivateKey", {
     expiresIn: config.get<string>("accessTokenTtl"),
@@ -41,6 +43,12 @@ export const createSendToken = async (
     httpOnly: true,
     secure: req.secure || req.headers["x-forwarded-proto"] === "https",
   };
+
+  if (options.mode === "redirect") {
+    res.locals.access_token = accessToken;
+    res.locals.refresh_token = refreshToken;
+    return;
+  }
 
   res.cookie("refresh_token", refreshToken, cookieOptions);
 

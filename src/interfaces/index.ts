@@ -16,3 +16,7 @@ export interface UploadConfig {
   allowedMimeTypes: string[];
   maxSizeMB?: number;
 }
+
+export interface CreateSendTokenOptions {
+  mode?: "json" | "redirect";
+}
