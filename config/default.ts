@@ -14,6 +14,7 @@ export default {
   DB_NAME: process.env.DB_NAME,
   DATABASE_URL: process.env.DATABASE_URL,
   BASE_URL: process.env.BASE_URL ?? "http://localhost:8000",
+  FRONTEND_URL: process.env.FRONTEND_URL ?? "http://localhost:3000",
 
   accessTokenTtl: process.env.ACCESS_TOKEN_TTL,
   refreshTokenTtl: process.env.REFRESH_TOKEN_TTL,

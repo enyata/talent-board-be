@@ -2,7 +2,7 @@ import config from "config";
 import { CorsOptions } from "cors";
 
 const devOrigins = [
-  "https://localhost:3000",
+  "http://localhost:3000",
   "http://localhost:8000",
   "https://accounts.google.com",
   "https://www.linkedin.com",
@@ -11,8 +11,9 @@ const devOrigins = [
 const prodOrigins = [
   "https://accounts.google.com",
   "https://www.linkedin.com",
-  `${config.get<string>("BASE_URL")}`,
-  //TODO: Add live frontend domain here
+  "http://localhost:3000",
+  config.get<string>("BASE_URL"),
+  config.get<string>("FRONTEND_URL"),
 ];
 
 const corsOptions: CorsOptions = {
