@@ -3,6 +3,7 @@ import AppDataSource from "@src/datasource";
 import { UnauthorizedError } from "@src/exceptions/unauthorizedError";
 import asyncHandler from "@src/middlewares/asyncHandler";
 import { createSendToken } from "@src/utils/createSendToken";
+import { isValidUrl } from "@src/utils/isValidUrl";
 import config from "config";
 import type { NextFunction, Request, Response } from "express";
 import { LinkedInAuthService } from "./linkedin.service";
@@ -13,7 +14,11 @@ export const linkedInOAuth = (req: Request, res: Response) => {
   const clientId = config.get<string>("LINKEDIN_CLIENT_ID");
   const redirectUri = `${config.get<string>("BASE_URL")}/${config.get<string>("API_PREFIX")}/auth/linkedin/callback`;
   const scope = LINKEDIN_SCOPES;
-  const frontendRedirectUri = req.query.state as string;
+
+  const frontendRedirectUri =
+    typeof req.query.state === "string" && isValidUrl(req.query.state)
+      ? req.query.state
+      : config.get<string>("FRONTEND_URL") || "http://localhost:3000";
 
   const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope.join(" "))}&state=${encodeURIComponent(
     frontendRedirectUri,
@@ -42,11 +47,10 @@ export const linkedInOAuthCallback = asyncHandler(
       entityManager,
     );
 
-    const redirectUri = decodeURIComponent(
-      (req.query.state as string) ||
-        config.get<string>("FRONTEND_URL") ||
-        "http://localhost:3000",
-    );
+    const redirectUri =
+      typeof req.query.state === "string" && isValidUrl(req.query.state)
+        ? decodeURIComponent(req.query.state)
+        : config.get<string>("FRONTEND_URL") || "http://localhost:3000";
 
     await createSendToken(
       user,
