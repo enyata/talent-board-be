@@ -3,6 +3,7 @@ import AppDataSource from "@src/datasource";
 import { UnauthorizedError } from "@src/exceptions/unauthorizedError";
 import asyncHandler from "@src/middlewares/asyncHandler";
 import { createSendToken } from "@src/utils/createSendToken";
+import { isValidUrl } from "@src/utils/isValidUrl";
 import config from "config";
 import type { NextFunction, Request, Response } from "express";
 import passport from "passport";
@@ -15,15 +16,14 @@ export const googleOAuth = (
   res: Response,
   next: NextFunction,
 ) => {
-  const redirectUri = encodeURIComponent(
-    (req.query.state as string) ||
-      config.get<string>("FRONTEND_URL") ||
-      "http://localhost:3000",
-  );
+  const redirectUri =
+    typeof req.query.state === "string" && isValidUrl(req.query.state)
+      ? req.query.state
+      : config.get<string>("FRONTEND_URL") || "http://localhost:3000";
 
   passport.authenticate("google", {
     scope: GOOGLE_SCOPES,
-    state: redirectUri,
+    state: encodeURIComponent(redirectUri),
   })(req, res, next);
 };
 
@@ -47,11 +47,10 @@ export const googleOAuthCallback = asyncHandler(
       entityManager,
     );
 
-    const redirectUri = decodeURIComponent(
-      (req.query.state as string) ||
-        config.get<string>("FRONTEND_URL") ||
-        "http://localhost:3000",
-    );
+    const redirectUri =
+      typeof req.query.state === "string" && isValidUrl(req.query.state)
+        ? decodeURIComponent(req.query.state)
+        : config.get<string>("FRONTEND_URL") || "http://localhost:3000";
 
     await createSendToken(
       user,
