@@ -1,5 +1,6 @@
 import express from "express";
 import passport from "passport";
+import { logoutUser } from "./auth.controller";
 import { googleOAuth, googleOAuthCallback } from "./google/google.controller";
 import {
   linkedInOAuth,
@@ -21,5 +22,7 @@ router.get(
   passport.authenticate("linkedin", { session: false }),
   linkedInOAuthCallback,
 );
+
+router.post("/logout", logoutUser);
 
 export default router;

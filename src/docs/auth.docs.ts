@@ -144,3 +144,42 @@ export const linkedInOAuthCallback = `
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 `;
+
+export const logoutUser = `
+/**
+ * @swagger
+ * /api/v1/auth/logout:
+ *   post:
+ *     summary: Logout user and invalidate refresh token
+ *     tags: [Authentication]
+ *     description: Logs out the user by invalidating the current refresh token and clearing it from the HTTP-only cookie.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User logged out successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: User logged out successfully
+ *       401:
+ *         description: Unauthorized or missing token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+`;
