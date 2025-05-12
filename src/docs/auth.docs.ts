@@ -15,11 +15,18 @@ export const googleOAuth = `
  *     description: Redirects the user to Google's OAuth 2.0 authentication page.
  *     parameters:
  *       - in: query
- *         name: state
+ *         name: redirect_uri
  *         schema:
  *           type: string
  *         required: false
- *         description: Optional frontend redirect URL
+ *         description: Frontend URL to redirect to after authentication
+ *       - in: query
+ *         name: include_tokens_in_url
+ *         schema:
+ *           type: string
+ *           enum: [true, false]
+ *         required: false
+ *         description: Whether to include access and refresh tokens in the redirect URL
  *     responses:
  *       302:
  *         description: Redirects to Google's authentication page.
@@ -39,7 +46,7 @@ export const googleOAuthCallback = `
  *   get:
  *     summary: Handle Google OAuth callback
  *     tags: [Authentication]
- *     description: Processes authentication response from Google and redirects with access and refresh tokens.
+ *     description: Processes authentication response from Google and redirects to the frontend with tokens if requested.
  *     parameters:
  *       - in: query
  *         name: code
@@ -52,10 +59,10 @@ export const googleOAuthCallback = `
  *         schema:
  *           type: string
  *         required: true
- *         description: Frontend redirect URL to append tokens to
+ *         description: Encoded redirect_uri and token preferences
  *     responses:
  *       302:
- *         description: Redirects to frontend with access and refresh tokens as query parameters.
+ *         description: Redirects to frontend with access (and optionally refresh) tokens.
  *       401:
  *         description: Unauthorized - Google authentication failed
  *         content:
@@ -85,11 +92,18 @@ export const linkedInOAuth = `
  *     description: Redirects the user to LinkedIn's OAuth 2.0 authentication page.
  *     parameters:
  *       - in: query
- *         name: state
+ *         name: redirect_uri
  *         schema:
  *           type: string
  *         required: false
- *         description: Optional frontend redirect URL
+ *         description: Frontend URL to redirect to after authentication
+ *       - in: query
+ *         name: include_tokens_in_url
+ *         schema:
+ *           type: string
+ *           enum: [true, false]
+ *         required: false
+ *         description: Whether to include access and refresh tokens in the redirect URL
  *     responses:
  *       302:
  *         description: Redirects to LinkedIn's authentication page.
@@ -109,7 +123,7 @@ export const linkedInOAuthCallback = `
  *   get:
  *     summary: Handle LinkedIn OAuth callback
  *     tags: [Authentication]
- *     description: Processes authentication response from LinkedIn and redirects with access and refresh tokens.
+ *     description: Processes authentication response from LinkedIn and redirects to the frontend with tokens if requested.
  *     parameters:
  *       - in: query
  *         name: code
@@ -122,10 +136,10 @@ export const linkedInOAuthCallback = `
  *         schema:
  *           type: string
  *         required: true
- *         description: Frontend redirect URL to append tokens to
+ *         description: Encoded redirect_uri and token preferences
  *     responses:
  *       302:
- *         description: Redirects to frontend with access and refresh tokens as query parameters.
+ *         description: Redirects to frontend with access (and optionally refresh) tokens.
  *       401:
  *         description: Unauthorized - LinkedIn authentication failed
  *         content:
@@ -136,45 +150,6 @@ export const linkedInOAuthCallback = `
  *                 error:
  *                   type: string
  *                   example: "LinkedIn authentication failed"
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- */
-`;
-
-export const logoutUser = `
-/**
- * @swagger
- * /api/v1/auth/logout:
- *   post:
- *     summary: Logout user and invalidate refresh token
- *     tags: [Authentication]
- *     description: Logs out the user by invalidating the current refresh token and clearing it from the HTTP-only cookie.
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: User logged out successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
- *                   example: User logged out successfully
- *       401:
- *         description: Unauthorized or missing token
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       500:
  *         description: Internal server error
  *         content:

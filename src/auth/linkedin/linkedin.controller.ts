@@ -3,7 +3,6 @@ import AppDataSource from "@src/datasource";
 import { UnauthorizedError } from "@src/exceptions/unauthorizedError";
 import asyncHandler from "@src/middlewares/asyncHandler";
 import { createSendToken } from "@src/utils/createSendToken";
-import { isValidUrl } from "@src/utils/isValidUrl";
 import config from "config";
 import type { NextFunction, Request, Response } from "express";
 import { LinkedInAuthService } from "./linkedin.service";
@@ -15,13 +14,13 @@ export const linkedInOAuth = (req: Request, res: Response) => {
   const redirectUri = `${config.get<string>("BASE_URL")}/${config.get<string>("API_PREFIX")}/auth/linkedin/callback`;
   const scope = LINKEDIN_SCOPES;
 
-  const frontendRedirectUri =
-    typeof req.query.state === "string" && isValidUrl(req.query.state)
-      ? req.query.state
-      : config.get<string>("FRONTEND_URL") || "http://localhost:3000";
+  const redirectParams = new URLSearchParams({
+    redirect_uri: req.query.redirect_uri as string,
+    include_tokens_in_url: req.query.include_tokens_in_url as string,
+  }).toString();
 
   const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope.join(" "))}&state=${encodeURIComponent(
-    frontendRedirectUri,
+    redirectParams,
   )}`;
 
   res.redirect(authUrl);
@@ -47,10 +46,17 @@ export const linkedInOAuthCallback = asyncHandler(
       entityManager,
     );
 
+    const rawState = req.query.state as string;
+    const decodedState = decodeURIComponent(rawState);
+    const stateParams = new URLSearchParams(decodedState);
+
     const redirectUri =
-      typeof req.query.state === "string" && isValidUrl(req.query.state)
-        ? decodeURIComponent(req.query.state)
-        : config.get<string>("FRONTEND_URL") || "http://localhost:3000";
+      stateParams.get("redirect_uri") ||
+      config.get<string>("FRONTEND_URL") ||
+      "http://localhost:3000";
+
+    const includeTokensInUrl =
+      stateParams.get("include_tokens_in_url") === "true";
 
     await createSendToken(
       user,
@@ -62,8 +68,11 @@ export const linkedInOAuthCallback = asyncHandler(
       { mode: "redirect" },
     );
 
-    res.redirect(
-      `${redirectUri}?access_token=${res.locals.access_token}&refresh_token=${res.locals.refresh_token}`,
-    );
+    const queryParams = new URLSearchParams({
+      access_token: res.locals.access_token,
+      ...(includeTokensInUrl && { refresh_token: res.locals.refresh_token }),
+    }).toString();
+
+    res.redirect(`${redirectUri}?${queryParams}`);
   },
 );
