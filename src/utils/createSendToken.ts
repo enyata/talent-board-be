@@ -65,6 +65,7 @@ export const createSendToken = async (
 
   if (options.mode === "redirect") {
     res.locals.access_token = accessToken;
+    res.locals.refresh_token = refreshToken;
     res.cookie("refresh_token", refreshToken, cookieOptions);
     return;
   }
