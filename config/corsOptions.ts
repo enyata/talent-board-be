@@ -38,6 +38,7 @@ const corsOptions: CorsOptions = {
     "X-Requested-With",
     "Content-Type",
     "Authorization",
+    "x-refresh-token",
   ],
 };
 
