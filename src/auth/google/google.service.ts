@@ -1,6 +1,5 @@
 import { UserEntity, UserProvider } from "@src/entities/user.entity";
 import log from "@src/utils/logger";
-import { sanitizeUser } from "@src/utils/sanitizeUser";
 import { EntityManager } from "typeorm";
 import { GoogleProfile } from "./google.interface";
 
@@ -8,7 +7,7 @@ export class GoogleAuthService {
   async authenticateOrCreateUser(
     profileData: GoogleProfile,
     entityManager: EntityManager,
-  ): Promise<Record<string, any>> {
+  ): Promise<UserEntity> {
     const { email } = profileData;
 
     return await entityManager.transaction(async (tx) => {
@@ -28,7 +27,7 @@ export class GoogleAuthService {
         log.info("Existing user logged in via Google");
       }
 
-      return sanitizeUser(user);
+      return user;
     });
   }
 }
