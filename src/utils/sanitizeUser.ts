@@ -1,16 +1,19 @@
 import { UserEntity } from "@src/entities/user.entity";
-import { ClassTransformOptions, instanceToPlain } from "class-transformer";
+import { instanceToPlain } from "class-transformer";
 
-export const sanitizeUser = (
-  user: Partial<UserEntity>,
-): Record<string, any> => {
-  const group = user.role ?? undefined;
-
-  const options: ClassTransformOptions = {
+export const sanitizeUser = (user: UserEntity): Record<string, any> => {
+  const plainUser = instanceToPlain(user, {
     strategy: "excludeAll",
     exposeUnsetFields: false,
-    groups: group ? [group] : undefined,
+  });
+
+  const roleProfileMap: Record<string, any> = {
+    talent: user.talent_profile,
+    recruiter: user.recruiter_profile,
   };
 
-  return instanceToPlain(user, options);
+  return {
+    ...plainUser,
+    profile: user.role ? instanceToPlain(roleProfileMap[user.role]) : undefined,
+  };
 };

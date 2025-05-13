@@ -1,7 +1,10 @@
+import { HiringFor } from "@src/entities/recruiterProfile.entity";
 import { z } from "zod";
 
 export const recruiterOnboardingSchema = z.object({
-  location: z.string().min(1, "Location is required"),
+  state: z.string().min(1, "State is required"),
+
+  country: z.string().min(1, "Country is required"),
 
   linkedin_profile: z.string().url("Must be a valid LinkedIn URL"),
 
@@ -14,8 +17,12 @@ export const recruiterOnboardingSchema = z.object({
       invalid_type_error: "Roles must be an array of strings.",
     })
     .min(1, "At least one role is required"),
-  // add resume if needed for verification of recruiter's credentials
-  resume_path: z.string().min(1, "Resume upload failed").optional(),
+
+  hiring_for: z.nativeEnum(HiringFor, {
+    errorMap: () => ({
+      message: "Hiring for must be one of 'myself', or 'my company'",
+    }),
+  }),
 });
 
 export type RecruiterOnboardingDTO = z.infer<typeof recruiterOnboardingSchema>;
