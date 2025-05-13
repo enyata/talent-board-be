@@ -45,7 +45,6 @@ export class SplitUserProfilesAndAdjustFields1747165812599
     await queryRunner.query(`
       CREATE TABLE "recruiter_profiles" (
         "id" uuid NOT NULL DEFAULT gen_random_uuid(),
-        "resume_path" VARCHAR,
         "work_email" VARCHAR NOT NULL,
         "company_industry" VARCHAR NOT NULL,
         "roles_looking_for" TEXT[] NOT NULL,

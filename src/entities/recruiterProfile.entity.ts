@@ -1,11 +1,5 @@
 import { Expose } from "class-transformer";
-import {
-  IsArray,
-  IsEmail,
-  IsEnum,
-  IsOptional,
-  IsString,
-} from "class-validator";
+import { IsArray, IsEmail, IsEnum, IsString } from "class-validator";
 import { Column, Entity, JoinColumn, OneToOne } from "typeorm";
 import ExtendedBaseEntity from "./base.entity";
 import { UserEntity } from "./user.entity";
@@ -20,12 +14,6 @@ export class RecruiterProfileEntity extends ExtendedBaseEntity {
   @OneToOne(() => UserEntity, (user) => user.recruiter_profile)
   @JoinColumn({ name: "user_id" })
   user: UserEntity;
-
-  @Column({ nullable: true })
-  @Expose()
-  @IsOptional()
-  @IsString()
-  resume_path: string;
 
   @Column()
   @Expose()
