@@ -6,6 +6,7 @@ import {
 } from "../entities/recruiterProfile.entity";
 import {
   ExperienceLevel,
+  ProfileStatus,
   TalentProfileEntity,
 } from "../entities/talentProfile.entity";
 import { UserEntity, UserProvider, UserRole } from "../entities/user.entity";
@@ -64,6 +65,7 @@ export const seedTestDatabase = async (dataSource: DataSource) => {
     portfolio_url: "https://portfolio.talent.dev",
     skills: ["JavaScript", "Node.js", "TypeScript"],
     experience_level: ExperienceLevel.INTERMEDIATE,
+    profile_status: ProfileStatus.PENDING,
   });
 
   const recruiterProfile = recruiterProfileRepo.create({
