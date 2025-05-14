@@ -12,7 +12,7 @@ export const talentOnboarding = `
  *   patch:
  *     summary: Complete onboarding for a talent user
  *     tags: [Onboarding]
- *     description: Completes the onboarding process for a talent after OAuth login. Accepts details like skills, experience level, and resume.
+ *     description: Completes the onboarding process for a talent after OAuth login.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -22,31 +22,35 @@ export const talentOnboarding = `
  *           schema:
  *             type: object
  *             required:
- *               - location
+ *               - state
+ *               - country
  *               - linkedin_profile
  *               - skills
  *               - resume
  *               - experience_level
  *             properties:
- *               location:
+ *               state:
  *                 type: string
  *                 example: "Lagos"
- *               portfolio_url:
+ *               country:
  *                 type: string
- *                 example: "https://portfolio.com"
+ *                 example: "Nigeria"
  *               linkedin_profile:
  *                 type: string
  *                 example: "https://linkedin.com/in/sample"
+ *               portfolio_url:
+ *                 type: string
+ *                 example: "https://portfolio.com"
  *               resume:
  *                 type: string
  *                 format: binary
  *               skills:
  *                 type: string
- *                 description: JSON array string of skills (e.g. '["Node.js", "TypeScript"]')
+ *                 description: JSON array string of skills
  *                 example: '["Node.js", "TypeScript"]'
  *               experience_level:
  *                 type: string
- *                 enum: [beginner, intermediate, expert]
+ *                 enum: [entry, intermediate, expert]
  *                 example: "intermediate"
  *     responses:
  *       200:
@@ -70,24 +74,20 @@ export const talentOnboarding = `
  *                         - $ref: '#/components/schemas/User'
  *                         - type: object
  *                           properties:
- *                             profile_completed:
- *                               type: boolean
- *                               example: true
- *                             location:
- *                               type: string
- *                             portfolio_url:
- *                               type: string
- *                             linkedin_profile:
- *                               type: string
- *                             resume_path:
- *                               type: string
- *                             skills:
- *                               type: array
- *                               items:
- *                                 type: string
- *                             experience_level:
- *                               type: string
- *                               enum: [beginner, intermediate, expert]
+ *                             profile:
+ *                               type: object
+ *                               properties:
+ *                                 resume_path:
+ *                                   type: string
+ *                                 portfolio_url:
+ *                                   type: string
+ *                                 skills:
+ *                                   type: array
+ *                                   items:
+ *                                     type: string
+ *                                 experience_level:
+ *                                   type: string
+ *                                   enum: [entry, intermediate, expert]
  *                     tokens:
  *                       type: object
  *                       properties:
@@ -95,46 +95,6 @@ export const talentOnboarding = `
  *                           $ref: '#/components/schemas/AccessToken'
  *                         refresh_token:
  *                           $ref: '#/components/schemas/RefreshToken'
- *       400:
- *         description: Bad Request
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       409:
- *         description: Onboarding already completed
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       422:
- *         description: Validation error from Zod schema
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: "error"
- *                 error:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       path:
- *                         type: array
- *                         items:
- *                           type: string
- *                       message:
- *                         type: string
- *                         example: "skills must be a valid JSON array string"
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 `;
 
@@ -145,7 +105,7 @@ export const recruiterOnboarding = `
  *   patch:
  *     summary: Complete onboarding for a recruiter user
  *     tags: [Onboarding]
- *     description: Completes the onboarding process for a recruiter after OAuth login. Accepts details like company industry and roles looking for.
+ *     description: Completes the onboarding process for a recruiter after OAuth login.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -155,16 +115,20 @@ export const recruiterOnboarding = `
  *           schema:
  *             type: object
  *             required:
- *               - location
+ *               - state
+ *               - country
  *               - linkedin_profile
  *               - work_email
  *               - company_industry
  *               - roles_looking_for
- *               - resume
+ *               - hiring_for
  *             properties:
- *               location:
+ *               state:
  *                 type: string
- *                 example: "Lagos"
+ *                 example: "Abuja"
+ *               country:
+ *                 type: string
+ *                 example: "Nigeria"
  *               linkedin_profile:
  *                 type: string
  *                 example: "https://linkedin.com/in/sample"
@@ -176,11 +140,11 @@ export const recruiterOnboarding = `
  *                 example: "Tech"
  *               roles_looking_for:
  *                 type: string
- *                 description: JSON array string of roles (e.g. '["Frontend Developer", "Backend Developer"]')
+ *                 description: JSON array string of roles
  *                 example: '["Frontend Developer", "Backend Developer"]'
- *               resume:
+ *               hiring_for:
  *                 type: string
- *                 format: binary
+ *                 enum: [myself, my company]
  *     responses:
  *       200:
  *         description: Recruiter onboarded successfully
@@ -203,23 +167,20 @@ export const recruiterOnboarding = `
  *                         - $ref: '#/components/schemas/User'
  *                         - type: object
  *                           properties:
- *                             profile_completed:
- *                               type: boolean
- *                               example: true
- *                             location:
- *                               type: string
- *                             linkedin_profile:
- *                               type: string
- *                             work_email:
- *                               type: string
- *                             company_industry:
- *                               type: string
- *                             roles_looking_for:
- *                               type: array
- *                               items:
- *                                 type: string
- *                             resume_path:
- *                               type: string
+ *                             profile:
+ *                               type: object
+ *                               properties:
+ *                                 work_email:
+ *                                   type: string
+ *                                 company_industry:
+ *                                   type: string
+ *                                 roles_looking_for:
+ *                                   type: array
+ *                                   items:
+ *                                     type: string
+ *                                 hiring_for:
+ *                                   type: string
+ *                                   enum: [myself, my company]
  *                     tokens:
  *                       type: object
  *                       properties:
@@ -227,45 +188,5 @@ export const recruiterOnboarding = `
  *                           $ref: '#/components/schemas/AccessToken'
  *                         refresh_token:
  *                           $ref: '#/components/schemas/RefreshToken'
- *       400:
- *         description: Bad Request
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       409:
- *         description: Onboarding already completed
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       422:
- *         description: Validation error from Zod schema
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: "error"
- *                 error:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       path:
- *                         type: array
- *                         items:
- *                           type: string
- *                       message:
- *                         type: string
- *                         example: "roles_looking_for must be a valid JSON array string"
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  */
 `;
