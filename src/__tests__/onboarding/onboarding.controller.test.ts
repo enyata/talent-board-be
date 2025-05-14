@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { HiringFor } from "../../entities/recruiterProfile.entity";
 import { UserRole } from "../../entities/user.entity";
 import {
   onboardRecruiter,
@@ -46,7 +47,8 @@ describe("onboard controller", () => {
       user: { id: "mock-user-id", role: UserRole.TALENT },
       file: { path: "uploads/resumes/mock-resume.pdf" } as Express.Multer.File,
       body: {
-        location: "Lagos",
+        state: "Lagos",
+        country: "Nigeria",
         portfolio_url: "https://portfolio.com",
         linkedin_profile: "https://linkedin.com/in/sample",
         skills: ["Node.js", "TypeScript"],
@@ -77,13 +79,14 @@ describe("onboard controller", () => {
   it("should onboard a new recruiter and send token", async () => {
     mockReq = {
       user: { id: "mock-user-id", role: UserRole.RECRUITER },
-      file: { path: "uploads/resumes/mock-resume.pdf" } as Express.Multer.File,
       body: {
-        location: "Lagos",
+        state: "Abuja",
+        country: "Nigeria",
         linkedin_profile: "https://linkedin.com/in/sample",
         work_email: "recruiter@company.com",
         company_industry: "Tech",
         roles_looking_for: ["Frontend Developer", "Backend Developer"],
+        hiring_for: HiringFor.MYSELF,
       },
     };
 
@@ -95,7 +98,6 @@ describe("onboard controller", () => {
     const [userIdArg, payloadArg, roleArg] = mockOnboardUser.mock.calls[0];
 
     expect(userIdArg).toBe("mock-user-id");
-    expect(payloadArg.resume_path).toBe("uploads/resumes/mock-resume.pdf");
     expect(roleArg).toBe(UserRole.RECRUITER);
     expect(mockCreateSendToken).toHaveBeenCalledWith(
       mockUser,

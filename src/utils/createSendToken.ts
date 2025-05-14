@@ -8,7 +8,7 @@ import { signToken } from "./jwt";
 import { sanitizeUser } from "./sanitizeUser";
 
 export const createSendToken = async (
-  user: Partial<UserEntity>,
+  user: UserEntity,
   statusCode: number,
   message: string,
   req: Request,
@@ -22,10 +22,6 @@ export const createSendToken = async (
 
   const refreshToken = signToken(user.id, "refreshTokenPrivateKey", {
     expiresIn: config.get<string>("refreshTokenTtl"),
-  });
-
-  const userRef = await entityManager.findOneByOrFail(UserEntity, {
-    id: user.id,
   });
 
   const ipAddress =
@@ -47,7 +43,7 @@ export const createSendToken = async (
 
   const refresh = entityManager.create(RefreshToken, {
     token: refreshToken,
-    user: userRef,
+    user,
     is_valid: true,
     ip_address: ipAddress,
     user_agent: userAgent,
@@ -75,7 +71,7 @@ export const createSendToken = async (
   res.status(statusCode).json({
     status: "success",
     message,
-    data: { user: sanitizeUser(userRef) },
+    data: { user: sanitizeUser(user) },
     tokens: { access_token: accessToken, refresh_token: refreshToken },
   });
 };

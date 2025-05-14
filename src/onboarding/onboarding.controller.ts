@@ -1,15 +1,18 @@
 import AppDataSource from "@src/datasource";
 import { UserRole } from "@src/entities/user.entity";
+import {
+  OnboardingPayload,
+  RecruiterPayload,
+  TalentPayload,
+} from "@src/interfaces";
 import asyncHandler from "@src/middlewares/asyncHandler";
 import { createSendToken } from "@src/utils/createSendToken";
 import { NextFunction, Request, Response } from "express";
 import { OnboardingService } from "./onboarding.service";
-import { RecruiterOnboardingDTO } from "./schemas/recruiterOnboarding.schema";
-import { TalentOnboardingDTO } from "./schemas/talentOnboarding.schema";
 
 const service = new OnboardingService();
 
-export const createOnboardingHandler = <T>(
+export const createOnboardingHandler = <T extends OnboardingPayload>(
   role: UserRole,
   formatPayload: (req: Request) => T,
 ) =>
@@ -30,7 +33,7 @@ export const createOnboardingHandler = <T>(
     );
   });
 
-export const onboardTalent = createOnboardingHandler<TalentOnboardingDTO>(
+export const onboardTalent = createOnboardingHandler<TalentPayload>(
   UserRole.TALENT,
   (req) => ({
     ...req.body,
@@ -38,10 +41,9 @@ export const onboardTalent = createOnboardingHandler<TalentOnboardingDTO>(
   }),
 );
 
-export const onboardRecruiter = createOnboardingHandler<RecruiterOnboardingDTO>(
+export const onboardRecruiter = createOnboardingHandler<RecruiterPayload>(
   UserRole.RECRUITER,
   (req) => ({
     ...req.body,
-    resume_path: req.file?.path ?? "",
   }),
 );

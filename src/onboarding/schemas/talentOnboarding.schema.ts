@@ -1,13 +1,14 @@
-import { ExperienceLevel } from "@src/entities/user.entity";
+import { ExperienceLevel } from "@src/entities/talentProfile.entity";
 import { z } from "zod";
 
 export const talentOnboardingSchema = z.object({
-  location: z.string().min(1, "Location is required"),
+  state: z.string().min(1, "State is required"),
 
-  portfolio_url: z.string().url("Must be a valid URL").optional(),
+  country: z.string().min(1, "Country is required"),
 
   linkedin_profile: z.string().url("Must be a valid LinkedIn URL"),
 
+  portfolio_url: z.string().url("Must be a valid URL").optional(),
   skills: z
     .array(z.string(), {
       invalid_type_error: "Skills must be an array of strings.",
