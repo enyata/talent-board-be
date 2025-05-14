@@ -7,7 +7,10 @@ export class UserService {
   private userRepo = AppDataSource.getRepository(UserEntity);
 
   async getCurrentUser(userId: string) {
-    const user = await this.userRepo.findOne({ where: { id: userId } });
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      relations: ["talent_profile", "recruiter_profile"],
+    });
     if (!user) throw new NotFoundError("User not found");
     return sanitizeUser(user);
   }

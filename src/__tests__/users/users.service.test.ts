@@ -29,7 +29,10 @@ describe("UserService", () => {
       mockRepo.findOne.mockResolvedValue(mockUser);
 
       const result = await service.getCurrentUser("1");
-      expect(mockRepo.findOne).toHaveBeenCalledWith({ where: { id: "1" } });
+      expect(mockRepo.findOne).toHaveBeenCalledWith({
+        where: { id: "1" },
+        relations: ["talent_profile", "recruiter_profile"],
+      });
       expect(result).toBeDefined();
     });
 
