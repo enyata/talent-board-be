@@ -20,6 +20,7 @@ const config: Config = {
   forceExit: true,
   maxWorkers: 1,
   clearMocks: true,
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
 };
 
 export default config;
