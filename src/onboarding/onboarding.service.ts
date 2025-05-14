@@ -5,6 +5,7 @@ import {
 } from "@src/entities/recruiterProfile.entity";
 import {
   ExperienceLevel,
+  ProfileStatus,
   TalentProfileEntity,
 } from "@src/entities/talentProfile.entity";
 import { UserEntity, UserRole } from "@src/entities/user.entity";
@@ -47,6 +48,7 @@ export class OnboardingService {
         portfolio_url: p.portfolio_url,
         skills: p.skills,
         experience_level: p.experience_level as ExperienceLevel,
+        profile_status: ProfileStatus.PENDING,
       });
       await manager.save(profile);
     }

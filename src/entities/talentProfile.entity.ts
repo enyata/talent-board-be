@@ -10,6 +10,13 @@ export enum ExperienceLevel {
   EXPERT = "expert",
 }
 
+export enum ProfileStatus {
+  PENDING = "pending",
+  UNDER_REVIEW = "under_review",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+}
+
 @Entity({ name: "talent_profiles" })
 export class TalentProfileEntity extends ExtendedBaseEntity {
   @OneToOne(() => UserEntity, (user) => user.talent_profile)
@@ -37,4 +44,9 @@ export class TalentProfileEntity extends ExtendedBaseEntity {
   @Expose()
   @IsEnum(ExperienceLevel)
   experience_level: ExperienceLevel;
+
+  @Column({ type: "enum", enum: ProfileStatus, default: ProfileStatus.PENDING })
+  @Expose()
+  @IsEnum(ProfileStatus)
+  profile_status: ProfileStatus;
 }
