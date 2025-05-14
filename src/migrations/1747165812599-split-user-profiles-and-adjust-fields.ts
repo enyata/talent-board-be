@@ -9,9 +9,9 @@ export class SplitUserProfilesAndAdjustFields1747165812599
     // Add shared fields to users table
     await queryRunner.query(`
       ALTER TABLE "users"
-        ADD COLUMN "state" VARCHAR,
-        ADD COLUMN "country" VARCHAR,
-        ADD COLUMN "linkedin_profile" VARCHAR;
+        ADD COLUMN IF NOT EXISTS "state" VARCHAR,
+        ADD COLUMN IF NOT EXISTS "country" VARCHAR,
+        ADD COLUMN IF NOT EXISTS "linkedin_profile" VARCHAR;
     `);
 
     // Create experience level enum if not already created
