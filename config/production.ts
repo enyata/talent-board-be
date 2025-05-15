@@ -1,7 +1,3 @@
-import dotenv from "dotenv";
-
-dotenv.config();
-
 export default {
   PORT: Number(process.env.PORT) ?? 8000,
   NODE_ENV: process.env.NODE_ENV,
