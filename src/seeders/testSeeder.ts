@@ -12,21 +12,30 @@ import {
 import { UserEntity, UserProvider, UserRole } from "../entities/user.entity";
 import log from "../utils/logger";
 
-export const seedTestDatabase = async (dataSource: DataSource) => {
+type SeedOptions = {
+  skipIfExists?: boolean;
+};
+
+export const seedTestDatabase = async (
+  dataSource: DataSource,
+  options: SeedOptions = { skipIfExists: true },
+) => {
   const userRepo = dataSource.getRepository(UserEntity);
   const talentProfileRepo = dataSource.getRepository(TalentProfileEntity);
   const recruiterProfileRepo = dataSource.getRepository(RecruiterProfileEntity);
 
-  const existingUsers = await userRepo.find({
-    where: [
-      { email: "talent@example.com" },
-      { email: "recruiter@example.com" },
-    ],
-  });
+  if (options.skipIfExists) {
+    const existingUsers = await userRepo.find({
+      where: [
+        { email: "talent@example.com" },
+        { email: "recruiter@example.com" },
+      ],
+    });
 
-  if (existingUsers.length === 2) {
-    log.info("Seed users already exist. Skipping seeding.");
-    return;
+    if (existingUsers.length === 2) {
+      log.info("Seed users already exist. Skipping seeding.");
+      return;
+    }
   }
 
   log.info("Seeding Google talent and recruiter users...");
