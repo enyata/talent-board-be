@@ -40,11 +40,19 @@ export const getCurrentUser = `
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               status: "error"
+ *               message: "Unauthorized"
+ *               status_code: 401
  *       500:
  *         description: Internal server error
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               status: "error"
+ *               message: "Something went wrong!"
+ *               status_code: 500
  */
 `;
