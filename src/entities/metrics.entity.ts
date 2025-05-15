@@ -5,7 +5,7 @@ import { UserEntity } from "./user.entity";
 @Entity("user_metrics")
 export class MetricsEntity extends ExtendedBaseEntity {
   @OneToOne(() => UserEntity)
-  @JoinColumn()
+  @JoinColumn({ name: "user_id" })
   user: UserEntity;
 
   @Column({ default: 0 })
