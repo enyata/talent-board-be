@@ -32,7 +32,7 @@ jobs:
       redis:
         image: redis:latest
         ports:
-          - 6379:6379
+          - 6379/tcp
         options: >-
           --health-cmd "redis-cli ping || exit 1"
           --health-interval 10s
@@ -64,6 +64,7 @@ jobs:
           echo "DATABASE_URL=postgres://test_user:test_password@localhost:5432/test_db" >> $GITHUB_ENV
           echo "REDIS_HOST=localhost" >> $GITHUB_ENV
           echo "REDIS_PORT=6379" >> $GITHUB_ENV
+          echo "REDIS_URL=redis://localhost:6379" >> $GITHUB_ENV
 
       - name: Wait for Services to Be Ready
         run: sleep 10

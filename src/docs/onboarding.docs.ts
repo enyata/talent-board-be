@@ -95,6 +95,56 @@ export const talentOnboarding = `
  *                           $ref: '#/components/schemas/AccessToken'
  *                         refresh_token:
  *                           $ref: '#/components/schemas/RefreshToken'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               status: "error"
+ *               message: "Unauthorized"
+ *               status_code: 401
+ *       404:
+ *         description: Not Found - User record not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               status: "error"
+ *               message: "Talent not found"
+ *               status_code: 404
+ *       409:
+ *         description: Conflict - Profile already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               status: "error"
+ *               message: "Talent profile already completed"
+ *               status_code: 409
+ *       422:
+ *         description: Unprocessable Entity - Validation failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               status: "error"
+ *               message: "Validation error"
+ *               status_code: 422
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               status: "error"
+ *               message: "Something went wrong!"
+ *               status_code: 500
  */
 `;
 
@@ -188,5 +238,55 @@ export const recruiterOnboarding = `
  *                           $ref: '#/components/schemas/AccessToken'
  *                         refresh_token:
  *                           $ref: '#/components/schemas/RefreshToken'
+ *       401:
+ *         description: Unauthorized - No or invalid token provided
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               status: "error"
+ *               message: "Unauthorized"
+ *               status_code: 401
+ *       404:
+ *         description: Not Found - User record not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               status: "error"
+ *               message: "Recruiter not found"
+ *               status_code: 404
+ *       409:
+ *         description: Conflict - Profile already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               status: "error"
+ *               message: "Recruiter profile already completed"
+ *               status_code: 409
+ *       422:
+ *         description: Unprocessable Entity - Validation failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               status: "error"
+ *               message: "Validation error"
+ *               status_code: 422
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               status: "error"
+ *               message: "Something went wrong!"
+ *               status_code: 500
  */
 `;

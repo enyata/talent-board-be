@@ -8,6 +8,7 @@ export default {
   DB_PORT: 5433,
   DB_PASSWORD: "test_password",
   DB_NAME: "test_db",
+  DATABASE_URL: "postgres://test_user:test_password@localhost:5433/test_db",
 
   accessTokenTtl: "1m",
   refreshTokenTtl: "7d",
@@ -26,5 +27,5 @@ export default {
   LINKEDIN_CLIENT_ID: "linkedin_client_id",
   LINKEDIN_CLIENT_SECRET: "linkedin_client_secret",
 
-  REDIS_URL: "redis://localhost:6380",
+  REDIS_URL: "redis://redis:6379",
 };

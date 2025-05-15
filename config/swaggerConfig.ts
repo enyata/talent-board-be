@@ -2,7 +2,7 @@ import config from "config";
 import swaggerJsdoc, { SwaggerDefinition } from "swagger-jsdoc";
 import { version } from "../package.json";
 
-const PORT = config.get<number>("PORT") || 3000;
+const PORT = config.get<number>("PORT") || 8000;
 const NODE_ENV = config.get<string>("NODE_ENV") || "development";
 const BASE_URL = config.get<string>("BASE_URL") || `http://localhost:${PORT}`;
 const isCompiled = config.get<string>("NODE_ENV") === "production";

@@ -1,10 +1,12 @@
+import "dotenv/config";
+
 import config from "config";
-import "dotenv";
 import "reflect-metadata";
 
 import app from "./app";
 import AppDataSource from "./datasource";
 import log from "./utils/logger";
+import "./workers/index";
 
 const port = config.get<number>("PORT") ?? 8000;
 

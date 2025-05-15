@@ -1,7 +1,3 @@
-import dotenv from "dotenv";
-
-dotenv.config();
-
 export default {
   PORT: Number(process.env.PORT) ?? 8000,
   NODE_ENV: process.env.NODE_ENV,
@@ -48,5 +44,5 @@ export default {
   GMAIL_USER: process.env.GMAIL_USER || "",
   GMAIL_PASSWORD: process.env.GMAIL_PASSWORD || "",
 
-  REDIS_URL: process.env.REDIS_URL || "redis://localhost:6379",
+  REDIS_URL: process.env.REDIS_URL || "redis://redis:6379",
 };

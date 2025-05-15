@@ -1,7 +1,8 @@
 services:
   postgres:
     image: postgres:17-alpine
-    container_name: postgres
+    container_name: postgres-dev
+    profiles: ["dev"]
     env_file: .env
     environment:
       POSTGRES_USER: ${DB_USER}
@@ -13,10 +14,23 @@ services:
       - ./data/db:/var/lib/postgresql/data
     restart: always
 
+  postgres_test:
+    image: postgres:17-alpine
+    container_name: postgres-test
+    profiles: ["test"]
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: test_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./data/test-db:/var/lib/postgresql/data
+    restart: always
   redis:
     image: redis:7-alpine
     container_name: redis
-    env_file: .env
+    profiles: ["dev", "test"]
     ports:
       - "6379:6379"
     command: ["redis-server", "--appendonly", "yes"]
@@ -32,6 +46,7 @@ services:
     depends_on:
       - postgres
     restart: always
+    profiles: ["dev"]
 
   backend:
     container_name: talentboard-backend
@@ -54,6 +69,7 @@ services:
     depends_on:
       - postgres
       - redis
+    profiles: ["dev"]
 
 volumes:
   redis_data:

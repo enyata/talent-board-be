@@ -10,6 +10,7 @@ import {
 } from "class-validator";
 import { Column, Entity, OneToMany, OneToOne } from "typeorm";
 import ExtendedBaseEntity from "./base.entity";
+import { NotificationEntity } from "./notification.entity";
 import { RecruiterProfileEntity } from "./recruiterProfile.entity";
 import { RefreshToken } from "./refreshToken.entity";
 import { TalentProfileEntity } from "./talentProfile.entity";
@@ -91,4 +92,12 @@ export class UserEntity extends ExtendedBaseEntity {
 
   @OneToOne(() => RecruiterProfileEntity, (rp) => rp.user, { cascade: true })
   recruiter_profile: RecruiterProfileEntity;
+
+  @OneToMany(
+    () => NotificationEntity,
+    (notification) => notification.recipient,
+    { cascade: true },
+  )
+  @Expose()
+  received_notifications: NotificationEntity[];
 }
