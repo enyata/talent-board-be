@@ -45,4 +45,6 @@ export default {
   GMAIL_PASSWORD: process.env.GMAIL_PASSWORD || "",
 
   REDIS_URL: process.env.REDIS_URL || "redis://redis:6379",
+  REDIS_CACHE_TTL_LONG: Number(process.env.REDIS_CACHE_TTL_LONG) || 60 * 60, // 1 hour
+  REDIS_CACHE_TTL_SHORT: Number(process.env.REDIS_CACHE_TTL_SHORT) || 60 * 5, // 5 minutes
 };

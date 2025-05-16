@@ -6,6 +6,7 @@ import { TalentProfileEntity } from "@src/entities/talentProfile.entity";
 import { UserEntity } from "@src/entities/user.entity";
 import { NotFoundError } from "@src/exceptions/notFoundError";
 import { CacheService } from "@src/utils/cache.service";
+import config from "config";
 import {
   getProfileStatus,
   serializeNotifications,
@@ -96,7 +97,11 @@ export class DashboardService {
       })),
     };
 
-    CacheService.set(cacheKey, data, 60 * 60);
+    CacheService.set(
+      cacheKey,
+      data,
+      config.get<number>("REDIS_CACHE_TTL_LONG"),
+    );
     return data;
   }
 
@@ -156,7 +161,11 @@ export class DashboardService {
       notifications: serializeNotifications(notificationsRaw),
     };
 
-    await CacheService.set(cacheKey, result, 60 * 60);
+    await CacheService.set(
+      cacheKey,
+      result,
+      config.get<number>("REDIS_CACHE_TTL_LONG"),
+    );
     return result;
   }
 }
