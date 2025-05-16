@@ -14,3 +14,14 @@ export const getTalentDashboard = asyncHandler(
     });
   },
 );
+
+export const getRecruiterDashboard = asyncHandler(
+  async (req: Request, res: Response, _next: NextFunction) => {
+    const data = await dashboardService.getRecruiterDashboard(req.user.id);
+    res.status(200).json({
+      status: "success",
+      message: "Dashboard fetched successfully",
+      data,
+    });
+  },
+);
