@@ -22,6 +22,10 @@ export class UserService {
       dashboardData = await this.dashboardService.getTalentDashboard(userId);
     }
 
+    if (user.role === UserRole.RECRUITER) {
+      dashboardData = await this.dashboardService.getRecruiterDashboard(userId);
+    }
+
     return {
       ...sanitized,
       dashboard: dashboardData,
