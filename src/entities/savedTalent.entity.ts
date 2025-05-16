@@ -9,7 +9,7 @@ export class SavedTalentEntity extends ExtendedBaseEntity {
   @JoinColumn({ name: "recruiter_id" })
   recruiter: UserEntity;
 
-  @ManyToOne(() => UserEntity, { eager: true })
+  @ManyToOne(() => UserEntity, { eager: false })
   @JoinColumn({ name: "talent_id" })
   talent: UserEntity;
 
