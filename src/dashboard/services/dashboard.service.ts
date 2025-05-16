@@ -6,7 +6,12 @@ import { TalentProfileEntity } from "@src/entities/talentProfile.entity";
 import { UserEntity } from "@src/entities/user.entity";
 import { NotFoundError } from "@src/exceptions/notFoundError";
 import { CacheService } from "@src/utils/cache.service";
-import { getProfileStatus } from "../dashboard.utils";
+import {
+  getProfileStatus,
+  serializeNotifications,
+  serializeRecommendedTalents,
+  serializeSavedTalents,
+} from "../dashboard.utils";
 
 const getTimeBasedGreeting = (): string => {
   const hour = new Date().getHours();
@@ -108,9 +113,7 @@ export class DashboardService {
     if (cachedData) {
       return {
         ...cachedData,
-        welcome_message: generateRecruiterWelcomeMessage(
-          recruiterName || "there",
-        ),
+        welcome_message: generateRecruiterWelcomeMessage(recruiterName),
       };
     }
 
@@ -123,33 +126,34 @@ export class DashboardService {
       throw new NotFoundError("Recruiter Profile not found");
     }
 
-    const savedTalents = await this.savedTalentRepository.find({
-      where: { recruiter: { id: userId } },
-      order: { saved_at: "DESC" },
-      take: 4,
-      relations: ["talent", "talent.talent_profile"],
-    });
-
-    const recommendedTalents = await this.talentRepository
-      .createQueryBuilder("talent")
-      .leftJoinAndSelect("talent.user", "user")
-      .where(`:roles && talent.skills`, {
-        roles: recruiter.recruiter_profile.roles_looking_for,
-      })
-      .take(10)
-      .getMany();
-
-    const notifications = await this.notificationRepository.find({
-      where: { recipient: { id: userId } },
-      order: { created_at: "DESC" },
-      take: 10,
-    });
+    const [savedTalentsRaw, recommendedProfiles, notificationsRaw] =
+      await Promise.all([
+        this.savedTalentRepository.find({
+          where: { recruiter: { id: userId } },
+          order: { saved_at: "DESC" },
+          take: 4,
+          relations: ["talent", "talent.talent_profile"],
+        }),
+        this.talentRepository
+          .createQueryBuilder("talent")
+          .leftJoinAndSelect("talent.user", "user")
+          .where(`:roles && talent.skills`, {
+            roles: recruiter.recruiter_profile.roles_looking_for,
+          })
+          .take(10)
+          .getMany(),
+        this.notificationRepository.find({
+          where: { recipient: { id: userId } },
+          order: { created_at: "DESC" },
+          take: 10,
+        }),
+      ]);
 
     const result = {
       welcome_message: generateRecruiterWelcomeMessage(recruiter.first_name),
-      recommended_talents: recommendedTalents,
-      saved_talents: savedTalents,
-      notifications,
+      saved_talents: serializeSavedTalents(savedTalentsRaw),
+      recommended_talents: serializeRecommendedTalents(recommendedProfiles),
+      notifications: serializeNotifications(notificationsRaw),
     };
 
     await CacheService.set(cacheKey, result, 60 * 60);
