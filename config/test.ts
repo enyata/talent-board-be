@@ -28,4 +28,6 @@ export default {
   LINKEDIN_CLIENT_SECRET: "linkedin_client_secret",
 
   REDIS_URL: "redis://redis:6379",
+  REDIS_CACHE_TTL_LONG: 60 * 60, // 1 hour
+  REDIS_CACHE_TTL_SHORT: 60 * 5, // 5 minutes
 };

@@ -1,10 +1,39 @@
 import AppDataSource from "@src/datasource";
 import { MetricsEntity } from "@src/entities/metrics.entity";
 import { NotificationEntity } from "@src/entities/notification.entity";
+import { SavedTalentEntity } from "@src/entities/savedTalent.entity";
+import { TalentProfileEntity } from "@src/entities/talentProfile.entity";
 import { UserEntity } from "@src/entities/user.entity";
 import { NotFoundError } from "@src/exceptions/notFoundError";
 import { CacheService } from "@src/utils/cache.service";
-import { getProfileStatus } from "../dashboard.utils";
+import config from "config";
+import {
+  getProfileStatus,
+  serializeNotifications,
+  serializeRecommendedTalents,
+  serializeSavedTalents,
+} from "../dashboard.utils";
+
+const getTimeBasedGreeting = (): string => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+};
+
+const recruiterMessages = [
+  (name: string) =>
+    `${getTimeBasedGreeting()} ${name}, ready to find your next great hire?`,
+  (name: string) =>
+    `${getTimeBasedGreeting()} ${name}, let’s discover top talent today.`,
+  (name: string) => `Hey ${name}, your next hire might be just a click away.`,
+  (name: string) => `Welcome back ${name}, explore new talent profiles now.`,
+];
+
+const generateRecruiterWelcomeMessage = (name: string) => {
+  const index = Math.floor(Math.random() * recruiterMessages.length);
+  return recruiterMessages[index](name);
+};
 
 export class DashboardService {
   private readonly userRepository = AppDataSource.getRepository(UserEntity);
@@ -12,6 +41,10 @@ export class DashboardService {
     AppDataSource.getRepository(MetricsEntity);
   private readonly notificationRepository =
     AppDataSource.getRepository(NotificationEntity);
+  private readonly talentRepository =
+    AppDataSource.getRepository(TalentProfileEntity);
+  private readonly savedTalentRepository =
+    AppDataSource.getRepository(SavedTalentEntity);
 
   async getTalentDashboard(userId: string) {
     const cacheKey = `dashboard_talent_${userId}`;
@@ -64,7 +97,75 @@ export class DashboardService {
       })),
     };
 
-    CacheService.set(cacheKey, data, 60 * 60);
+    CacheService.set(
+      cacheKey,
+      data,
+      config.get<number>("REDIS_CACHE_TTL_LONG"),
+    );
     return data;
+  }
+
+  async getRecruiterDashboard(userId: string) {
+    const cacheKey = `dashboard_recruiter_${userId}`;
+    const cachedData = await CacheService.get(cacheKey);
+
+    const _recruiter = await this.userRepository.findOne({
+      where: { id: userId },
+      select: ["first_name"],
+    });
+    const recruiterName = _recruiter?.first_name ?? "there";
+
+    if (cachedData) {
+      return {
+        ...cachedData,
+        welcome_message: generateRecruiterWelcomeMessage(recruiterName),
+      };
+    }
+
+    const recruiter = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ["recruiter_profile"],
+    });
+
+    if (!recruiter || !recruiter.recruiter_profile) {
+      throw new NotFoundError("Recruiter Profile not found");
+    }
+
+    const [savedTalentsRaw, recommendedProfiles, notificationsRaw] =
+      await Promise.all([
+        this.savedTalentRepository.find({
+          where: { recruiter: { id: userId } },
+          order: { saved_at: "DESC" },
+          take: 4,
+          relations: ["talent", "talent.talent_profile"],
+        }),
+        this.talentRepository
+          .createQueryBuilder("talent")
+          .leftJoinAndSelect("talent.user", "user")
+          .where(`:roles && talent.skills`, {
+            roles: recruiter.recruiter_profile.roles_looking_for,
+          })
+          .take(10)
+          .getMany(),
+        this.notificationRepository.find({
+          where: { recipient: { id: userId } },
+          order: { created_at: "DESC" },
+          take: 10,
+        }),
+      ]);
+
+    const result = {
+      welcome_message: generateRecruiterWelcomeMessage(recruiter.first_name),
+      saved_talents: serializeSavedTalents(savedTalentsRaw),
+      recommended_talents: serializeRecommendedTalents(recommendedProfiles),
+      notifications: serializeNotifications(notificationsRaw),
+    };
+
+    await CacheService.set(
+      cacheKey,
+      result,
+      config.get<number>("REDIS_CACHE_TTL_LONG"),
+    );
+    return result;
   }
 }
