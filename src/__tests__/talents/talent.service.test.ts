@@ -286,4 +286,79 @@ describe("Talent Service", () => {
       expect(Array.isArray(res.results)).toBe(true);
     });
   });
+
+  describe("getTalentById", () => {
+    it("throws NotFoundError if talent does not exist", async () => {
+      const nonExistentUUID = randomUUID();
+      await expect(
+        talentService.getTalentById(nonExistentUUID),
+      ).rejects.toThrow(NotFoundError);
+    });
+
+    it("throws NotFoundError if user exists but has no talent profile", async () => {
+      const userRepo = AppDataSource.getRepository(UserEntity);
+      const user = userRepo.create({
+        first_name: "John",
+        last_name: "Doe",
+        email: "john@doe.com",
+        provider: UserProvider.GOOGLE,
+        role: UserRole.TALENT,
+        profile_completed: true,
+      });
+      await userRepo.save(user);
+      await expect(talentService.getTalentById(user.id)).rejects.toThrow(
+        NotFoundError,
+      );
+    });
+
+    it("returns full talent profile when user and profile exist", async () => {
+      const userRepo = AppDataSource.getRepository(UserEntity);
+      const profileRepo = AppDataSource.getRepository(TalentProfileEntity);
+      const metricsRepo = AppDataSource.getRepository(MetricsEntity);
+
+      const user = userRepo.create({
+        first_name: "Jane",
+        last_name: "Doe",
+        email: "jane@doe.com",
+        provider: UserProvider.GOOGLE,
+        role: UserRole.TALENT,
+        profile_completed: true,
+      });
+      await userRepo.save(user);
+
+      const profile = profileRepo.create({
+        user,
+        resume_path: "jane-resume.pdf",
+        portfolio_url: "https://jane.dev",
+        skills: ["React", "Node.js"],
+        experience_level: ExperienceLevel.INTERMEDIATE,
+        profile_status: ProfileStatus.APPROVED,
+      });
+      await profileRepo.save(profile);
+
+      const metrics = metricsRepo.create({
+        user,
+        upvotes: 5,
+        recruiter_saves: 2,
+      });
+      await metricsRepo.save(metrics);
+
+      const result = await talentService.getTalentById(user.id);
+
+      expect(result).toMatchObject({
+        id: user.id,
+        first_name: "Jane",
+        last_name: "Doe",
+        resume_path: "jane-resume.pdf",
+        portfolio_url: "https://jane.dev",
+        skills: expect.arrayContaining(["React", "Node.js"]),
+        experience_level: ExperienceLevel.INTERMEDIATE,
+        profile_status: ProfileStatus.APPROVED,
+        metrics: {
+          upvotes: 5,
+          recruiter_saves: 2,
+        },
+      });
+    });
+  });
 });
