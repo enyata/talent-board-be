@@ -126,6 +126,41 @@ const swaggerDefinition: SwaggerDefinition = {
         description: "JWT refresh token",
         example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
       },
+      TalentProfilePreview: {
+        type: "object",
+        properties: {
+          id: { type: "string", example: "a1b2c3d4-uuid" },
+          first_name: { type: "string", example: "Jane" },
+          last_name: { type: "string", example: "Doe" },
+          avatar: {
+            type: "string",
+            nullable: true,
+            example: "https://example.com/avatar.png",
+          },
+          state: { type: "string", example: "Lagos" },
+          country: { type: "string", example: "Nigeria" },
+          linkedin_profile: {
+            type: "string",
+            nullable: true,
+            example: "https://linkedin.com/in/janedoe",
+          },
+          skills: {
+            type: "array",
+            items: { type: "string" },
+            example: ["Node.js", "React", "TypeScript"],
+          },
+          experience_level: {
+            type: "string",
+            enum: ["entry", "intermediate", "expert"],
+            example: "intermediate",
+          },
+          portfolio_url: {
+            type: "string",
+            nullable: true,
+            example: "https://janedoe.dev",
+          },
+        },
+      },
     },
   },
   security: [
