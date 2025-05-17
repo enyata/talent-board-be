@@ -12,3 +12,15 @@ export const saveTalent = asyncHandler(async (req: Request, res: Response) => {
     .status(201)
     .json({ status: "success", message: "Talent saved successfully" });
 });
+
+export const searchTalents = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await talentService.searchTalents(req.query);
+
+    res.status(200).json({
+      status: "success",
+      message: "Talents fetched successfully",
+      data: result,
+    });
+  },
+);
