@@ -10,6 +10,7 @@ import {
 } from "class-validator";
 import { Column, Entity, OneToMany, OneToOne } from "typeorm";
 import ExtendedBaseEntity from "./base.entity";
+import { MetricsEntity } from "./metrics.entity";
 import { NotificationEntity } from "./notification.entity";
 import { RecruiterProfileEntity } from "./recruiterProfile.entity";
 import { RefreshToken } from "./refreshToken.entity";
@@ -100,4 +101,7 @@ export class UserEntity extends ExtendedBaseEntity {
   )
   @Expose()
   received_notifications: NotificationEntity[];
+
+  @OneToOne(() => MetricsEntity, (m) => m.user)
+  metrics: MetricsEntity;
 }

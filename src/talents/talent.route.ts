@@ -1,12 +1,17 @@
 import { UserRole } from "@src/entities/user.entity";
 import { checkRole } from "@src/middlewares/checkRole";
 import { deserializeUser } from "@src/middlewares/deserializeUser";
+import { validateData } from "@src/middlewares/validateData";
 import { Router } from "express";
-import { saveTalent } from "./talent.controller";
+import { searchTalentsSchema } from "./schemas/searchTalents.schema";
+import { saveTalent, searchTalents } from "./talent.controller";
 
 const router = Router();
 
 router.use(deserializeUser);
-router.post("/:id/save", checkRole(UserRole.RECRUITER), saveTalent);
+router.use(checkRole(UserRole.RECRUITER));
+
+router.post("/:id/save", saveTalent);
+router.get("/", validateData(searchTalentsSchema, ["query"]), searchTalents);
 
 export default router;

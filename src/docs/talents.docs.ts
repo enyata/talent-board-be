@@ -88,3 +88,124 @@ export const saveTalent = `
    *               status_code: 500
    */
 `;
+
+export const searchTalents = `
+  /**
+   * @swagger
+   * /api/v1/talents:
+   *   get:
+   *     summary: Search and filter talent profiles
+   *     tags: [Talents]
+   *     description: Retrieves a paginated list of talent profiles based on search query and filters.
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: q
+   *         schema:
+   *           type: string
+   *         description: Full-text search on name or skills
+   *       - in: query
+   *         name: skills
+   *         schema:
+   *           type: string
+   *         description: Comma-separated list of skills
+   *         example: React,Node.js
+   *       - in: query
+   *         name: experience
+   *         schema:
+   *           type: string
+   *           enum: [entry, intermediate, expert]
+   *         description: Filter by experience level
+   *       - in: query
+   *         name: state
+   *         schema:
+   *           type: string
+   *         description: Filter by state
+   *       - in: query
+   *         name: country
+   *         schema:
+   *           type: string
+   *         description: Filter by country
+   *       - in: query
+   *         name: sort
+   *         schema:
+   *           type: string
+   *           enum: [recent, upvotes, experience]
+   *         description: Sort results by field
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *           default: 10
+   *         description: Number of results per page
+   *       - in: query
+   *         name: cursor
+   *         schema:
+   *           type: string
+   *         description: Pagination cursor (base64 encoded)
+   *       - in: query
+   *         name: direction
+   *         schema:
+   *           type: string
+   *           enum: [next, prev]
+   *         description: Pagination direction
+   *     responses:
+   *       200:
+   *         description: Talents fetched successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Talents fetched successfully
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     results:
+   *                       type: array
+   *                       items:
+   *                         $ref: '#/components/schemas/TalentProfilePreview'
+   *                     count:
+   *                       type: integer
+   *                     nextCursor:
+   *                       type: string
+   *                       nullable: true
+   *                     previousCursor:
+   *                       type: string
+   *                       nullable: true
+   *                     hasNextPage:
+   *                       type: boolean
+   *                     hasPreviousPage:
+   *                       type: boolean
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       403:
+   *         description: Forbidden - Only recruiters can perform this action
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       422:
+   *         description: Validation error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       500:
+   *         description: Internal server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   */
+`;

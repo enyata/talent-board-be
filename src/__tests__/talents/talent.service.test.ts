@@ -114,4 +114,176 @@ describe("Talent Service", () => {
       expect(metrics?.recruiter_saves).toBe(1);
     });
   });
+
+  describe("searchTalents", () => {
+    const createTalent = async (
+      email: string,
+      opts: Partial<TalentProfileEntity> = {},
+      userOpts: Partial<UserEntity> = {},
+    ) => {
+      const userRepo = AppDataSource.getRepository(UserEntity);
+      const profileRepo = AppDataSource.getRepository(TalentProfileEntity);
+      const talent = userRepo.create({
+        ...talentFactory(email),
+        ...userOpts,
+      });
+      await userRepo.save(talent);
+      const profile = profileRepo.create({
+        user: talent,
+        resume_path: opts.resume_path || "cv.pdf",
+        skills: opts.skills || ["TypeScript", "Node.js"],
+        experience_level: opts.experience_level || ExperienceLevel.INTERMEDIATE,
+        profile_status: opts.profile_status || ProfileStatus.APPROVED,
+        ...opts,
+      });
+      await profileRepo.save(profile);
+      return { talent, profile };
+    };
+
+    it("returns empty if no talents exist", async () => {
+      const res = await talentService.searchTalents({ limit: 10 });
+      expect(res.results).toHaveLength(0);
+    });
+
+    it("returns matching talents based on keyword q", async () => {
+      await createTalent("match1@test.com");
+      await createTalent("match2@test.com", { skills: ["React", "Node.js"] });
+
+      let res = await talentService.searchTalents({ q: "Talent", limit: 10 });
+      expect(res.results.length).toBeGreaterThanOrEqual(2);
+
+      res = await talentService.searchTalents({ q: "react", limit: 10 });
+      expect(res.results.some((r) => r.skills.includes("React"))).toBe(true);
+    });
+
+    it("filters by skills array and experience", async () => {
+      await createTalent("filt1@test.com", {
+        skills: ["Node.js", "TypeScript"],
+        experience_level: ExperienceLevel.EXPERT,
+      });
+      await createTalent("filt2@test.com", {
+        skills: ["React"],
+        experience_level: ExperienceLevel.ENTRY,
+      });
+
+      const res = await talentService.searchTalents({
+        skills: ["Node.js"],
+        experience: ExperienceLevel.EXPERT,
+        limit: 10,
+      });
+      expect(res.results).toHaveLength(1);
+      expect(res.results[0].skills).toContain("Node.js");
+      expect(res.results[0].experience_level).toBe(ExperienceLevel.EXPERT);
+    });
+
+    it("applies state and country filters", async () => {
+      await createTalent(
+        "loc1@test.com",
+        {},
+        { state: "Lagos", country: "Nigeria" },
+      );
+      await createTalent(
+        "loc2@test.com",
+        {},
+        { state: "Accra", country: "Ghana" },
+      );
+
+      let res = await talentService.searchTalents({
+        state: "Lagos",
+        limit: 10,
+      });
+      expect(res.results).toHaveLength(1);
+      expect(res.results[0].state).toBe("Lagos");
+      res = await talentService.searchTalents({ country: "Ghana", limit: 10 });
+      expect(res.results).toHaveLength(1);
+      expect(res.results[0].country).toBe("Ghana");
+    });
+
+    it("applies sort and limit", async () => {
+      const base = Date.now();
+      for (let i = 1; i <= 5; i++) {
+        await createTalent(
+          `sort${i}@test.com`,
+          {
+            skills: ["TypeScript"],
+            experience_level: ExperienceLevel.INTERMEDIATE,
+          },
+          { first_name: `User${i}`, created_at: new Date(base + i * 1000) },
+        );
+      }
+      const res = await talentService.searchTalents({
+        sort: "recent",
+        limit: 2,
+      });
+      expect(res.results.length).toBeLessThanOrEqual(2);
+    });
+
+    it("supports cursor-based pagination", async () => {
+      const base = Date.now();
+      for (let i = 0; i < 3; i++) {
+        await createTalent(
+          `page${i}@test.com`,
+          {
+            skills: ["Node.js"],
+            experience_level: ExperienceLevel.INTERMEDIATE,
+          },
+          { created_at: new Date(base + i * 1000) },
+        );
+      }
+      const serviceRes = await talentService.searchTalents({ limit: 2 });
+      expect(serviceRes.results.length).toBe(2);
+      expect(serviceRes.nextCursor).toBeTruthy();
+      const serviceRes2 = await talentService.searchTalents({
+        limit: 2,
+        cursor: serviceRes.nextCursor || undefined,
+        direction: "next",
+      });
+      expect(serviceRes2.results.length).toBeLessThanOrEqual(2);
+    });
+
+    it("applies sort by upvotes", async () => {
+      const userRepo = AppDataSource.getRepository(UserEntity);
+      const metricsRepo = AppDataSource.getRepository(MetricsEntity);
+
+      const t1 = await createTalent("up1@test.com");
+      const t2 = await createTalent("up2@test.com");
+
+      await metricsRepo.save([
+        metricsRepo.create({ user: t1.talent, upvotes: 2 }),
+        metricsRepo.create({ user: t2.talent, upvotes: 5 }),
+      ]);
+
+      const res = await talentService.searchTalents({
+        sort: "upvotes",
+        limit: 10,
+      });
+      expect(res.results.length).toBeGreaterThanOrEqual(2);
+      expect(res.results[0].id).toBe(t2.talent.id); // higher upvotes first
+    });
+
+    it("returns safe default if sort key is invalid", async () => {
+      const res = await talentService.searchTalents({
+        sort: "invalid" as any,
+        limit: 10,
+      });
+      expect(res).toHaveProperty("results");
+      expect(Array.isArray(res.results)).toBe(true);
+    });
+
+    it("throws on non-numeric limit", async () => {
+      await expect(
+        // @ts-expect-error
+        talentService.searchTalents({ limit: "ten" }),
+      ).rejects.toThrow();
+    });
+
+    it("returns safe default if cursor is invalid", async () => {
+      const res = await talentService.searchTalents({
+        cursor: "%%%",
+        limit: 10,
+      });
+      expect(res).toHaveProperty("results");
+      expect(Array.isArray(res.results)).toBe(true);
+    });
+  });
 });
