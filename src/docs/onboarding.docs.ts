@@ -116,7 +116,7 @@ export const talentOnboarding = `
  *               message: "Talent not found"
  *               status_code: 404
  *       409:
- *         description: Conflict - Profile already exists
+ *         description: Conflict - Onboarding already completed
  *         content:
  *           application/json:
  *             schema:
@@ -259,7 +259,7 @@ export const recruiterOnboarding = `
  *               message: "Recruiter not found"
  *               status_code: 404
  *       409:
- *         description: Conflict - Profile already exists
+ *         description: Conflict - Onboarding already completed
  *         content:
  *           application/json:
  *             schema:
