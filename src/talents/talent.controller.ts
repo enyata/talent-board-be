@@ -24,3 +24,15 @@ export const searchTalents = asyncHandler(
     });
   },
 );
+
+export const getTalentById = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await talentService.getTalentById(req.params.id);
+
+    res.status(200).json({
+      status: "success",
+      message: "Talent fetched successfully",
+      data: result,
+    });
+  },
+);
