@@ -3,7 +3,10 @@ import { NotificationService } from "@src/dashboard/services/notification.servic
 import AppDataSource from "@src/datasource";
 import { NotificationType } from "@src/entities/notification.entity";
 import { SavedTalentEntity } from "@src/entities/savedTalent.entity";
-import { TalentProfileEntity } from "@src/entities/talentProfile.entity";
+import {
+  ProfileStatus,
+  TalentProfileEntity,
+} from "@src/entities/talentProfile.entity";
 import { UserEntity, UserRole } from "@src/entities/user.entity";
 import { ClientError } from "@src/exceptions/clientError";
 import { NotFoundError } from "@src/exceptions/notFoundError";
@@ -70,7 +73,10 @@ export class TalentService {
       .createQueryBuilder("talent")
       .leftJoinAndSelect("talent.user", "user")
       .leftJoinAndSelect("user.metrics", "metrics")
-      .where("user.profile_completed = true");
+      .where("user.profile_completed = true")
+      .andWhere("talent.profile_status = :status", {
+        status: ProfileStatus.APPROVED,
+      });
 
     if (query.q) {
       qb.andWhere(
