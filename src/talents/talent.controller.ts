@@ -36,3 +36,20 @@ export const getTalentById = asyncHandler(
     });
   },
 );
+
+export const toggleUpvoteTalent = asyncHandler(
+  async (req: Request, res: Response) => {
+    const talentId = req.params.id;
+    const recruiterId = req.user.id;
+
+    const action = await talentService.toggleUpvoteTalent(
+      talentId,
+      recruiterId,
+    );
+
+    res.status(action === "upvoted" ? 201 : 200).json({
+      status: "success",
+      message: `Talent ${action} successfully`,
+    });
+  },
+);
