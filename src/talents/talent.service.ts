@@ -172,15 +172,23 @@ export class TalentService {
 
   async getTalentById(talentId: string) {
     const user = await this.userRepo.findOne({
-      where: { id: talentId, role: UserRole.TALENT, profile_completed: true },
+      where: {
+        id: talentId,
+        role: UserRole.TALENT,
+        profile_completed: true,
+      },
       relations: ["talent_profile", "metrics"],
     });
 
-    if (!user || !user.talent_profile) {
+    if (
+      !user ||
+      !user.talent_profile ||
+      user.talent_profile.profile_status !== ProfileStatus.APPROVED
+    ) {
       throw new NotFoundError("Talent profile not found");
     }
 
-    const { talent_profile, metrics, ...rest } = user;
+    const { talent_profile, metrics } = user;
 
     return {
       id: user.id,
@@ -194,7 +202,6 @@ export class TalentService {
       resume_path: talent_profile.resume_path,
       skills: talent_profile.skills,
       experience_level: talent_profile.experience_level,
-      profile_status: talent_profile.profile_status,
       created_at: user.created_at,
       metrics: {
         upvotes: metrics?.upvotes || 0,

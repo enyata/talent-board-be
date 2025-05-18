@@ -353,7 +353,6 @@ describe("Talent Service", () => {
         portfolio_url: "https://jane.dev",
         skills: expect.arrayContaining(["React", "Node.js"]),
         experience_level: ExperienceLevel.INTERMEDIATE,
-        profile_status: ProfileStatus.APPROVED,
         metrics: {
           upvotes: 5,
           recruiter_saves: 2,
