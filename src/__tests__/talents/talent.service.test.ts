@@ -8,6 +8,7 @@ import {
   ProfileStatus,
   TalentProfileEntity,
 } from "../../entities/talentProfile.entity";
+import { TalentUpvoteEntity } from "../../entities/talentUpvote.entity";
 import { UserEntity, UserProvider, UserRole } from "../../entities/user.entity";
 import { ClientError } from "../../exceptions/clientError";
 import { NotFoundError } from "../../exceptions/notFoundError";
@@ -358,6 +359,134 @@ describe("Talent Service", () => {
           recruiter_saves: 2,
         },
       });
+    });
+  });
+
+  describe("toggleUpvoteTalent", () => {
+    const setupUsers = async () => {
+      const userRepo = AppDataSource.getRepository(UserEntity);
+      const profileRepo = AppDataSource.getRepository(TalentProfileEntity);
+      const metricsRepo = AppDataSource.getRepository(MetricsEntity);
+
+      const recruiter = userRepo.create({
+        first_name: "Recruiter",
+        last_name: "One",
+        email: "recruiter@test.com",
+        provider: UserProvider.GOOGLE,
+        role: UserRole.RECRUITER,
+        profile_completed: true,
+      });
+      await userRepo.save(recruiter);
+
+      const talent = userRepo.create({
+        first_name: "Talent",
+        last_name: "User",
+        email: "talent@test.com",
+        provider: UserProvider.GOOGLE,
+        role: UserRole.TALENT,
+        profile_completed: true,
+      });
+      await userRepo.save(talent);
+
+      const profile = profileRepo.create({
+        user: talent,
+        resume_path: "resume.pdf",
+        skills: ["React"],
+        experience_level: ExperienceLevel.INTERMEDIATE,
+        profile_status: ProfileStatus.APPROVED,
+      });
+      await profileRepo.save(profile);
+
+      const metrics = metricsRepo.create({ user: talent });
+      await metricsRepo.save(metrics);
+
+      return { recruiter, talent };
+    };
+
+    it("should throw ClientError if recruiter tries to upvote themselves", async () => {
+      await expect(
+        talentService.toggleUpvoteTalent("same-id", "same-id"),
+      ).rejects.toThrow(ClientError);
+    });
+
+    it("should throw NotFoundError if talent not found or not approved", async () => {
+      const userRepo = AppDataSource.getRepository(UserEntity);
+      const recruiter = userRepo.create({
+        first_name: "Rec",
+        last_name: "One",
+        email: "rec@test.com",
+        provider: UserProvider.GOOGLE,
+        role: UserRole.RECRUITER,
+        profile_completed: true,
+      });
+      await userRepo.save(recruiter);
+
+      await expect(
+        talentService.toggleUpvoteTalent(randomUUID(), recruiter.id),
+      ).rejects.toThrow(NotFoundError);
+    });
+
+    it("should upvote a talent, create record, metric and notification", async () => {
+      const { recruiter, talent } = await setupUsers();
+
+      const action = await talentService.toggleUpvoteTalent(
+        talent.id,
+        recruiter.id,
+      );
+      expect(action).toBe("upvoted");
+
+      const upvote = await AppDataSource.getRepository(
+        TalentUpvoteEntity,
+      ).findOne({
+        where: {
+          recruiter: { id: recruiter.id },
+          talent: { id: talent.id },
+        },
+      });
+      expect(upvote).toBeDefined();
+
+      const metrics = await AppDataSource.getRepository(
+        MetricsEntity,
+      ).findOneBy({
+        user: { id: talent.id },
+      });
+      expect(metrics?.upvotes).toBe(1);
+
+      const notification = await AppDataSource.getRepository(
+        NotificationEntity,
+      ).findOneBy({
+        recipient: { id: talent.id },
+        sender: { id: recruiter.id },
+      });
+      expect(notification).toBeDefined();
+    });
+
+    it("should unupvote a previously upvoted talent", async () => {
+      const { recruiter, talent } = await setupUsers();
+      await talentService.toggleUpvoteTalent(talent.id, recruiter.id); // Upvote
+
+      const action = await talentService.toggleUpvoteTalent(
+        talent.id,
+        recruiter.id,
+      ); // Unupvote
+      expect(action).toBe("unupvoted");
+
+      const upvote = await AppDataSource.getRepository(
+        TalentUpvoteEntity,
+      ).findOne({
+        where: {
+          recruiter: { id: recruiter.id },
+          talent: { id: talent.id },
+        },
+      });
+      expect(upvote).toBeNull();
+
+      const metrics = await AppDataSource.getRepository(
+        MetricsEntity,
+      ).findOneBy({
+        user: { id: talent.id },
+      });
+      expect(metrics?.upvotes).toBe(0);
     });
   });
 });
