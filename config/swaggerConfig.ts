@@ -161,6 +161,38 @@ const swaggerDefinition: SwaggerDefinition = {
           },
         },
       },
+      TalentProfileDetailed: {
+        type: "object",
+        properties: {
+          id: { type: "string", example: "a1b2c3d4-uuid" },
+          first_name: { type: "string", example: "Jane" },
+          last_name: { type: "string", example: "Doe" },
+          avatar: { type: "string", nullable: true },
+          state: { type: "string", example: "Lagos" },
+          country: { type: "string", example: "Nigeria" },
+          linkedin_profile: { type: "string", nullable: true },
+          portfolio_url: { type: "string", nullable: true },
+          resume_path: { type: "string", example: "uploads/jane_resume.pdf" },
+          skills: {
+            type: "array",
+            items: { type: "string" },
+            example: ["React", "Node.js", "TypeScript"],
+          },
+          experience_level: {
+            type: "string",
+            enum: ["entry", "intermediate", "expert"],
+            example: "intermediate",
+          },
+          created_at: { type: "string", format: "date-time" },
+          metrics: {
+            type: "object",
+            properties: {
+              upvotes: { type: "integer", example: 5 },
+              recruiter_saves: { type: "integer", example: 2 },
+            },
+          },
+        },
+      },
     },
   },
   security: [

@@ -67,7 +67,7 @@ export const saveTalent = `
    *               message: "Forbidden"
    *               status_code: 403
    *       404:
-   *         description: Not found - Talent or recruiter not found
+   *         description: Not found - Talent not found
    *         content:
    *           application/json:
    *             schema:
@@ -189,18 +189,102 @@ export const searchTalents = `
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/ErrorResponse'
+   *             example:
+   *               status: "error"
+   *               message: "Unauthorized"
+   *               status_code: 401
    *       403:
    *         description: Forbidden - Only recruiters can perform this action
    *         content:
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/ErrorResponse'
+   *             example:
+   *               status: "error"
+   *               message: "Forbidden"
+   *               status_code: 403
    *       422:
    *         description: Validation error
    *         content:
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/ErrorResponse'
+   *             example:
+   *               status: "error"
+   *               message: "Validation error"
+   *               status_code: 422
+   *       500:
+   *         description: Internal server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   */
+`;
+
+export const getTalentById = `
+  /**
+   * @swagger
+   * /api/v1/talents/{id}:
+   *   get:
+   *     summary: View detailed talent profile
+   *     tags: [Talents]
+   *     description: Returns full details of a talent profile including skills, resume, and metrics.
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - name: id
+   *         in: path
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: ID of the talent profile
+   *     responses:
+   *       200:
+   *         description: Talent profile fetched successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Talent profile fetched successfully
+   *                 data:
+   *                   $ref: '#/components/schemas/TalentProfileDetailed'
+   *       401:
+   *         description: Unauthorized
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *             example:
+   *               status: "error"
+   *               message: "Unauthorized"
+   *               status_code: 401
+   *       403:
+   *         description: Forbidden - Only recruiters can perform this action
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *             example:
+   *               status: "error"
+   *               message: "Forbidden"
+   *               status_code: 403
+   *       404:
+   *         description: Talent not found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *             example:
+   *               status: "error"
+   *               message: "Talent not found"
+   *               status_code: 404
    *       500:
    *         description: Internal server error
    *         content:

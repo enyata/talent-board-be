@@ -4,14 +4,15 @@ import { deserializeUser } from "@src/middlewares/deserializeUser";
 import { validateData } from "@src/middlewares/validateData";
 import { Router } from "express";
 import { searchTalentsSchema } from "./schemas/searchTalents.schema";
-import { saveTalent, searchTalents } from "./talent.controller";
+import { getTalentById, saveTalent, searchTalents } from "./talent.controller";
 
 const router = Router();
 
 router.use(deserializeUser);
 router.use(checkRole(UserRole.RECRUITER));
 
-router.post("/:id/save", saveTalent);
 router.get("/", validateData(searchTalentsSchema, ["query"]), searchTalents);
+router.get("/:id", getTalentById);
+router.post("/:id/save", saveTalent);
 
 export default router;

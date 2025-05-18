@@ -3,8 +3,11 @@ import { NotificationService } from "@src/dashboard/services/notification.servic
 import AppDataSource from "@src/datasource";
 import { NotificationType } from "@src/entities/notification.entity";
 import { SavedTalentEntity } from "@src/entities/savedTalent.entity";
-import { TalentProfileEntity } from "@src/entities/talentProfile.entity";
-import { UserEntity } from "@src/entities/user.entity";
+import {
+  ProfileStatus,
+  TalentProfileEntity,
+} from "@src/entities/talentProfile.entity";
+import { UserEntity, UserRole } from "@src/entities/user.entity";
 import { ClientError } from "@src/exceptions/clientError";
 import { NotFoundError } from "@src/exceptions/notFoundError";
 import { CacheService } from "@src/utils/cache.service";
@@ -70,7 +73,10 @@ export class TalentService {
       .createQueryBuilder("talent")
       .leftJoinAndSelect("talent.user", "user")
       .leftJoinAndSelect("user.metrics", "metrics")
-      .where("user.profile_completed = true");
+      .where("user.profile_completed = true")
+      .andWhere("talent.profile_status = :status", {
+        status: ProfileStatus.APPROVED,
+      });
 
     if (query.q) {
       qb.andWhere(
@@ -161,6 +167,46 @@ export class TalentService {
         : null,
       hasNextPage: results.length === query.limit,
       hasPreviousPage: !!query.cursor,
+    };
+  }
+
+  async getTalentById(talentId: string) {
+    const user = await this.userRepo.findOne({
+      where: {
+        id: talentId,
+        role: UserRole.TALENT,
+        profile_completed: true,
+      },
+      relations: ["talent_profile", "metrics"],
+    });
+
+    if (
+      !user ||
+      !user.talent_profile ||
+      user.talent_profile.profile_status !== ProfileStatus.APPROVED
+    ) {
+      throw new NotFoundError("Talent profile not found");
+    }
+
+    const { talent_profile, metrics } = user;
+
+    return {
+      id: user.id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      avatar: user.avatar,
+      state: user.state,
+      country: user.country,
+      linkedin_profile: user.linkedin_profile,
+      portfolio_url: talent_profile.portfolio_url,
+      resume_path: talent_profile.resume_path,
+      skills: talent_profile.skills,
+      experience_level: talent_profile.experience_level,
+      created_at: user.created_at,
+      metrics: {
+        upvotes: metrics?.upvotes || 0,
+        recruiter_saves: metrics?.recruiter_saves || 0,
+      },
     };
   }
 }
