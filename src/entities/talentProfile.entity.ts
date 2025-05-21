@@ -49,4 +49,7 @@ export class TalentProfileEntity extends ExtendedBaseEntity {
   @Expose()
   @IsEnum(ProfileStatus)
   profile_status: ProfileStatus;
+
+  @Column({ select: false })
+  skills_text?: string;
 }

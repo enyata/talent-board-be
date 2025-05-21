@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import config from "config";
 import path from "path";
 import "reflect-metadata";

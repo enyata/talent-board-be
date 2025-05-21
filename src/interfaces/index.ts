@@ -49,3 +49,38 @@ export interface MetricsJobData {
     | "recruiter_saves"
     | "weekly_search_appearances";
 }
+
+export interface TalentSearchResult {
+  result: { upvotes: number; recruiter_saves: number };
+  id: string;
+  first_name: string;
+  last_name: string;
+  avatar: string | null;
+  state: string;
+  country: string;
+  linkedin_profile: string;
+  created_at: Date;
+  skills: string[];
+  experience_level: string;
+  portfolio_url: string;
+  resume_path: string;
+  upvotes: number;
+  metrics?: {
+    upvotes: number;
+    recruiter_saves: number;
+  };
+}
+
+export interface PaginatedResponse<T> {
+  results: T[];
+  count: number;
+  nextCursor: string | null;
+  previousCursor: string | null;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface CursorPayload {
+  created_at: Date;
+  id: string;
+}
