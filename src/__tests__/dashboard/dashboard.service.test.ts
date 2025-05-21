@@ -78,11 +78,13 @@ describe("DashboardService", () => {
     const talent = userRepo.create(talentFactory());
     await userRepo.save(talent);
 
+    const skills = ["Node.js", "TypeScript"];
     const profile = talentProfileRepo.create({
       user: talent,
       resume_path: "path/to/resume.pdf",
       portfolio_url: "https://portfolio.example.com",
-      skills: ["Node.js", "TypeScript"],
+      skills,
+      skills_text: skills.join(" "),
       experience_level: ExperienceLevel.INTERMEDIATE,
       profile_status: ProfileStatus.APPROVED,
     });
@@ -149,11 +151,13 @@ describe("DashboardService", () => {
     const talent = userRepo.create(talentFactory("t1@example.com"));
     await userRepo.save(talent);
 
+    const skills = ["Node.js", "React"];
     const talentProfile = profileRepo.create({
       user: talent,
       resume_path: "path/to/resume.pdf",
       portfolio_url: "https://portfolio.talent.com",
-      skills: ["Node.js", "React"],
+      skills,
+      skills_text: skills.join(" "),
       experience_level: ExperienceLevel.EXPERT,
       profile_status: ProfileStatus.APPROVED,
     });
