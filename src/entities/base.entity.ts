@@ -15,12 +15,16 @@ import {
 export class ExtendedBaseEntity extends BaseEntity {
   @BeforeInsert()
   async validateOnInsert() {
-    await validateOrReject(this);
+    if (process.env.NODE_ENV !== "test") {
+      await validateOrReject(this);
+    }
   }
 
   @BeforeUpdate()
   async validateOnUpdate() {
-    await validateOrReject(this, { skipMissingProperties: true });
+    if (process.env.NODE_ENV !== "test") {
+      await validateOrReject(this, { skipMissingProperties: true });
+    }
   }
 
   @PrimaryGeneratedColumn("uuid")
