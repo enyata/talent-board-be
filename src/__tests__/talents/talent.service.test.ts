@@ -475,4 +475,85 @@ describe("Talent Service", () => {
       expect(metrics?.upvotes).toBe(0);
     });
   });
+
+  describe("getSavedTalents", () => {
+    it("returns only saved talents for the recruiter", async () => {
+      const { recruiter, talent } = await setupUsers();
+      await talentService.saveTalent(talent.id, recruiter.id);
+
+      const res = await talentService.getSavedTalents(recruiter.id, {
+        limit: 10,
+      });
+
+      expect(res.results).toHaveLength(1);
+      expect(res.results[0].id).toBe(talent.id);
+    });
+
+    it("applies sort by upvotes in saved talents", async () => {
+      const t1 = await setupUsers();
+      const t2 = await setupUsers();
+      await talentService.saveTalent(t1.talent.id, t1.recruiter.id);
+      await talentService.saveTalent(t2.talent.id, t2.recruiter.id);
+      await insertOrUpdateMetrics(t1.talent.id, { upvotes: 2 });
+      await insertOrUpdateMetrics(t2.talent.id, { upvotes: 5 });
+
+      const res = await talentService.getSavedTalents(t1.recruiter.id, {
+        sort: "upvotes",
+        limit: 10,
+      });
+
+      const ids = res.results.map((r) => r.id);
+      expect(ids.indexOf(t2.talent.id)).toBeLessThan(ids.indexOf(t1.talent.id));
+    });
+
+    it("supports pagination with cursors in saved talents", async () => {
+      const base = Date.now();
+      const userRepo = AppDataSource.getRepository(UserEntity);
+      const recruiter = userRepo.create({
+        first_name: "Recruiter",
+        last_name: "Pagination",
+        email: `recruiter-pagination-${Date.now()}@test.com`,
+        provider: UserProvider.GOOGLE,
+        role: UserRole.RECRUITER,
+        profile_completed: true,
+      });
+      await userRepo.save(recruiter);
+
+      const records: UserEntity[] = [];
+
+      for (let i = 0; i < 4; i++) {
+        const { talent } = await setupUsers(
+          {},
+          { created_at: new Date(base + i * 10000) },
+        );
+        await talentService.saveTalent(talent.id, recruiter.id);
+        records.push(talent);
+      }
+
+      const sorted = records.sort(
+        (a, b) =>
+          a.created_at.getTime() - b.created_at.getTime() ||
+          a.id.localeCompare(b.id),
+      );
+
+      const firstPage = await talentService.getSavedTalents(recruiter.id, {
+        limit: 2,
+        sort: "recent",
+      });
+
+      const secondPage = await talentService.getSavedTalents(recruiter.id, {
+        limit: 2,
+        cursor: firstPage.nextCursor ?? "",
+        direction: "next",
+        sort: "recent",
+      });
+
+      expect(firstPage.results).toHaveLength(2);
+      expect(secondPage.results).toHaveLength(2);
+      expect([
+        ...firstPage.results.map((r) => r.id),
+        ...secondPage.results.map((r) => r.id),
+      ]).toEqual(sorted.map((r) => r.id));
+    });
+  });
 });
