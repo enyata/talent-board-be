@@ -53,3 +53,16 @@ export const toggleUpvoteTalent = asyncHandler(
     });
   },
 );
+
+export const getSavedTalents = asyncHandler(
+  async (req: Request, res: Response) => {
+    const recruiterId = req.user.id;
+    const result = await talentService.getSavedTalents(recruiterId, req.query);
+
+    res.status(200).json({
+      status: "success",
+      message: "Saved talents fetched successfully",
+      data: result,
+    });
+  },
+);

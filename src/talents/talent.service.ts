@@ -180,4 +180,33 @@ export class TalentService {
       return "upvoted";
     }
   }
+
+  async getSavedTalents(
+    recruiterId: string,
+    query: SearchTalentsDto,
+  ): Promise<PaginatedResponse<Partial<TalentSearchResult>>> {
+    const limit = Number(query.limit);
+    const safeLimit = Number.isFinite(limit) && limit > 0 ? limit : 10;
+
+    const qb = this.saveRepo.createQueryBuilder("save");
+    buildTalentQuery(qb, query, "saved", recruiterId);
+    qb.take(safeLimit);
+
+    const results = await qb.getMany();
+    const formatted = results.map(formatTalentResult);
+
+    const last = results[results.length - 1];
+    const first = results[0];
+
+    return {
+      results: formatted,
+      count: results.length,
+      nextCursor: last ? encodeCursor(extractCursorFrom(last.talent)) : null,
+      previousCursor: first
+        ? encodeCursor(extractCursorFrom(first.talent))
+        : null,
+      hasNextPage: results.length === safeLimit,
+      hasPreviousPage: Boolean(query.cursor),
+    };
+  }
 }
