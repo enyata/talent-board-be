@@ -30,7 +30,7 @@ export class TalentService {
   private readonly notificationService = new NotificationService();
   private readonly metricsService = new MetricsService();
 
-  async saveTalent(talentId: string, recruiterId: string) {
+  async saveTalent(talentId: string, recruiterId: string): Promise<void> {
     if (recruiterId === talentId) {
       throw new ClientError("You cannot save yourself");
     }
@@ -194,29 +194,14 @@ export class TalentService {
       throw new NotFoundError("Talent profile not found");
     }
 
-    const { talent_profile, metrics } = user;
-
-    return {
-      id: user.id,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      avatar: user.avatar,
-      state: user.state,
-      country: user.country,
-      linkedin_profile: user.linkedin_profile,
-      portfolio_url: talent_profile.portfolio_url,
-      resume_path: talent_profile.resume_path,
-      skills: talent_profile.skills,
-      experience_level: talent_profile.experience_level,
-      created_at: user.created_at,
-      metrics: {
-        upvotes: metrics?.upvotes || 0,
-        recruiter_saves: metrics?.recruiter_saves || 0,
-      },
-    };
+    const results = formatTalentResult(user);
+    return results;
   }
 
-  async toggleUpvoteTalent(talentId: string, recruiterId: string) {
+  async toggleUpvoteTalent(
+    talentId: string,
+    recruiterId: string,
+  ): Promise<string> {
     if (talentId === recruiterId) {
       throw new ClientError("You cannot upvote yourself");
     }
