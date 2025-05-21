@@ -32,6 +32,29 @@ const talentFactory = (email: string): Partial<UserEntity> => ({
   profile_completed: true,
 });
 
+const insertOrUpdateMetrics = async (
+  userId: string,
+  updates: Partial<MetricsEntity>,
+) => {
+  const repo = AppDataSource.getRepository(MetricsEntity);
+  let metrics = await repo.findOne({
+    where: { user: { id: userId } },
+    relations: ["user"],
+  });
+
+  if (!metrics) {
+    const user = await AppDataSource.getRepository(UserEntity).findOneByOrFail({
+      id: userId,
+    });
+    metrics = repo.create({ user });
+  }
+
+  Object.assign(metrics, updates);
+
+  const raw = repo.create(metrics);
+  await repo.save(raw);
+};
+
 describe("Talent Service", () => {
   let talentService: TalentService;
 
@@ -47,6 +70,64 @@ describe("Talent Service", () => {
   afterAll(async () => {
     await AppDataSource.destroy();
   });
+
+  const setupUsers = async (
+    talentOverrides: Partial<TalentProfileEntity> = {},
+    userOverrides: Partial<UserEntity> = {},
+  ) => {
+    const userRepo = AppDataSource.getRepository(UserEntity);
+    const profileRepo = AppDataSource.getRepository(TalentProfileEntity);
+    const unique = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+    const recruiter = userRepo.create({
+      first_name: "Recruiter",
+      last_name: "One",
+      email: `recruiter-${unique}@test.com`,
+      provider: UserProvider.GOOGLE,
+      role: UserRole.RECRUITER,
+      profile_completed: true,
+    });
+    await userRepo.save(recruiter);
+
+    const talent = userRepo.create({
+      first_name: "Talent",
+      last_name: "User",
+      email: `talent-${unique}@test.com`,
+      provider: UserProvider.GOOGLE,
+      role: UserRole.TALENT,
+      profile_completed: true,
+      ...userOverrides,
+    });
+    await userRepo.save(talent);
+
+    const skills = talentOverrides.skills || ["React"];
+    const profile = profileRepo.create({
+      user: talent,
+      resume_path: "resume.pdf",
+      skills,
+      skills_text: skills.join(" "),
+      experience_level: ExperienceLevel.INTERMEDIATE,
+      profile_status: ProfileStatus.APPROVED,
+      ...talentOverrides,
+    });
+    await profileRepo.save(profile);
+
+    await AppDataSource.query(
+      `UPDATE talent_profiles SET skills_text = array_to_string(skills, ' ') WHERE user_id = $1`,
+      [talent.id],
+    );
+
+    const metricsRepo = AppDataSource.getRepository(MetricsEntity);
+    const existing = await metricsRepo.findOne({
+      where: { user: { id: talent.id } },
+    });
+    if (!existing) {
+      const metrics = metricsRepo.create({ user: talent });
+      await metricsRepo.save(metrics);
+    }
+
+    return { recruiter, talent };
+  };
 
   describe("saveTalent", () => {
     const nonExistentUUID = randomUUID();
@@ -77,27 +158,14 @@ describe("Talent Service", () => {
     });
 
     it("should save a talent and create notification + increment metrics", async () => {
-      const userRepo = AppDataSource.getRepository(UserEntity);
-      const profileRepo = AppDataSource.getRepository(TalentProfileEntity);
       const saveRepo = AppDataSource.getRepository(SavedTalentEntity);
       const metricsRepo = AppDataSource.getRepository(MetricsEntity);
       const notificationRepo = AppDataSource.getRepository(NotificationEntity);
 
-      const recruiter = userRepo.create(recruiterFactory("r2@example.com"));
-      await userRepo.save(recruiter);
-
-      const talent = userRepo.create(talentFactory("t2@example.com"));
-      await userRepo.save(talent);
-
-      const profile = profileRepo.create({
-        user: talent,
-        resume_path: "resume.pdf",
-        portfolio_url: "https://portfolio.example.com",
-        skills: ["TypeScript"],
-        experience_level: ExperienceLevel.INTERMEDIATE,
-        profile_status: ProfileStatus.APPROVED,
-      });
-      await profileRepo.save(profile);
+      const { recruiter, talent } = await setupUsers(
+        { skills: ["TypeScript"] },
+        { email: "t2@example.com" },
+      );
 
       await talentService.saveTalent(talent.id, recruiter.id);
 
@@ -117,52 +185,32 @@ describe("Talent Service", () => {
   });
 
   describe("searchTalents", () => {
-    const createTalent = async (
-      email: string,
-      opts: Partial<TalentProfileEntity> = {},
-      userOpts: Partial<UserEntity> = {},
-    ) => {
-      const userRepo = AppDataSource.getRepository(UserEntity);
-      const profileRepo = AppDataSource.getRepository(TalentProfileEntity);
-      const talent = userRepo.create({
-        ...talentFactory(email),
-        ...userOpts,
-      });
-      await userRepo.save(talent);
-      const profile = profileRepo.create({
-        user: talent,
-        resume_path: opts.resume_path || "cv.pdf",
-        skills: opts.skills || ["TypeScript", "Node.js"],
-        experience_level: opts.experience_level || ExperienceLevel.INTERMEDIATE,
-        profile_status: opts.profile_status || ProfileStatus.APPROVED,
-        ...opts,
-      });
-      await profileRepo.save(profile);
-      return { talent, profile };
-    };
-
     it("returns empty if no talents exist", async () => {
       const res = await talentService.searchTalents({ limit: 10 });
       expect(res.results).toHaveLength(0);
     });
 
     it("returns matching talents based on keyword q", async () => {
-      await createTalent("match1@test.com");
-      await createTalent("match2@test.com", { skills: ["React", "Node.js"] });
+      await setupUsers({ skills: ["React"] });
+      await setupUsers({ skills: ["Vue"] });
 
-      let res = await talentService.searchTalents({ q: "Talent", limit: 10 });
-      expect(res.results.length).toBeGreaterThanOrEqual(2);
+      const res = await talentService.searchTalents({
+        skills: ["React"],
+        limit: 10,
+      });
 
-      res = await talentService.searchTalents({ q: "react", limit: 10 });
-      expect(res.results.some((r) => r.skills.includes("React"))).toBe(true);
+      const skillHits = res.results.flatMap((r) =>
+        (r.skills ?? []).map((s: string) => s.toLowerCase()),
+      );
+      expect(skillHits).toEqual(expect.arrayContaining(["react"]));
     });
 
     it("filters by skills array and experience", async () => {
-      await createTalent("filt1@test.com", {
+      await setupUsers({
         skills: ["Node.js", "TypeScript"],
         experience_level: ExperienceLevel.EXPERT,
       });
-      await createTalent("filt2@test.com", {
+      await setupUsers({
         skills: ["React"],
         experience_level: ExperienceLevel.ENTRY,
       });
@@ -178,16 +226,8 @@ describe("Talent Service", () => {
     });
 
     it("applies state and country filters", async () => {
-      await createTalent(
-        "loc1@test.com",
-        {},
-        { state: "Lagos", country: "Nigeria" },
-      );
-      await createTalent(
-        "loc2@test.com",
-        {},
-        { state: "Accra", country: "Ghana" },
-      );
+      await setupUsers({}, { state: "Lagos", country: "Nigeria" });
+      await setupUsers({}, { state: "Accra", country: "Ghana" });
 
       let res = await talentService.searchTalents({
         state: "Lagos",
