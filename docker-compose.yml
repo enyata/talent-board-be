@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:17-alpine
+    image: postgres:17
     container_name: postgres-dev
     profiles: ["dev"]
     env_file: .env
@@ -15,7 +15,7 @@ services:
     restart: always
 
   postgres_test:
-    image: postgres:17-alpine
+    image: postgres:17
     container_name: postgres-test
     profiles: ["test"]
     environment:
