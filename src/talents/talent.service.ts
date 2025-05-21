@@ -11,9 +11,15 @@ import { TalentUpvoteEntity } from "@src/entities/talentUpvote.entity";
 import { UserEntity, UserRole } from "@src/entities/user.entity";
 import { ClientError } from "@src/exceptions/clientError";
 import { NotFoundError } from "@src/exceptions/notFoundError";
+import { PaginatedResponse, TalentSearchResult } from "@src/interfaces";
 import { CacheService } from "@src/utils/cache.service";
 import { SearchTalentsDto } from "./schemas/searchTalents.schema";
-import { decodeCursor, encodeCursor } from "./talent.utils";
+import {
+  buildTalentQuery,
+  encodeCursor,
+  extractCursorFrom,
+  formatTalentResult,
+} from "./talent.utils";
 
 export class TalentService {
   private readonly userRepo = AppDataSource.getRepository(UserEntity);
@@ -161,18 +167,16 @@ export class TalentService {
     return {
       results: formatted,
       count: results.length,
-      nextCursor: last
-        ? encodeCursor({ created_at: last.user.created_at, id: last.user.id })
-        : null,
+      nextCursor: last ? encodeCursor(extractCursorFrom(last.user)) : null,
       previousCursor: first
-        ? encodeCursor({ created_at: first.user.created_at, id: first.user.id })
+        ? encodeCursor(extractCursorFrom(first.user))
         : null,
-      hasNextPage: results.length === query.limit,
-      hasPreviousPage: !!query.cursor,
+      hasNextPage: results.length === safeLimit,
+      hasPreviousPage: Boolean(query.cursor),
     };
   }
 
-  async getTalentById(talentId: string) {
+  async getTalentById(talentId: string): Promise<Record<string, any>> {
     const user = await this.userRepo.findOne({
       where: {
         id: talentId,
