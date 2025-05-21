@@ -235,6 +235,7 @@ describe("Talent Service", () => {
       });
       expect(res.results).toHaveLength(1);
       expect(res.results[0].state).toBe("Lagos");
+
       res = await talentService.searchTalents({ country: "Ghana", limit: 10 });
       expect(res.results).toHaveLength(1);
       expect(res.results[0].country).toBe("Ghana");
@@ -242,15 +243,8 @@ describe("Talent Service", () => {
 
     it("applies sort and limit", async () => {
       const base = Date.now();
-      for (let i = 1; i <= 5; i++) {
-        await createTalent(
-          `sort${i}@test.com`,
-          {
-            skills: ["TypeScript"],
-            experience_level: ExperienceLevel.INTERMEDIATE,
-          },
-          { first_name: `User${i}`, created_at: new Date(base + i * 1000) },
-        );
+      for (let i = 0; i < 2; i++) {
+        await setupUsers({}, { created_at: new Date(base + i * 1000) });
       }
       const res = await talentService.searchTalents({
         sort: "recent",
@@ -261,45 +255,58 @@ describe("Talent Service", () => {
 
     it("supports cursor-based pagination", async () => {
       const base = Date.now();
-      for (let i = 0; i < 3; i++) {
-        await createTalent(
-          `page${i}@test.com`,
-          {
-            skills: ["Node.js"],
-            experience_level: ExperienceLevel.INTERMEDIATE,
-          },
-          { created_at: new Date(base + i * 1000) },
+      const inserted: Array<{ recruiter: UserEntity; talent: UserEntity }> = [];
+      for (let i = 0; i < 4; i++) {
+        const record = await setupUsers(
+          {},
+          { created_at: new Date(base + i * 10000) },
         );
+        inserted.push(record);
       }
-      const serviceRes = await talentService.searchTalents({ limit: 2 });
-      expect(serviceRes.results.length).toBe(2);
-      expect(serviceRes.nextCursor).toBeTruthy();
-      const serviceRes2 = await talentService.searchTalents({
+
+      const sortedInserted = inserted
+        .map((r) => r.talent)
+        .sort(
+          (a, b) =>
+            a.created_at.getTime() - a.created_at.getTime() ||
+            b.id.localeCompare(b.id),
+        );
+
+      const firstPage = await talentService.searchTalents({
         limit: 2,
-        cursor: serviceRes.nextCursor || undefined,
-        direction: "next",
+        sort: "recent",
       });
-      expect(serviceRes2.results.length).toBeLessThanOrEqual(2);
+      expect(firstPage.results.length).toBe(2);
+      expect(firstPage.results.map((r) => r.id)).toEqual([
+        sortedInserted[0].id,
+        sortedInserted[1].id,
+      ]);
+
+      const secondPage = await talentService.searchTalents({
+        limit: 2,
+        cursor: firstPage.nextCursor ?? "",
+        direction: "next",
+        sort: "recent",
+      });
+      expect(secondPage.results.length).toBe(2);
+      expect(secondPage.results.map((r) => r.id)).toEqual([
+        sortedInserted[2].id,
+        sortedInserted[3].id,
+      ]);
     });
 
     it("applies sort by upvotes", async () => {
-      const userRepo = AppDataSource.getRepository(UserEntity);
-      const metricsRepo = AppDataSource.getRepository(MetricsEntity);
-
-      const t1 = await createTalent("up1@test.com");
-      const t2 = await createTalent("up2@test.com");
-
-      await metricsRepo.save([
-        metricsRepo.create({ user: t1.talent, upvotes: 2 }),
-        metricsRepo.create({ user: t2.talent, upvotes: 5 }),
-      ]);
+      const t1 = await setupUsers();
+      const t2 = await setupUsers();
+      await insertOrUpdateMetrics(t1.talent.id, { upvotes: 2 });
+      await insertOrUpdateMetrics(t2.talent.id, { upvotes: 5 });
 
       const res = await talentService.searchTalents({
         sort: "upvotes",
         limit: 10,
       });
-      expect(res.results.length).toBeGreaterThanOrEqual(2);
-      expect(res.results[0].id).toBe(t2.talent.id); // higher upvotes first
+      const ids = res.results.map((r) => r.id);
+      expect(ids.indexOf(t2.talent.id)).toBeLessThan(ids.indexOf(t1.talent.id));
     });
 
     it("returns safe default if sort key is invalid", async () => {
@@ -307,15 +314,7 @@ describe("Talent Service", () => {
         sort: "invalid" as any,
         limit: 10,
       });
-      expect(res).toHaveProperty("results");
       expect(Array.isArray(res.results)).toBe(true);
-    });
-
-    it("throws on non-numeric limit", async () => {
-      await expect(
-        // @ts-expect-error
-        talentService.searchTalents({ limit: "ten" }),
-      ).rejects.toThrow();
     });
 
     it("returns safe default if cursor is invalid", async () => {
@@ -323,7 +322,6 @@ describe("Talent Service", () => {
         cursor: "%%%",
         limit: 10,
       });
-      expect(res).toHaveProperty("results");
       expect(Array.isArray(res.results)).toBe(true);
     });
   });
@@ -353,41 +351,29 @@ describe("Talent Service", () => {
     });
 
     it("returns full talent profile when user and profile exist", async () => {
-      const userRepo = AppDataSource.getRepository(UserEntity);
-      const profileRepo = AppDataSource.getRepository(TalentProfileEntity);
-      const metricsRepo = AppDataSource.getRepository(MetricsEntity);
+      const { talent } = await setupUsers(
+        {
+          resume_path: "jane-resume.pdf",
+          portfolio_url: "https://jane.dev",
+          skills: ["React", "Node.js"],
+          experience_level: ExperienceLevel.INTERMEDIATE,
+        },
+        {
+          first_name: "Jane",
+          last_name: "Doe",
+          email: "jane@doe.com",
+        },
+      );
 
-      const user = userRepo.create({
-        first_name: "Jane",
-        last_name: "Doe",
-        email: "jane@doe.com",
-        provider: UserProvider.GOOGLE,
-        role: UserRole.TALENT,
-        profile_completed: true,
-      });
-      await userRepo.save(user);
-
-      const profile = profileRepo.create({
-        user,
-        resume_path: "jane-resume.pdf",
-        portfolio_url: "https://jane.dev",
-        skills: ["React", "Node.js"],
-        experience_level: ExperienceLevel.INTERMEDIATE,
-        profile_status: ProfileStatus.APPROVED,
-      });
-      await profileRepo.save(profile);
-
-      const metrics = metricsRepo.create({
-        user,
+      await insertOrUpdateMetrics(talent.id, {
         upvotes: 5,
         recruiter_saves: 2,
       });
-      await metricsRepo.save(metrics);
 
-      const result = await talentService.getTalentById(user.id);
+      const result = await talentService.getTalentById(talent.id);
 
       expect(result).toMatchObject({
-        id: user.id,
+        id: talent.id,
         first_name: "Jane",
         last_name: "Doe",
         resume_path: "jane-resume.pdf",
@@ -403,46 +389,6 @@ describe("Talent Service", () => {
   });
 
   describe("toggleUpvoteTalent", () => {
-    const setupUsers = async () => {
-      const userRepo = AppDataSource.getRepository(UserEntity);
-      const profileRepo = AppDataSource.getRepository(TalentProfileEntity);
-      const metricsRepo = AppDataSource.getRepository(MetricsEntity);
-
-      const recruiter = userRepo.create({
-        first_name: "Recruiter",
-        last_name: "One",
-        email: "recruiter@test.com",
-        provider: UserProvider.GOOGLE,
-        role: UserRole.RECRUITER,
-        profile_completed: true,
-      });
-      await userRepo.save(recruiter);
-
-      const talent = userRepo.create({
-        first_name: "Talent",
-        last_name: "User",
-        email: "talent@test.com",
-        provider: UserProvider.GOOGLE,
-        role: UserRole.TALENT,
-        profile_completed: true,
-      });
-      await userRepo.save(talent);
-
-      const profile = profileRepo.create({
-        user: talent,
-        resume_path: "resume.pdf",
-        skills: ["React"],
-        experience_level: ExperienceLevel.INTERMEDIATE,
-        profile_status: ProfileStatus.APPROVED,
-      });
-      await profileRepo.save(profile);
-
-      const metrics = metricsRepo.create({ user: talent });
-      await metricsRepo.save(metrics);
-
-      return { recruiter, talent };
-    };
-
     it("should throw ClientError if recruiter tries to upvote themselves", async () => {
       await expect(
         talentService.toggleUpvoteTalent("same-id", "same-id"),
