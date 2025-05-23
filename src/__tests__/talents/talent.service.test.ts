@@ -68,7 +68,9 @@ describe("Talent Service", () => {
   });
 
   afterAll(async () => {
-    await AppDataSource.destroy();
+    if (AppDataSource.isInitialized) {
+      await AppDataSource.destroy();
+    }
   });
 
   const setupUsers = async (

@@ -59,7 +59,9 @@ describe("DashboardService", () => {
   });
 
   afterAll(async () => {
-    await AppDataSource.destroy();
+    if (AppDataSource.isInitialized) {
+      await AppDataSource.destroy();
+    }
   });
 
   it("should throw NotFoundError if user or talent profile is not found", async () => {
