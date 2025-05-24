@@ -1,6 +1,6 @@
 import asyncHandler from "@src/middlewares/asyncHandler";
 import { Request, Response } from "express";
-import { TalentService } from "./talent.service";
+import { TalentService } from "./services/talent.service";
 
 const talentService = new TalentService();
 

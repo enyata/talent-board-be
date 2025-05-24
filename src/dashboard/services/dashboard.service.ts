@@ -5,6 +5,7 @@ import { SavedTalentEntity } from "@src/entities/savedTalent.entity";
 import { TalentProfileEntity } from "@src/entities/talentProfile.entity";
 import { UserEntity } from "@src/entities/user.entity";
 import { NotFoundError } from "@src/exceptions/notFoundError";
+import { TalentRecommendationService } from "@src/talents/services/talentRecommendation.service";
 import { CacheService } from "@src/utils/cache.service";
 import config from "config";
 import {
@@ -45,6 +46,8 @@ export class DashboardService {
     AppDataSource.getRepository(TalentProfileEntity);
   private readonly savedTalentRepository =
     AppDataSource.getRepository(SavedTalentEntity);
+  private readonly talentRecommendationService =
+    new TalentRecommendationService();
 
   async getTalentDashboard(userId: string) {
     const cacheKey = `dashboard_talent_${userId}`;
@@ -139,14 +142,7 @@ export class DashboardService {
           take: 4,
           relations: ["talent", "talent.talent_profile"],
         }),
-        this.talentRepository
-          .createQueryBuilder("talent")
-          .leftJoinAndSelect("talent.user", "user")
-          .where(`:roles && talent.skills`, {
-            roles: recruiter.recruiter_profile.roles_looking_for,
-          })
-          .take(10)
-          .getMany(),
+        this.talentRecommendationService.recommendTalents(userId),
         this.notificationRepository.find({
           where: { recipient: { id: userId } },
           order: { created_at: "DESC" },

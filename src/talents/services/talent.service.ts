@@ -13,13 +13,13 @@ import { ClientError } from "@src/exceptions/clientError";
 import { NotFoundError } from "@src/exceptions/notFoundError";
 import { PaginatedResponse, TalentSearchResult } from "@src/interfaces";
 import { CacheService } from "@src/utils/cache.service";
-import { SearchTalentsDto } from "./schemas/searchTalents.schema";
+import { SearchTalentsDto } from "../schemas/searchTalents.schema";
 import {
   buildTalentQuery,
   encodeCursor,
   extractCursorFrom,
   formatTalentResult,
-} from "./talent.utils";
+} from "../utils/talent.utils";
 
 export class TalentService {
   private readonly userRepo = AppDataSource.getRepository(UserEntity);

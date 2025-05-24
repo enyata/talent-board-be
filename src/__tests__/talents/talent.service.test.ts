@@ -12,7 +12,7 @@ import { TalentUpvoteEntity } from "../../entities/talentUpvote.entity";
 import { UserEntity, UserProvider, UserRole } from "../../entities/user.entity";
 import { ClientError } from "../../exceptions/clientError";
 import { NotFoundError } from "../../exceptions/notFoundError";
-import { TalentService } from "../../talents/talent.service";
+import { TalentService } from "../../talents/services/talent.service";
 
 const recruiterFactory = (email: string): Partial<UserEntity> => ({
   first_name: "Recruiter",
@@ -68,7 +68,9 @@ describe("Talent Service", () => {
   });
 
   afterAll(async () => {
-    await AppDataSource.destroy();
+    if (AppDataSource.isInitialized) {
+      await AppDataSource.destroy();
+    }
   });
 
   const setupUsers = async (

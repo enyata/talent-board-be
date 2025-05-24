@@ -4,7 +4,7 @@ import { TalentProfileEntity } from "@src/entities/talentProfile.entity";
 import { UserEntity } from "@src/entities/user.entity";
 import { CursorPayload, TalentSearchResult } from "@src/interfaces";
 import { SelectQueryBuilder } from "typeorm";
-import { SearchTalentsDto } from "./schemas/searchTalents.schema";
+import { SearchTalentsDto } from "../schemas/searchTalents.schema";
 
 /**
  * Encodes a cursor payload to a base64 string.
