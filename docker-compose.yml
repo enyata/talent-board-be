@@ -64,7 +64,6 @@ services:
       REDIS_HOST: redis
     volumes:
       - .:/app
-      - /app/node_modules
     command: yarn dev
     depends_on:
       - postgres
