@@ -48,7 +48,7 @@ export class OnboardingService {
         portfolio_url: p.portfolio_url,
         skills: p.skills,
         experience_level: p.experience_level as ExperienceLevel,
-        profile_status: ProfileStatus.PENDING,
+        profile_status: ProfileStatus.APPROVED,
         skills_text: p.skills ? p.skills.join(" ") : "",
       });
       await manager.save(profile);
