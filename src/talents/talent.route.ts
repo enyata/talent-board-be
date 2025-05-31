@@ -7,12 +7,15 @@ import { searchTalentsSchema } from "./schemas/searchTalents.schema";
 import {
   getSavedTalents,
   getTalentById,
+  getTopTalents,
   saveTalent,
   searchTalents,
   toggleUpvoteTalent,
 } from "./talent.controller";
 
 const router = Router();
+
+router.get("/top", getTopTalents);
 
 router.use(deserializeUser);
 router.use(checkRole(UserRole.RECRUITER));

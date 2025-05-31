@@ -66,3 +66,14 @@ export const getSavedTalents = asyncHandler(
     });
   },
 );
+
+export const getTopTalents = asyncHandler(
+  async (_req: Request, res: Response) => {
+    const result = await talentService.getTopTalents(10);
+    res.status(200).json({
+      status: "success",
+      message: "Top talents fetched successfully",
+      data: result,
+    });
+  },
+);

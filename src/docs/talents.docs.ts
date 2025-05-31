@@ -523,3 +523,42 @@ export const getSavedTalents = `
    *               $ref: '#/components/schemas/ErrorResponse'
    */
 `;
+
+export const getTopTalents = `
+  /**
+   * @swagger
+   * /api/v1/talents/top:
+   *   get:
+   *     summary: Get top talent profiles for homepage
+   *     tags: [Talents]
+   *     description: Public endpoint to retrieve the top 10 talent profiles ranked by upvotes, recruiter saves, and profile views.
+   *     responses:
+   *       200:
+   *         description: Top talent profiles fetched successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: "success"
+   *                 message:
+   *                   type: string
+   *                   example: "Top talents fetched successfully"
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/TalentProfilePreview'
+   *       500:
+   *         description: Internal server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *             example:
+   *               status: "error"
+   *               message: "Something went wrong!"
+   *               status_code: 500
+   */
+`;

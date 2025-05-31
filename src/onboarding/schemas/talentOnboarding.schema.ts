@@ -23,6 +23,10 @@ export const talentOnboardingSchema = z.object({
   }),
 
   resume_path: z.string().min(1, "Resume upload failed"),
+  bio: z
+    .string()
+    .min(10, "Bio must be at least 10 characters")
+    .max(250, "Bio must not exceed 250 characters"),
 });
 
 export type TalentOnboardingDTO = z.infer<typeof talentOnboardingSchema>;

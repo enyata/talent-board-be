@@ -48,7 +48,7 @@ export class UserEntity extends ExtendedBaseEntity {
   @Column({ nullable: true })
   @Expose()
   @IsOptional()
-  @IsUrl()
+  @IsString()
   avatar: string;
 
   @Column({ type: "enum", enum: UserProvider })

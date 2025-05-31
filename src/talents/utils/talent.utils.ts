@@ -179,7 +179,7 @@ export const formatTalentResult = (
     user = input as UserEntity;
     profile = user.talent_profile;
     metrics = user.metrics;
-    resume_path = profile.resume_path;
+    resume_path = profile?.resume_path ?? "";
     recruiter_saves = metrics?.recruiter_saves ?? 0;
   }
 
