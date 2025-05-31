@@ -2,6 +2,7 @@ import { DashboardService } from "@src/dashboard/services/dashboard.service";
 import AppDataSource from "@src/datasource";
 import { UserEntity, UserRole } from "@src/entities/user.entity";
 import { NotFoundError } from "@src/exceptions/notFoundError";
+import { resolveAssetUrl } from "@src/utils/resolveAssetUrl";
 import { sanitizeUser } from "@src/utils/sanitizeUser";
 import { UpdateProfileDTO } from "./schemas/updateProfile.schema";
 
@@ -62,7 +63,7 @@ export class UserService {
       id: user.id,
       first_name: user.first_name,
       last_name: user.last_name,
-      avatar: user.avatar,
+      avatar: resolveAssetUrl(user.avatar),
       bio: user.talent_profile?.bio,
     };
   }
