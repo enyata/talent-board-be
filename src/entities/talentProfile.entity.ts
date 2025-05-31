@@ -34,6 +34,12 @@ export class TalentProfileEntity extends ExtendedBaseEntity {
   @IsUrl()
   portfolio_url: string;
 
+  @Column({ type: "text", nullable: true })
+  @Expose()
+  @IsOptional()
+  @IsString()
+  bio?: string;
+
   @Column("text", { array: true })
   @Expose()
   @IsArray()
