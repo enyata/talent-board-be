@@ -209,4 +209,31 @@ export class TalentService {
       hasPreviousPage: Boolean(query.cursor),
     };
   }
+
+  async getTopTalents(limit = 10): Promise<Partial<TalentSearchResult>[]> {
+    const talents = await this.profileRepo.find({
+      relations: ["user", "user.metrics", "user.talent_profile"],
+      where: {
+        user: {
+          profile_completed: true,
+          role: UserRole.TALENT,
+        },
+      },
+    });
+
+    const scored = talents
+      .map((profile) => {
+        const metrics = profile.user.metrics;
+        const score =
+          (metrics?.upvotes || 0) * 3 +
+          (metrics?.recruiter_saves || 0) * 2 +
+          (metrics?.profile_views || 0);
+        return { profile, score };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit)
+      .map((entry) => formatTalentResult(entry.profile.user));
+
+    return scored;
+  }
 }
