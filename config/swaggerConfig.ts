@@ -201,6 +201,8 @@ const swaggerDefinition: SwaggerDefinition = {
               recruiter_saves: { type: "integer", example: 2 },
             },
           },
+          is_saved: { type: "boolean", example: "true" },
+          is_upvoted: { type: "boolean", example: "false" },
         },
       },
     },
