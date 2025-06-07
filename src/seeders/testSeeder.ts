@@ -196,6 +196,8 @@ export const seedTestDatabase = async (
       skills_text: janeSkills.join(" "),
       experience_level: ExperienceLevel.EXPERT,
       profile_status: ProfileStatus.APPROVED,
+      bio: "I am a passionate developer",
+      job_title: "Software Developer",
     }),
   );
 
