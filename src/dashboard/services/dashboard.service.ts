@@ -50,13 +50,6 @@ export class DashboardService {
     new TalentRecommendationService();
 
   async getTalentDashboard(userId: string) {
-    const cacheKey = `dashboard_talent_${userId}`;
-    const cachedData = await CacheService.get(cacheKey);
-
-    if (cachedData) {
-      return cachedData;
-    }
-
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: ["talent_profile"],
@@ -99,12 +92,6 @@ export class DashboardService {
         },
       })),
     };
-
-    CacheService.set(
-      cacheKey,
-      data,
-      config.get<number>("REDIS_CACHE_TTL_LONG"),
-    );
     return data;
   }
 
