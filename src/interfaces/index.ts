@@ -70,6 +70,8 @@ export interface TalentSearchResult {
     upvotes: number;
     recruiter_saves: number;
   };
+  is_saved: boolean;
+  is_upvoted: boolean;
 }
 
 export interface PaginatedResponse<T> {
