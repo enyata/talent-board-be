@@ -157,6 +157,7 @@ export const buildTalentQuery = (
  */
 export const formatTalentResult = (
   input: TalentProfileEntity | SavedTalentEntity | UserEntity,
+  options?: { is_saved?: boolean; is_upvoted?: boolean },
 ): Partial<TalentSearchResult> => {
   let user: UserEntity;
   let profile: TalentProfileEntity | null = null;
@@ -187,6 +188,7 @@ export const formatTalentResult = (
     id: user.id,
     first_name: user.first_name,
     last_name: user.last_name,
+    email: user.email,
     avatar: user.avatar,
     state: user.state,
     country: user.country,
@@ -197,6 +199,8 @@ export const formatTalentResult = (
     portfolio_url: profile?.portfolio_url ?? "",
     resume_path: profile?.resume_path,
     upvotes: metrics?.upvotes ?? 0,
+    is_saved: options?.is_saved ?? false,
+    is_upvoted: options?.is_upvoted ?? false,
   };
 
   if (resume_path && recruiter_saves) {

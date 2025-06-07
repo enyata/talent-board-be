@@ -78,6 +78,7 @@ export class TalentService {
 
   async searchTalents(
     query: SearchTalentsDto,
+    recruiterId?: string,
   ): Promise<PaginatedResponse<Partial<TalentSearchResult>>> {
     const limit = Number(query.limit);
     const safeLimit = Number.isFinite(limit) && limit > 0 ? limit : 10;
@@ -88,7 +89,24 @@ export class TalentService {
 
     const results = await qb.getMany();
 
-    const formatted = results.map(formatTalentResult);
+    let savedSet = new Set<string>();
+    let upvotedSet = new Set<string>();
+
+    if (recruiterId) {
+      const [saves, upvotes] = await Promise.all([
+        this.saveRepo.find({ where: { recruiter: { id: recruiterId } } }),
+        this.upvoteRepo.find({ where: { recruiter: { id: recruiterId } } }),
+      ]);
+      savedSet = new Set(saves.map((s) => s.talent.id));
+      upvotedSet = new Set(upvotes.map((u) => u.talent.id));
+    }
+
+    const formatted = results.map((profile) =>
+      formatTalentResult(profile, {
+        is_saved: recruiterId ? savedSet.has(profile.user.id) : false,
+        is_upvoted: recruiterId ? upvotedSet.has(profile.user.id) : false,
+      }),
+    );
 
     const last = results[results.length - 1];
     const first = results[0];
@@ -105,7 +123,10 @@ export class TalentService {
     };
   }
 
-  async getTalentById(talentId: string): Promise<Record<string, any>> {
+  async getTalentById(
+    talentId: string,
+    recruiterId?: string,
+  ): Promise<Partial<TalentSearchResult>> {
     const user = await this.userRepo.findOne({
       where: {
         id: talentId,
@@ -123,8 +144,27 @@ export class TalentService {
       throw new NotFoundError("Talent profile not found");
     }
 
-    const results = formatTalentResult(user);
-    return results;
+    const [saved, upvoted] = recruiterId
+      ? await Promise.all([
+          this.saveRepo.findOne({
+            where: {
+              recruiter: { id: recruiterId },
+              talent: { id: talentId },
+            },
+          }),
+          this.upvoteRepo.findOne({
+            where: {
+              recruiter: { id: recruiterId },
+              talent: { id: talentId },
+            },
+          }),
+        ])
+      : [null, null];
+
+    return formatTalentResult(user, {
+      is_saved: Boolean(saved),
+      is_upvoted: Boolean(upvoted),
+    });
   }
 
   async toggleUpvoteTalent(
@@ -192,8 +232,19 @@ export class TalentService {
     buildTalentQuery(qb, query, "saved", recruiterId);
     qb.take(safeLimit);
 
-    const results = await qb.getMany();
-    const formatted = results.map(formatTalentResult);
+    const [results, upvotes] = await Promise.all([
+      qb.getMany(),
+      this.upvoteRepo.find({ where: { recruiter: { id: recruiterId } } }),
+    ]);
+
+    const upvotedSet = new Set(upvotes.map((u) => u.talent.id));
+
+    const formatted = results.map((saved) =>
+      formatTalentResult(saved, {
+        is_saved: true,
+        is_upvoted: upvotedSet.has(saved.talent.id),
+      }),
+    );
 
     const last = results[results.length - 1];
     const first = results[0];

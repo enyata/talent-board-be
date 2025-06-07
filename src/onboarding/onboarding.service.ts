@@ -51,6 +51,7 @@ export class OnboardingService {
         profile_status: ProfileStatus.APPROVED,
         bio: p.bio,
         skills_text: p.skills ? p.skills.join(" ") : "",
+        job_title: p.job_title,
       });
       await manager.save(profile);
     }

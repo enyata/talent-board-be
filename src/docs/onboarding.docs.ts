@@ -25,6 +25,8 @@ export const talentOnboarding = `
  *               - state
  *               - country
  *               - linkedin_profile
+ *               - job_title
+ *               - bio
  *               - skills
  *               - resume
  *               - experience_level
@@ -38,6 +40,12 @@ export const talentOnboarding = `
  *               linkedin_profile:
  *                 type: string
  *                 example: "https://linkedin.com/in/sample"
+ *               job_title:
+ *                 type: string
+ *                 example: "Software developer"
+ *               bio:
+ *                 type: string
+ *                 example: "I am a passionate developer"
  *               portfolio_url:
  *                 type: string
  *                 example: "https://portfolio.com"
@@ -80,6 +88,10 @@ export const talentOnboarding = `
  *                                 resume_path:
  *                                   type: string
  *                                 portfolio_url:
+ *                                   type: string
+ *                                 job_title:
+ *                                   type: string
+ *                                 bio:
  *                                   type: string
  *                                 skills:
  *                                   type: array

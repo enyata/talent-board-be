@@ -55,6 +55,7 @@ export interface TalentSearchResult {
   id: string;
   first_name: string;
   last_name: string;
+  email: string;
   avatar: string | null;
   state: string;
   country: string;
@@ -69,6 +70,8 @@ export interface TalentSearchResult {
     upvotes: number;
     recruiter_saves: number;
   };
+  is_saved: boolean;
+  is_upvoted: boolean;
 }
 
 export interface PaginatedResponse<T> {

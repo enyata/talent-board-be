@@ -90,6 +90,8 @@ describe("TalentRecommendationService", () => {
       resume_path: "path/to/talent_a.pdf",
       profile_status: ProfileStatus.APPROVED,
       skills_text: "react,node.js",
+      job_title: "Software developer",
+      bio: "I am a passionate developer",
     });
     await talentRepo.save(talentAProfile);
 
@@ -112,6 +114,8 @@ describe("TalentRecommendationService", () => {
       resume_path: "path/to/talent_b.pdf",
       profile_status: ProfileStatus.APPROVED,
       skills_text: "html,css",
+      job_title: "Software developer",
+      bio: "I am a passionate developer",
     });
     await talentRepo.save(talentBProfile);
 
@@ -134,6 +138,8 @@ describe("TalentRecommendationService", () => {
       resume_path: "path/to/talent_c.pdf",
       profile_status: ProfileStatus.APPROVED,
       skills_text: "python,django",
+      job_title: "Software developer",
+      bio: "I am a passionate developer",
     });
     await talentRepo.save(talentCProfile);
 

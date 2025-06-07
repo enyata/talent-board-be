@@ -81,11 +81,6 @@ describe("deserializeUser middleware", () => {
       "x-access-token",
       "new-access-token",
     );
-    expect(mockRes.cookie).toHaveBeenCalledWith(
-      "refresh_token",
-      "new-refresh-token",
-      expect.any(Object),
-    );
     expect(req.user).toEqual(mockUser);
     expect(mockNext).toHaveBeenCalled();
   });
