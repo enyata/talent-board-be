@@ -40,6 +40,11 @@ export class TalentProfileEntity extends ExtendedBaseEntity {
   @IsString()
   bio?: string;
 
+  @Column({ type: "varchar" })
+  @Expose()
+  @IsString()
+  job_title: string;
+
   @Column("text", { array: true })
   @Expose()
   @IsArray()

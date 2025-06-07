@@ -93,6 +93,8 @@ export const seedTestDatabase = async (
     skills_text: talentSkills.join(" "),
     experience_level: ExperienceLevel.INTERMEDIATE,
     profile_status: ProfileStatus.APPROVED,
+    bio: "I am a passionate developer",
+    job_title: "Software Developer",
   });
 
   const recruiterProfile = recruiterProfileRepo.create({
