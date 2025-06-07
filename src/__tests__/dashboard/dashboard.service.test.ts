@@ -89,6 +89,8 @@ describe("DashboardService", () => {
       skills_text: skills.join(" "),
       experience_level: ExperienceLevel.INTERMEDIATE,
       profile_status: ProfileStatus.APPROVED,
+      job_title: "Software developer",
+      bio: "I am a passionate developer",
     });
     await talentProfileRepo.save(profile);
 
@@ -162,6 +164,8 @@ describe("DashboardService", () => {
       skills_text: skills.join(" "),
       experience_level: ExperienceLevel.EXPERT,
       profile_status: ProfileStatus.APPROVED,
+      job_title: "Software developer",
+      bio: "I am a passionate developer",
     });
     await profileRepo.save(talentProfile);
 
