@@ -27,6 +27,7 @@ export const talentOnboardingSchema = z.object({
     .string()
     .min(10, "Bio must be at least 10 characters")
     .max(250, "Bio must not exceed 250 characters"),
+  job_title: z.string(),
 });
 
 export type TalentOnboardingDTO = z.infer<typeof talentOnboardingSchema>;
