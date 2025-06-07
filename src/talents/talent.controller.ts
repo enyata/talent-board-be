@@ -27,7 +27,10 @@ export const searchTalents = asyncHandler(
 
 export const getTalentById = asyncHandler(
   async (req: Request, res: Response) => {
-    const result = await talentService.getTalentById(req.params.id);
+    const talentId = req.params.id;
+    const recruiterId =
+      req.user?.role === "recruiter" ? req.user.id : undefined;
+    const result = await talentService.getTalentById(talentId, recruiterId);
 
     res.status(200).json({
       status: "success",

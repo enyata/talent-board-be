@@ -110,6 +110,8 @@ describe("Talent Service", () => {
       skills_text: skills.join(" "),
       experience_level: ExperienceLevel.INTERMEDIATE,
       profile_status: ProfileStatus.APPROVED,
+      job_title: "software developer",
+      bio: "I am passionate developer",
       ...talentOverrides,
     });
     await profileRepo.save(profile);

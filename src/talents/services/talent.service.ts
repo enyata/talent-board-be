@@ -105,7 +105,10 @@ export class TalentService {
     };
   }
 
-  async getTalentById(talentId: string): Promise<Record<string, any>> {
+  async getTalentById(
+    talentId: string,
+    recruiterId?: string,
+  ): Promise<Record<string, any>> {
     const user = await this.userRepo.findOne({
       where: {
         id: talentId,
@@ -123,8 +126,24 @@ export class TalentService {
       throw new NotFoundError("Talent profile not found");
     }
 
+    let is_saved = false;
+    let is_upvoted = false;
+
+    if (recruiterId) {
+      const [saved, upvoted] = await Promise.all([
+        this.saveRepo.findOne({
+          where: { recruiter: { id: recruiterId }, talent: { id: talentId } },
+        }),
+        this.upvoteRepo.findOne({
+          where: { recruiter: { id: recruiterId }, talent: { id: talentId } },
+        }),
+      ]);
+      is_saved = Boolean(saved);
+      is_upvoted = Boolean(upvoted);
+    }
+
     const results = formatTalentResult(user);
-    return results;
+    return { ...results, is_saved, is_upvoted };
   }
 
   async toggleUpvoteTalent(
