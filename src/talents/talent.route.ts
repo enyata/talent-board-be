@@ -16,6 +16,7 @@ import {
 const router = Router();
 
 router.get("/top", getTopTalents);
+router.get("/", validateData(searchTalentsSchema, ["query"]), searchTalents);
 
 router.use(deserializeUser);
 router.use(checkRole(UserRole.RECRUITER));
@@ -25,7 +26,7 @@ router.get(
   validateData(searchTalentsSchema, ["query"]),
   getSavedTalents,
 );
-router.get("/", validateData(searchTalentsSchema, ["query"]), searchTalents);
+
 router.get("/:id", getTalentById);
 router.post("/:id/save", saveTalent);
 router.post("/:id/upvote", toggleUpvoteTalent);
