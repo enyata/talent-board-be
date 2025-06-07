@@ -55,6 +55,7 @@ export interface TalentSearchResult {
   id: string;
   first_name: string;
   last_name: string;
+  email: string;
   avatar: string | null;
   state: string;
   country: string;
