@@ -33,36 +33,25 @@ const checkUserExists = async (userId: string) => {
 
 const refreshAccessToken = async (
   refreshToken: string,
-  entityManger: EntityManager,
-): Promise<{ access_token: string; refresh_token: string } | false> => {
+  entityManager: EntityManager,
+): Promise<string | false> => {
   const decoded = verifyToken(refreshToken, "refreshTokenPublicKey");
   if (!decoded) return false;
 
   const user = await checkUserExists(decoded.id);
   if (!user) return false;
 
-  const storedToken = await entityManger.findOne(RefreshToken, {
+  const storedToken = await entityManager.findOne(RefreshToken, {
     where: { token: refreshToken, is_valid: true, user: { id: user.id } },
   });
-  if (!storedToken) return false;
 
-  storedToken.is_valid = false;
-  await entityManger.save(storedToken);
+  if (!storedToken) return false;
 
   const access_token = signToken(user.id, "accessTokenPrivateKey", {
     expiresIn: config.get<number>("accessTokenTtl"),
   });
 
-  const refresh_token = signToken(user.id, "refreshTokenPrivateKey", {
-    expiresIn: config.get<number>("refreshTokenTtl"),
-  });
-
-  await entityManger.save(RefreshToken, {
-    token: refresh_token,
-    user: { id: user.id } as UserEntity,
-  });
-
-  return { access_token, refresh_token };
+  return access_token;
 };
 
 export const deserializeUser = asyncHandler(
@@ -81,27 +70,21 @@ export const deserializeUser = asyncHandler(
     }
 
     if (refreshToken) {
-      const tokens = await refreshAccessToken(refreshToken, entityManager);
+      const newAccessToken = await refreshAccessToken(
+        refreshToken,
+        entityManager,
+      );
 
-      if (!tokens) {
+      if (!newAccessToken) {
         return next(
           new UnauthorizedError("Invalid refresh token! Please log in again."),
         );
       }
 
-      res.setHeader("x-access-token", tokens.access_token);
-      res.cookie("refresh_token", tokens.refresh_token, {
-        httpOnly: true,
-        secure: req.secure || req.headers["x-forwarded-proto"] === "https",
-      });
+      res.setHeader("x-access-token", newAccessToken);
 
-      const newDecoded = verifyToken(
-        tokens.access_token,
-        "accessTokenPublicKey",
-      );
+      const newDecoded = verifyToken(newAccessToken, "accessTokenPublicKey");
       req.user = await checkUserExists(newDecoded!.id);
-
-      return next();
     }
     return next();
   },
