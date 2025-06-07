@@ -159,6 +159,14 @@ const swaggerDefinition: SwaggerDefinition = {
             nullable: true,
             example: "https://janedoe.dev",
           },
+          job_title: {
+            type: "string",
+            example: "Software developer",
+          },
+          bio: {
+            type: "string",
+            example: "I am passionate developer",
+          },
         },
       },
       TalentProfileDetailed: {
@@ -170,6 +178,8 @@ const swaggerDefinition: SwaggerDefinition = {
           avatar: { type: "string", nullable: true },
           state: { type: "string", example: "Lagos" },
           country: { type: "string", example: "Nigeria" },
+          job_title: { type: "string", example: "Software developer" },
+          bio: { type: "string", example: "I am passionate developer" },
           linkedin_profile: { type: "string", nullable: true },
           portfolio_url: { type: "string", nullable: true },
           resume_path: { type: "string", example: "uploads/jane_resume.pdf" },
