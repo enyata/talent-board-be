@@ -78,7 +78,7 @@ app.use("/openapi.json", (_req: Request, res: Response) => {
 
 app.use(`/${config.get<string>("API_PREFIX")}`, router);
 
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", cors(corsOptions), express.static("uploads"));
 app.all("*", (req: Request, res: Response, next: NextFunction) => {
   if (res.headersSent) return next();
   if (
