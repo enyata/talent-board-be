@@ -1,5 +1,5 @@
 import { DataSource } from "typeorm";
-import AppDataSource from "../../datasource";
+import AppDataSource, { initializeDataSource } from "../../datasource";
 import {
   HiringFor,
   RecruiterProfileEntity,
@@ -26,7 +26,7 @@ describe("TalentRecommendationService", () => {
   });
 
   beforeAll(async () => {
-    dataSource = await AppDataSource.initialize();
+    dataSource = await initializeDataSource();
   });
 
   afterAll(async () => {
@@ -38,7 +38,7 @@ describe("TalentRecommendationService", () => {
     await entityManager.query(`DELETE FROM "recruiter_profiles"`);
     await entityManager.query(`DELETE FROM "users"`);
 
-    if (AppDataSource.isInitialized) {
+    if (dataSource.isInitialized) {
       await AppDataSource.destroy();
     }
   });

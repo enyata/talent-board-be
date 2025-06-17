@@ -1,3 +1,5 @@
+const isDocker = process.env.IS_DOCKER === "true";
+
 export default {
   PORT: 8001,
   NODE_ENV: "test",
@@ -5,10 +7,12 @@ export default {
 
   DB_USER: "test_user",
   DB_HOST: "localhost",
-  DB_PORT: 5433,
+  DB_PORT: isDocker ? 5432 : 5433,
   DB_PASSWORD: "test_password",
   DB_NAME: "test_db",
-  DATABASE_URL: "postgres://test_user:test_password@localhost:5433/test_db",
+  DATABASE_URL: isDocker
+    ? "postgres://test_user:test_password@postgres_test:5432/test_db"
+    : "postgres://test_user:test_password@localhost:5433/test_db",
 
   accessTokenTtl: "1m",
   refreshTokenTtl: "7d",

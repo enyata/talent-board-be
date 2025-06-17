@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { Repository } from "typeorm";
 import { DashboardService } from "../../dashboard/services/dashboard.service";
-import AppDataSource from "../../datasource";
+import AppDataSource, { initializeDataSource } from "../../datasource";
 import { MetricsEntity } from "../../entities/metrics.entity";
 import {
   NotificationEntity,
@@ -49,7 +49,7 @@ describe("DashboardService", () => {
   let userRepo: Repository<UserEntity>;
 
   beforeAll(async () => {
-    await AppDataSource.initialize();
+    await initializeDataSource();
     dashboardService = new DashboardService();
     userRepo = AppDataSource.getRepository(UserEntity);
   });

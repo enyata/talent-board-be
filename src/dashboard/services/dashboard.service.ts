@@ -6,8 +6,6 @@ import { TalentProfileEntity } from "@src/entities/talentProfile.entity";
 import { UserEntity } from "@src/entities/user.entity";
 import { NotFoundError } from "@src/exceptions/notFoundError";
 import { TalentRecommendationService } from "@src/talents/services/talentRecommendation.service";
-import { CacheService } from "@src/utils/cache.service";
-import config from "config";
 import {
   getProfileStatus,
   serializeNotifications,
@@ -96,22 +94,6 @@ export class DashboardService {
   }
 
   async getRecruiterDashboard(userId: string) {
-    const cacheKey = `dashboard_recruiter_${userId}`;
-    const cachedData = await CacheService.get(cacheKey);
-
-    const _recruiter = await this.userRepository.findOne({
-      where: { id: userId },
-      select: ["first_name"],
-    });
-    const recruiterName = _recruiter?.first_name ?? "there";
-
-    if (cachedData) {
-      return {
-        ...cachedData,
-        welcome_message: generateRecruiterWelcomeMessage(recruiterName),
-      };
-    }
-
     const recruiter = await this.userRepository.findOne({
       where: { id: userId },
       relations: ["recruiter_profile"],
@@ -127,13 +109,14 @@ export class DashboardService {
           where: { recruiter: { id: userId } },
           order: { saved_at: "DESC" },
           take: 4,
-          relations: ["talent", "talent.talent_profile"],
+          relations: ["talent", "talent.talent_profile", "talent.metrics"],
         }),
         this.talentRecommendationService.recommendTalents(userId),
         this.notificationRepository.find({
           where: { recipient: { id: userId } },
           order: { created_at: "DESC" },
           take: 10,
+          relations: ["sender", "sender.recruiter_profile"],
         }),
       ]);
 
@@ -144,11 +127,6 @@ export class DashboardService {
       notifications: serializeNotifications(notificationsRaw),
     };
 
-    await CacheService.set(
-      cacheKey,
-      result,
-      config.get<number>("REDIS_CACHE_TTL_LONG"),
-    );
     return result;
   }
 }
