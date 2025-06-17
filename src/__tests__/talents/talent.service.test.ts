@@ -13,6 +13,7 @@ import { UserEntity, UserProvider, UserRole } from "../../entities/user.entity";
 import { ClientError } from "../../exceptions/clientError";
 import { NotFoundError } from "../../exceptions/notFoundError";
 import { TalentService } from "../../talents/services/talent.service";
+import { resolveAssetUrl } from "../../utils/resolveAssetUrl";
 
 const recruiterFactory = (email: string): Partial<UserEntity> => ({
   first_name: "Recruiter",
@@ -380,7 +381,7 @@ describe("Talent Service", () => {
         id: talent.id,
         first_name: "Jane",
         last_name: "Doe",
-        resume_path: "jane-resume.pdf",
+        resume_path: resolveAssetUrl("jane-resume.pdf"),
         portfolio_url: "https://jane.dev",
         skills: expect.arrayContaining(["React", "Node.js"]),
         experience_level: ExperienceLevel.INTERMEDIATE,
