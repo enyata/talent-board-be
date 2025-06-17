@@ -5,6 +5,7 @@ import {
   getTalentDashboard,
 } from "../../dashboard/dashboard.controller";
 import { DashboardService } from "../../dashboard/services/dashboard.service";
+import { ExperienceLevel } from "../../entities/talentProfile.entity";
 
 jest.mock("@src/dashboard/services/dashboard.service");
 
@@ -28,7 +29,11 @@ const mockRecruiterDashboardData = {
       avatar: "https://avatar.com/jane.jpg",
       skills: ["React", "Node.js"],
       portfolio_url: "https://portfolio.com/janedoe",
-      experience_level: "expert",
+      experience_level: ExperienceLevel.EXPERT,
+      saved_at: new Date("2023-01-01T00:00:00.000Z"),
+      state: "Lagos",
+      country: "Nigeria",
+      linkedin_profile: "https://linkedin.com/in/janedoe",
     },
   ],
   recommended_talents: [],
