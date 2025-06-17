@@ -8,8 +8,7 @@ import { DataSource } from "typeorm";
 const isCompiled = path.resolve(__dirname).includes("build");
 const isProduction = config.get<string>("NODE_ENV") === "production";
 
-const databaseUrl =
-  process.env.DATABASE_URL || config.get<string>("DATABASE_URL");
+const databaseUrl = config.get<string>("DATABASE_URL");
 
 const AppDataSource = new DataSource({
   type: "postgres",
