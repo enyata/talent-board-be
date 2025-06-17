@@ -64,6 +64,8 @@ export interface TalentSearchResult {
   skills: string[];
   experience_level: string;
   portfolio_url: string;
+  bio: string;
+  job_title: string;
   resume_path: string;
   upvotes: number;
   metrics?: {

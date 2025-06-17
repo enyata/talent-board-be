@@ -3,6 +3,7 @@ import { SavedTalentEntity } from "@src/entities/savedTalent.entity";
 import { TalentProfileEntity } from "@src/entities/talentProfile.entity";
 import { UserEntity } from "@src/entities/user.entity";
 import { CursorPayload, TalentSearchResult } from "@src/interfaces";
+import { resolveAssetUrl } from "@src/utils/resolveAssetUrl";
 import { SelectQueryBuilder } from "typeorm";
 import { SearchTalentsDto } from "../schemas/searchTalents.schema";
 
@@ -195,6 +196,8 @@ export const formatTalentResult = (
     linkedin_profile: user.linkedin_profile,
     created_at: user.created_at,
     skills: profile?.skills ?? [],
+    bio: profile?.bio ?? "",
+    job_title: profile?.job_title ?? "",
     experience_level: profile?.experience_level ?? "",
     portfolio_url: profile?.portfolio_url ?? "",
     resume_path: profile?.resume_path,
@@ -203,13 +206,22 @@ export const formatTalentResult = (
     is_upvoted: options?.is_upvoted ?? false,
   };
 
+  if (result.avatar) {
+    result.avatar = resolveAssetUrl(result.avatar);
+  }
+
   if (resume_path && recruiter_saves) {
     // UserEntity (getTalentById)
-    result.resume_path = resume_path;
+    result.resume_path = resolveAssetUrl(result.resume_path);
     result.metrics = {
       upvotes: metrics?.upvotes ?? 0,
       recruiter_saves: recruiter_saves,
     };
   }
+
+  if (result.portfolio_url) {
+    result.portfolio_url = resolveAssetUrl(result.portfolio_url);
+  }
+
   return result;
 };
