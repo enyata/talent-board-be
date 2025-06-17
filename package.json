@@ -30,10 +30,10 @@
     "db:test:up": "docker compose --profile test up -d --remove-orphans postgres_test redis",
     "db:test:rm": "docker compose --profile test rm -s -f -v postgres_test redis",
     "db:test:reset": "docker compose --profile test down -v && docker compose --profile test up -d postgres_test redis",
-    "test:docker": "NODE_ENV=test yarn db:test:up && yarn test",
-    "test:docker:watch": "yarn db:test:up && NODE_ENV=test yarn jest --watch",
-    "test": "NODE_ENV=test jest --runInBand",
-    "test:watch": "NODE_ENV=test jest --watch"
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch",
+    "test:docker": "docker compose --profile test run --rm backend_test",
+    "test:docker:watch": "docker compose --profile test run --rm backend_test yarn test:watch"
   },
   "repository": {
     "type": "git",

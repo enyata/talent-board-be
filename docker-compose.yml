@@ -70,5 +70,25 @@ services:
       - redis
     profiles: ["dev"]
 
+  backend_test:
+    container_name: talentboard-backend-test
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=test
+    environment:
+      NODE_ENV: test
+      IS_DOCKER: true
+      DB_HOST: postgres_test
+      REDIS_HOST: redis
+    volumes:
+      - .:/app
+    command: yarn test
+    depends_on:
+      - postgres_test
+      - redis
+    profiles: ["test"]
+
 volumes:
   redis_data:

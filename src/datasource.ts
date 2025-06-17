@@ -9,7 +9,7 @@ const isCompiled = path.resolve(__dirname).includes("build");
 const isProduction = config.get<string>("NODE_ENV") === "production";
 
 const databaseUrl =
-  config.get<string>("DATABASE_URL") || process.env.DATABASE_URL;
+  process.env.DATABASE_URL || config.get<string>("DATABASE_URL");
 
 const AppDataSource = new DataSource({
   type: "postgres",

@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import AppDataSource from "../../datasource";
+import AppDataSource, { initializeDataSource } from "../../datasource";
 import { MetricsEntity } from "../../entities/metrics.entity";
 import { NotificationEntity } from "../../entities/notification.entity";
 import { SavedTalentEntity } from "../../entities/savedTalent.entity";
@@ -60,7 +60,7 @@ describe("Talent Service", () => {
   let talentService: TalentService;
 
   beforeAll(async () => {
-    await AppDataSource.initialize();
+    await initializeDataSource();
     talentService = new TalentService();
   });
 
