@@ -34,6 +34,7 @@ export const sendErrorProd = (err: any, req: Request, res: Response) => {
     }
 
     log.error(`💥: ${err}`);
+    log.error(`💥: ${err.stack}`);
 
     return res.status(500).json({
       status: "error",

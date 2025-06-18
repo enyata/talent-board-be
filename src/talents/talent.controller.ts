@@ -62,7 +62,6 @@ export const toggleUpvoteTalent = asyncHandler(
 
 export const getSavedTalents = asyncHandler(
   async (req: Request, res: Response) => {
-    console.log("Fetching saved talents for recruiter", req.user);
     const recruiterId = req.user.id;
     const result = await talentService.getSavedTalents(recruiterId, req.query);
 
