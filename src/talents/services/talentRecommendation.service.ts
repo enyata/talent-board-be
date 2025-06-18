@@ -26,13 +26,13 @@ export class TalentRecommendationService {
     const savedTalentIds = await this.savedTalentRepository
       .find({
         where: { recruiter: { id: recruiterId } },
-        relations: ["talent", "metrics"],
+        relations: ["talent"],
       })
       .then((records) => records.map((record) => record.talent.id));
 
     const allTalents = await this.talentRepository.find({
       where: { user: { id: Not(In(savedTalentIds)) } },
-      relations: ["user"],
+      relations: ["user", "user.metrics"],
     });
 
     const recruiterSkills = normalizeSkills(
