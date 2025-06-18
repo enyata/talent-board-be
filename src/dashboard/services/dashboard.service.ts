@@ -6,12 +6,8 @@ import { TalentProfileEntity } from "@src/entities/talentProfile.entity";
 import { UserEntity } from "@src/entities/user.entity";
 import { NotFoundError } from "@src/exceptions/notFoundError";
 import { TalentRecommendationService } from "@src/talents/services/talentRecommendation.service";
-import {
-  getProfileStatus,
-  serializeNotifications,
-  serializeRecommendedTalents,
-  serializeSavedTalents,
-} from "../dashboard.utils";
+import { formatTalentResult } from "@src/talents/utils/talent.utils";
+import { getProfileStatus, serializeNotifications } from "../dashboard.utils";
 
 const getTimeBasedGreeting = (): string => {
   const hour = new Date().getHours();
@@ -120,10 +116,21 @@ export class DashboardService {
         }),
       ]);
 
+    const formattedSavedTalents = savedTalentsRaw.map((talent) =>
+      formatTalentResult(talent),
+    );
+    const formatRecommendedTalents = recommendedProfiles.map((profile) =>
+      formatTalentResult(profile, {
+        is_saved: formattedSavedTalents.some(
+          (saved) => saved.id === profile.user.id,
+        ),
+      }),
+    );
+
     const result = {
       welcome_message: generateRecruiterWelcomeMessage(recruiter.first_name),
-      saved_talents: serializeSavedTalents(savedTalentsRaw),
-      recommended_talents: serializeRecommendedTalents(recommendedProfiles),
+      saved_talents: formattedSavedTalents,
+      recommended_talents: formatRecommendedTalents,
       notifications: serializeNotifications(notificationsRaw),
     };
 
