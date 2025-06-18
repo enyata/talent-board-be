@@ -26,7 +26,7 @@ export class TalentRecommendationService {
     const savedTalentIds = await this.savedTalentRepository
       .find({
         where: { recruiter: { id: recruiterId } },
-        relations: ["talent"],
+        relations: ["talent", "metrics"],
       })
       .then((records) => records.map((record) => record.talent.id));
 
