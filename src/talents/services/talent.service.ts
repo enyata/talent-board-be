@@ -94,8 +94,14 @@ export class TalentService {
 
     if (recruiterId) {
       const [saves, upvotes] = await Promise.all([
-        this.saveRepo.find({ where: { recruiter: { id: recruiterId } } }),
-        this.upvoteRepo.find({ where: { recruiter: { id: recruiterId } } }),
+        this.saveRepo.find({
+          where: { recruiter: { id: recruiterId } },
+          relations: ["talent"],
+        }),
+        this.upvoteRepo.find({
+          where: { recruiter: { id: recruiterId } },
+          relations: ["talent"],
+        }),
       ]);
       savedSet = new Set(saves.map((s) => s.talent.id));
       upvotedSet = new Set(upvotes.map((u) => u.talent.id));
@@ -234,7 +240,10 @@ export class TalentService {
 
     const [results, upvotes] = await Promise.all([
       qb.getMany(),
-      this.upvoteRepo.find({ where: { recruiter: { id: recruiterId } } }),
+      this.upvoteRepo.find({
+        where: { recruiter: { id: recruiterId } },
+        relations: ["talent"],
+      }),
     ]);
 
     const upvotedSet = new Set(upvotes.map((u) => u.talent.id));
