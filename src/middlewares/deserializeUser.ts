@@ -63,7 +63,6 @@ export const deserializeUser = asyncHandler(
       ? verifyToken(accessToken, "accessTokenPublicKey")
       : null;
 
-    console.log("Decoded Access Token:", decoded);
     if (decoded) {
       const currentUser = await checkUserExists(decoded.id);
       req.user = currentUser;
