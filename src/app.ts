@@ -48,7 +48,11 @@ if (config.get<string>("NODE_ENV") === "development") {
 }
 
 app.use(compression());
-app.get("/", async (req: Request, res: Response) => {
+app.get("/", (_req, res) => {
+  res.status(200).json({ status: "success", message: "API is running" });
+});
+
+app.get("/health", async (req: Request, res: Response) => {
   try {
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
