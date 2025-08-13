@@ -5,9 +5,9 @@ services:
     profiles: ["dev"]
     env_file: .env
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${TALENTS_DB_USER}
+      POSTGRES_PASSWORD: ${TALENTS_DB_PASSWORD}
+      POSTGRES_DB: ${TALENTS_DB_NAME}
     ports:
       - "5432:5432"
     volumes:

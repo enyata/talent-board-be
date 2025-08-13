@@ -8,8 +8,8 @@ jest.mock("jsonwebtoken", () => ({
 
 describe("JWT Utility Functions", () => {
   const mockId = "user-id-123";
-  const mockKeyName = "accessTokenPrivateKey";
-  const mockPublicKeyName = "accessTokenPublicKey";
+  const mockKeyName = "ACCESS_TOKEN_PRIVATE_KEY";
+  const mockPublicKeyName = "ACCESS_TOKEN_PUBLIC_KEY";
 
   beforeEach(() => {
     jest.clearAllMocks();

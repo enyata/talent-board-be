@@ -12,15 +12,15 @@ export default {
   BASE_URL: process.env.BASE_URL ?? "https://talent-board-be.onrender.com",
   FRONTEND_URL: process.env.FRONTEND_URL ?? "http://localhost:3000",
 
-  accessTokenTtl: process.env.ACCESS_TOKEN_TTL || "15m",
-  refreshTokenTtl: process.env.REFRESH_TOKEN_TTL || "7d",
+  ACCESS_TOKEN_TTL: process.env.ACCESS_TOKEN_TTL || "15m",
+  REFRESH_TOKEN_TTL: process.env.REFRESH_TOKEN_TTL || "7d",
 
-  accessTokenPublicKey: process.env.ACCESS_TOKEN_PUBLIC_KEY,
-  refreshTokenPublicKey: process.env.REFRESH_TOKEN_PUBLIC_KEY,
-  accessTokenPrivateKey: process.env.ACCESS_TOKEN_PRIVATE_KEY,
-  refreshTokenPrivateKey: process.env.REFRESH_TOKEN_PRIVATE_KEY,
+  ACCESS_TOKEN_PUBLIC_KEY: process.env.ACCESS_TOKEN_PUBLIC_KEY,
+  REFRESH_TOKEN_PUBLIC_KEY: process.env.REFRESH_TOKEN_PUBLIC_KEY,
+  ACCESS_TOKEN_PRIVATE_KEY: process.env.ACCESS_TOKEN_PRIVATE_KEY,
+  REFRESH_TOKEN_PRIVATE_KEY: process.env.REFRESH_TOKEN_PRIVATE_KEY,
 
-  cookieExpires: process.env.JWT_COOKIE_EXPIRES_IN || "7d",
+  COOKIE_EXPIRES: process.env.JWT_COOKIE_EXPIRES_IN || "7d",
   SWAGGER_JSON_URL: process.env.SWAGGER_JSON_URL,
 
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,

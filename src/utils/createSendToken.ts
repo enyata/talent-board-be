@@ -16,12 +16,12 @@ export const createSendToken = async (
   entityManager: EntityManager,
   options: CreateSendTokenOptions = { mode: "json" },
 ) => {
-  const accessToken = signToken(user.id, "accessTokenPrivateKey", {
-    expiresIn: config.get<string>("accessTokenTtl"),
+  const accessToken = signToken(user.id, "ACCESS_TOKEN_PRIVATE_KEY", {
+    expiresIn: config.get<string>("ACCESS_TOKEN_TTL"),
   });
 
-  const refreshToken = signToken(user.id, "refreshTokenPrivateKey", {
-    expiresIn: config.get<string>("refreshTokenTtl"),
+  const refreshToken = signToken(user.id, "REFRESH_TOKEN_PRIVATE_KEY", {
+    expiresIn: config.get<string>("REFRESH_TOKEN_TTL"),
   });
 
   const ipAddress =
@@ -51,7 +51,7 @@ export const createSendToken = async (
   await entityManager.save(refresh);
 
   const expires =
-    Number(config.get<string>("cookieExpires")) * 24 * 60 * 60 * 1000;
+    Number(config.get<string>("COOKIE_EXPIRES")) * 24 * 60 * 60 * 1000;
 
   const cookieOptions: CookieOptions = {
     expires: new Date(Date.now() + expires),

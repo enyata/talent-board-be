@@ -114,12 +114,16 @@ export const seedTestDatabase = async (
 
   const talentRefreshToken = signToken(
     talentUser.id,
-    "refreshTokenPrivateKey",
+    "REFRESH_TOKEN_PRIVATE_KEY",
     { expiresIn: "7d" },
   );
-  const talentAccessToken = signToken(talentUser.id, "accessTokenPrivateKey", {
-    expiresIn: "1h",
-  });
+  const talentAccessToken = signToken(
+    talentUser.id,
+    "ACCESS_TOKEN_PRIVATE_KEY",
+    {
+      expiresIn: "1h",
+    },
+  );
 
   await refreshTokenRepo.save(
     refreshTokenRepo.create({
@@ -133,12 +137,12 @@ export const seedTestDatabase = async (
 
   const recruiterRefreshToken = signToken(
     recruiterUser.id,
-    "refreshTokenPrivateKey",
+    "REFRESH_TOKEN_PRIVATE_KEY",
     { expiresIn: "7d" },
   );
   const recruiterAccessToken = signToken(
     recruiterUser.id,
-    "accessTokenPrivateKey",
+    "ACCESS_TOKEN_PRIVATE_KEY",
     { expiresIn: "1h" },
   );
 

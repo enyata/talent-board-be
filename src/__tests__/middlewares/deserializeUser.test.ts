@@ -49,7 +49,7 @@ describe("deserializeUser middleware", () => {
 
   it("should refresh token and attach user if access is invalid but refresh is valid", async () => {
     (verifyToken as jest.Mock).mockImplementation((token, key) => {
-      if (token === "valid-refresh" && key === "refreshTokenPublicKey")
+      if (token === "valid-refresh" && key === "REFRESH_TOKEN_PUBLIC_KEY")
         return { id: mockUser.id };
       if (token.startsWith("new-access")) return { id: mockUser.id };
       return null;
