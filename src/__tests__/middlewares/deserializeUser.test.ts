@@ -66,7 +66,7 @@ describe("deserializeUser middleware", () => {
     (AppDataSource.manager as any) = entityManagerMock;
 
     (signToken as jest.Mock).mockImplementation((id, key) =>
-      key.includes("access") ? "new-access-token" : "new-refresh-token",
+      key.includes("ACCESS") ? "new-access-token" : "new-refresh-token",
     );
 
     const req = {
