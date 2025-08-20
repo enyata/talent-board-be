@@ -20,6 +20,7 @@ export class TalentDashboardEntities1747251721737
         "read" boolean NOT NULL DEFAULT false,
         "created_at" TIMESTAMP NOT NULL DEFAULT now(),
         "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
+        "deleted_at" TIMESTAMP,
         "recipient_id" uuid,
         "sender_id" uuid,
         CONSTRAINT "PK_notifications_id" PRIMARY KEY ("id")
@@ -36,6 +37,7 @@ export class TalentDashboardEntities1747251721737
         "weekly_search_appearances" integer NOT NULL DEFAULT 0,
         "created_at" TIMESTAMP NOT NULL DEFAULT now(),
         "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
+        "deleted_at" TIMESTAMP,
         "user_id" uuid,
         CONSTRAINT "PK_user_metrics_id" PRIMARY KEY ("id")
       )
