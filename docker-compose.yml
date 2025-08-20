@@ -48,6 +48,15 @@ services:
     restart: always
     profiles: ["dev"]
 
+  adminer_prod:
+    image: adminer:4.8.1
+    container_name: adminer-prod
+    ports:
+      - "8084:8080"
+    depends_on:
+      - postgres
+    restart: always
+    profiles: ["dev"]
   backend:
     container_name: talentboard-backend
     build:

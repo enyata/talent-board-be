@@ -20,8 +20,8 @@ export class TalentDashboardEntities1747251721737
         "read" boolean NOT NULL DEFAULT false,
         "created_at" TIMESTAMP NOT NULL DEFAULT now(),
         "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
-        "recipientId" uuid,
-        "senderId" uuid,
+        "recipient_id" uuid,
+        "sender_id" uuid,
         CONSTRAINT "PK_notifications_id" PRIMARY KEY ("id")
       )
     `);
@@ -36,7 +36,7 @@ export class TalentDashboardEntities1747251721737
         "weekly_search_appearances" integer NOT NULL DEFAULT 0,
         "created_at" TIMESTAMP NOT NULL DEFAULT now(),
         "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
-        "userId" uuid,
+        "user_id" uuid,
         CONSTRAINT "PK_user_metrics_id" PRIMARY KEY ("id")
       )
     `);
@@ -44,18 +44,18 @@ export class TalentDashboardEntities1747251721737
     // Foreign key for metrics → user (one-to-one, owning side only)
     await queryRunner.query(`
       ALTER TABLE "user_metrics"
-      ADD CONSTRAINT "FK_user_metrics_user" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+      ADD CONSTRAINT "FK_user_metrics_user" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
     `);
 
     // Foreign keys for notifications → user (recipient and sender)
     await queryRunner.query(`
       ALTER TABLE "notifications"
-      ADD CONSTRAINT "FK_notifications_recipient" FOREIGN KEY ("recipientId") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+      ADD CONSTRAINT "FK_notifications_recipient" FOREIGN KEY ("recipient_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
     `);
 
     await queryRunner.query(`
       ALTER TABLE "notifications"
-      ADD CONSTRAINT "FK_notifications_sender" FOREIGN KEY ("senderId") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+      ADD CONSTRAINT "FK_notifications_sender" FOREIGN KEY ("sender_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION
     `);
 
     // Talent profile status enum + field
