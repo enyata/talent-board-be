@@ -6,3 +6,6 @@ dist/
 *.log
 coverage/
 *.pem
+
+package-lock.json
+yarn.lock

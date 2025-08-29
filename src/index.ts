@@ -9,6 +9,7 @@ import log from "./utils/logger";
 import "./workers/index";
 
 const port = config.get<number>("PORT") ?? 8000;
+console.log({ port });
 
 const bootstrap = async () => {
   try {
@@ -21,6 +22,7 @@ const bootstrap = async () => {
       );
     });
   } catch (error) {
+    console.log({ error });
     log.error("Failed to start the server", error);
     process.exit(1);
   }
