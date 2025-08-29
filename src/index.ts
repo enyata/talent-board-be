@@ -23,6 +23,7 @@ const bootstrap = async () => {
     });
   } catch (error) {
     console.log({ error });
+    // @ts-ignore
     log.error("Failed to start the server", error);
     process.exit(1);
   }

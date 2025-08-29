@@ -10,7 +10,8 @@ export default {
   DB_NAME: process.env.TALENTS_DB_NAME,
   DATABASE_URL: process.env.TALENTS_DATABASE_URL,
   BASE_URL: process.env.TALENTS_BASE_URL ?? "https://talents-api.enyata.com",
-  FRONTEND_URL: process.env.TALENTS_FRONTEND_URL ?? "http://localhost:3000",
+  FRONTEND_URL:
+    process.env.TALENTS_FRONTEND_URL ?? "https://talents.enyata.com",
 
   ACCESS_TOKEN_TTL: process.env.TALENTS_ACCESS_TOKEN_TTL || "15m",
   REFRESH_TOKEN_TTL: process.env.TALENTS_REFRESH_TOKEN_TTL || "7d",

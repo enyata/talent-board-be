@@ -82,6 +82,7 @@ passport.use(
         },
       );
     } catch (error) {
+      // @ts-ignore
       log.error("LinkedIn OAuth error", error);
       return done(error, null);
     }

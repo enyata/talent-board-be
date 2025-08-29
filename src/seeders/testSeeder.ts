@@ -211,7 +211,9 @@ export const seedTestDatabase = async (
 
   log.info("Seeding complete.");
   log.info("Access Tokens:");
+  // @ts-ignore
   log.info("Talent:", talentAccessToken);
+  // @ts-ignore
   log.info("Recruiter:", recruiterAccessToken);
 };
 
