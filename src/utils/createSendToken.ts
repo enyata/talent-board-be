@@ -26,16 +26,20 @@ export const createSendToken = async (
   const accessToken = signToken(user.id, "ACCESS_TOKEN_PRIVATE_KEY", {
     expiresIn: config.get<string>("ACCESS_TOKEN_TTL"),
   });
+  console.log({ accessToken }, "===>1");
 
   const refreshToken = signToken(user.id, "REFRESH_TOKEN_PRIVATE_KEY", {
     expiresIn: config.get<string>("REFRESH_TOKEN_TTL"),
   });
+
+  console.log({ refreshToken }, "error===>2");
 
   const ipAddress =
     req.headers["x-forwarded-for"]?.toString().split(",")[0] ||
     req.socket.remoteAddress ||
     "unknown";
   const userAgent = req.headers["user-agent"] || "unknown";
+  console.log({ ipAddress }, "===>3");
 
   await entityManager.update(
     RefreshToken,
