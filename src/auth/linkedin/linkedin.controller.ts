@@ -55,6 +55,8 @@ export const linkedInOAuthCallback = asyncHandler(
       config.get<string>("FRONTEND_URL") ||
       "http://localhost:3000";
 
+    console.log({ redirectUri }, "redirect uri===>>");
+
     const includeTokensInUrl =
       stateParams.get("include_tokens_in_url") === "true";
 

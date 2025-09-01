@@ -16,7 +16,7 @@ const swaggerDefinition: SwaggerDefinition = {
   },
   servers: [
     {
-      url: `http://localhost:${PORT}/`,
+      url: BASE_URL ?? `http://localhost:${PORT}/`,
       description: "Local server",
     },
     ...(NODE_ENV === "production"

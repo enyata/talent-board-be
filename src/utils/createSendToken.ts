@@ -2,10 +2,17 @@ import { RefreshToken } from "@src/entities/refreshToken.entity";
 import { UserEntity } from "@src/entities/user.entity";
 import { CreateSendTokenOptions } from "@src/interfaces";
 import config from "config";
-import type { CookieOptions, Request, Response } from "express";
+import type { Request, Response } from "express";
 import { EntityManager } from "typeorm";
 import { signToken } from "./jwt";
 import { sanitizeUser } from "./sanitizeUser";
+
+interface CookieOptions {
+  expires?: Date;
+  maxAge?: number;
+  httpOnly?: boolean;
+  secure?: boolean;
+}
 
 export const createSendToken = async (
   user: UserEntity,
@@ -52,12 +59,14 @@ export const createSendToken = async (
 
   const expires =
     Number(config.get<string>("COOKIE_EXPIRES")) * 24 * 60 * 60 * 1000;
-
+  console.log({ expires }, "expires=cookies==>>>");
   const cookieOptions: CookieOptions = {
     expires: new Date(Date.now() + expires),
     httpOnly: true,
     secure: req.secure || req.headers["x-forwarded-proto"] === "https",
   };
+
+  console.log({ cookieOptions }, "cookieOptions===>>");
 
   if (options.mode === "redirect") {
     res.locals.access_token = accessToken;
