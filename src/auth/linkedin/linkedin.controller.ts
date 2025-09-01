@@ -70,6 +70,8 @@ export const linkedInOAuthCallback = asyncHandler(
       { mode: "redirect" },
     );
 
+    console.log({ includeTokensInUrl }, "fix===>>01");
+
     const queryParams = new URLSearchParams({
       access_token: res.locals.access_token,
       ...(includeTokensInUrl && { refresh_token: res.locals.refresh_token }),
