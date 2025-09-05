@@ -61,27 +61,84 @@ export const createSendToken = async (
   });
   await entityManager.save(refresh);
 
-  const expires =
-    Number(config.get<string>("COOKIE_EXPIRES")) * 24 * 60 * 60 * 1000;
+  // FIX: Properly handle cookie expiration with validation
+  const cookieExpiresDays = config.get<string>("COOKIE_EXPIRES");
+  console.log({ cookieExpiresDays }, "raw COOKIE_EXPIRES from config");
 
-  console.log({ expires }, "expires=cookies==>>>");
+  // Convert to number and validate
+  const expireDaysNumber = Number(cookieExpiresDays);
+  console.log({ expireDaysNumber }, "parsed COOKIE_EXPIRES number");
+
+  // Check if the conversion resulted in a valid number
+  if (isNaN(expireDaysNumber) || expireDaysNumber <= 0) {
+    console.error("❌ Invalid COOKIE_EXPIRES value:", cookieExpiresDays);
+    console.error("Using default of 7 days");
+
+    // Use 7 days as default fallback
+    var expires = 7 * 24 * 60 * 60 * 1000;
+  } else {
+    var expires = expireDaysNumber * 24 * 60 * 60 * 1000;
+  }
+
+  console.log({ expires }, "calculated expires milliseconds");
+
+  // Create expiration date and validate it
+  const expirationDate = new Date(Date.now() + expires);
+  console.log({ expirationDate }, "expiration date object");
+
+  // Validate the date is valid
+  if (isNaN(expirationDate.getTime())) {
+    console.error("❌ Invalid expiration date created");
+    // Fallback to 7 days from now
+    const fallbackDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    console.log("Using fallback date:", fallbackDate);
+
+    var validExpirationDate = fallbackDate;
+  } else {
+    var validExpirationDate = expirationDate;
+  }
 
   const cookieOptions: CookieOptions = {
-    expires: new Date(Date.now() + expires),
+    expires: validExpirationDate,
     httpOnly: true,
     secure: req.secure || req.headers["x-forwarded-proto"] === "https",
   };
 
-  console.log({ cookieOptions }, "cookieOptions===>>");
+  console.log({ cookieOptions }, "final cookieOptions");
+
+  // Additional validation before setting cookie
+  if (!cookieOptions.expires || isNaN(cookieOptions.expires.getTime())) {
+    console.error(
+      "❌ Cookie expiration is still invalid, removing expires option",
+    );
+    delete cookieOptions.expires;
+    // Use maxAge instead as fallback
+    cookieOptions.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+  }
+
+  console.log({ cookieOptions }, "validated cookieOptions before setting");
 
   if (options.mode === "redirect") {
     res.locals.access_token = accessToken;
     res.locals.refresh_token = refreshToken;
-    res.cookie("refresh_token", refreshToken, cookieOptions);
+
+    try {
+      res.cookie("refresh_token", refreshToken, cookieOptions);
+      console.log("✅ Cookie set successfully in redirect mode");
+    } catch (error) {
+      console.error("❌ Error setting cookie in redirect mode:", error);
+      throw error;
+    }
     return;
   }
 
-  res.cookie("refresh_token", refreshToken, cookieOptions);
+  try {
+    res.cookie("refresh_token", refreshToken, cookieOptions);
+    console.log("✅ Cookie set successfully in JSON mode");
+  } catch (error) {
+    console.error("❌ Error setting cookie in JSON mode:", error);
+    throw error;
+  }
 
   res.status(statusCode).json({
     status: "success",
