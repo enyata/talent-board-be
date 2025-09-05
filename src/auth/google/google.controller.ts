@@ -19,7 +19,7 @@ export const googleOAuth = (
     redirect_uri: req.query.redirect_uri as string,
     include_tokens_in_url: req.query.include_tokens_in_url as string,
   }).toString();
-
+  console.log({ redirectParams });
   passport.authenticate("google", {
     scope: GOOGLE_SCOPES,
     state: encodeURIComponent(redirectParams),
@@ -29,6 +29,7 @@ export const googleOAuth = (
 export const googleOAuthCallback = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const entityManager = AppDataSource.manager;
+    console.log({ entityManager });
 
     if (!req.user) {
       return next(new UnauthorizedError("Google authentication failed"));

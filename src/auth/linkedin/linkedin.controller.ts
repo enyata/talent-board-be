@@ -19,9 +19,13 @@ export const linkedInOAuth = (req: Request, res: Response) => {
     include_tokens_in_url: req.query.include_tokens_in_url as string,
   }).toString();
 
+  console.log({ redirectUri, scope, clientId, redirectParams });
+
   const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope.join(" "))}&state=${encodeURIComponent(
     redirectParams,
   )}`;
+
+  console.log(authUrl);
 
   res.redirect(authUrl);
 };
@@ -55,7 +59,10 @@ export const linkedInOAuthCallback = asyncHandler(
       config.get<string>("FRONTEND_URL") ||
       "http://localhost:3000";
 
-    console.log({ redirectUri }, "redirect uri===>>");
+    console.log(
+      { redirectUri, rawState, decodedState, stateParams },
+      "redirect uri===>>",
+    );
 
     const includeTokensInUrl =
       stateParams.get("include_tokens_in_url") === "true";

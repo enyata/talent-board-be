@@ -63,7 +63,9 @@ export const createSendToken = async (
 
   const expires =
     Number(config.get<string>("COOKIE_EXPIRES")) * 24 * 60 * 60 * 1000;
+
   console.log({ expires }, "expires=cookies==>>>");
+
   const cookieOptions: CookieOptions = {
     expires: new Date(Date.now() + expires),
     httpOnly: true,
