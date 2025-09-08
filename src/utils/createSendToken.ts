@@ -63,11 +63,32 @@ export const createSendToken = async (
   await entityManager.save(refresh);
 
   // FIX: Properly handle cookie expiration with validation
-  const cookieExpiresDays = config.get<string>("COOKIE_EXPIRES");
+  const cookieExpiresDays = config.get<string | number>("COOKIE_EXPIRES");
   console.log({ cookieExpiresDays }, "raw COOKIE_EXPIRES from config");
+  console.log("Type of cookieExpiresDays:", typeof cookieExpiresDays);
 
-  // Convert to number and validate
-  const expireDaysNumber = Number(cookieExpiresDays);
+  let expireDaysNumber: number;
+
+  // Handle both string and number types from config
+  if (typeof cookieExpiresDays === "number") {
+    expireDaysNumber = cookieExpiresDays;
+  } else if (typeof cookieExpiresDays === "string") {
+    // Try to parse the string as a number
+    expireDaysNumber = Number(cookieExpiresDays);
+
+    // Additional check for empty string or non-numeric string
+    if (cookieExpiresDays.trim() === "") {
+      console.error("❌ COOKIE_EXPIRES is empty string");
+      expireDaysNumber = NaN;
+    }
+  } else {
+    console.error(
+      "❌ COOKIE_EXPIRES is not a string or number:",
+      cookieExpiresDays,
+    );
+    expireDaysNumber = NaN;
+  }
+
   console.log({ expireDaysNumber }, "parsed COOKIE_EXPIRES number");
 
   let expires: number;
@@ -119,7 +140,20 @@ export const createSendToken = async (
     cookieOptions.maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
   }
 
-  console.log({ cookieOptions }, "validated cookieOptions before setting");
+  // Debug logging before setting cookie
+  console.log("Final cookie options before setting:", {
+    expires: cookieOptions.expires,
+    expiresType: cookieOptions.expires
+      ? typeof cookieOptions.expires
+      : "undefined",
+    expiresValid: cookieOptions.expires
+      ? !isNaN(cookieOptions.expires.getTime())
+      : "no expires",
+    maxAge: cookieOptions.maxAge,
+    maxAgeType: cookieOptions.maxAge
+      ? typeof cookieOptions.maxAge
+      : "undefined",
+  });
 
   if (options.mode === "redirect") {
     res.locals.access_token = accessToken;
