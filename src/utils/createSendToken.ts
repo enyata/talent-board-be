@@ -23,6 +23,7 @@ export const createSendToken = async (
   entityManager: EntityManager,
   options: CreateSendTokenOptions = { mode: "json" },
 ) => {
+  console.log("createSendToken===>>>", user.id);
   const accessToken = signToken(user.id, "ACCESS_TOKEN_PRIVATE_KEY", {
     expiresIn: config.get<string>("ACCESS_TOKEN_TTL"),
   });
@@ -69,15 +70,16 @@ export const createSendToken = async (
   const expireDaysNumber = Number(cookieExpiresDays);
   console.log({ expireDaysNumber }, "parsed COOKIE_EXPIRES number");
 
+  let expires: number;
   // Check if the conversion resulted in a valid number
   if (isNaN(expireDaysNumber) || expireDaysNumber <= 0) {
     console.error("❌ Invalid COOKIE_EXPIRES value:", cookieExpiresDays);
     console.error("Using default of 7 days");
 
     // Use 7 days as default fallback
-    var expires = 7 * 24 * 60 * 60 * 1000;
+    expires = 7 * 24 * 60 * 60 * 1000;
   } else {
-    var expires = expireDaysNumber * 24 * 60 * 60 * 1000;
+    expires = expireDaysNumber * 24 * 60 * 60 * 1000;
   }
 
   console.log({ expires }, "calculated expires milliseconds");
@@ -86,6 +88,7 @@ export const createSendToken = async (
   const expirationDate = new Date(Date.now() + expires);
   console.log({ expirationDate }, "expiration date object");
 
+  let validExpirationDate: Date;
   // Validate the date is valid
   if (isNaN(expirationDate.getTime())) {
     console.error("❌ Invalid expiration date created");
@@ -93,9 +96,9 @@ export const createSendToken = async (
     const fallbackDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     console.log("Using fallback date:", fallbackDate);
 
-    var validExpirationDate = fallbackDate;
+    validExpirationDate = fallbackDate;
   } else {
-    var validExpirationDate = expirationDate;
+    validExpirationDate = expirationDate;
   }
 
   const cookieOptions: CookieOptions = {
