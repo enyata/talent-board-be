@@ -61,7 +61,8 @@ passport.use(
         },
       );
 
-      const idToken = tokenRes.data;
+      const idToken = tokenRes.data.id_token;
+      console.log({ idToken });
 
       if (!idToken) {
         return done(
