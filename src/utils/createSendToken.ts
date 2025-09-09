@@ -143,6 +143,12 @@ export const createSendToken = async (
     return;
   }
 
+  try {
+    res.cookie("refresh_token", refreshToken, cookieOptions);
+  } catch (error) {
+    throw error;
+  }
+
   res.status(statusCode).json({
     status: "success",
     message,
