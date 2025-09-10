@@ -19,7 +19,7 @@ export class LinkedInAuthService {
         user = tx.create(UserEntity, {
           ...profileData,
           provider: UserProvider.LINKEDIN,
-          profile_completed: false,
+          profile_completed: true,
         });
         await tx.save(user);
         log.info("New user registered via LinkedIn");

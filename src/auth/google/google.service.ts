@@ -19,7 +19,7 @@ export class GoogleAuthService {
         user = tx.create(UserEntity, {
           ...profileData,
           provider: UserProvider.GOOGLE,
-          profile_completed: false,
+          profile_completed: true,
         });
         await tx.save(user);
         log.info("New user registered via Google");
