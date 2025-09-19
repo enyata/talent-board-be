@@ -35,12 +35,6 @@ passport.use(
       const clientId = config.get<string>("LINKEDIN_CLIENT_ID");
       const clientSecret = config.get<string>("LINKEDIN_CLIENT_SECRET");
       const redirectUri = `${config.get<string>("BASE_URL")}/${config.get<string>("API_PREFIX")}${LINKEDIN_CALLBACK_PATH}`;
-      console.log({
-        clientId,
-        clientSecret,
-        redirectUri,
-        LINKEDIN_CALLBACK_PATH,
-      });
 
       const publishedData = new URLSearchParams({
         grant_type: "authorization_code",
@@ -49,7 +43,6 @@ passport.use(
         client_id: clientId,
         client_secret: clientSecret,
       });
-      console.log({ publishedData, redirectUri });
 
       const tokenRes = await axios.post(
         "https://www.linkedin.com/oauth/v2/accessToken",
@@ -62,7 +55,6 @@ passport.use(
       );
 
       const idToken = tokenRes.data.id_token;
-      console.log({ idToken });
 
       if (!idToken) {
         return done(
@@ -88,7 +80,6 @@ passport.use(
             email: payload.email,
             avatar: payload.picture || null,
           };
-          console.log(profileData, "==>verify>>");
           log.info("LinkedIn profile received");
           return done(null, profileData);
         },
