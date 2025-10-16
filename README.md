@@ -219,5 +219,7 @@ Auto-generated from the files in `src/docs/`.
 ## ✨ Contributors
 
 - [Wasiu Bakare](https://github.com/AdeGneus)
+- [Paul Salako](https://github.com/PaulMarv)
+- [Fred John](https://github.com/jeanvjean)
 
 ---
