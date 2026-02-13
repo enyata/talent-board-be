@@ -1,3 +1,4 @@
+import { IsDate } from "class-validator";
 import { Column, Entity, JoinColumn, ManyToOne, Unique } from "typeorm";
 import ExtendedBaseEntity from "./base.entity";
 import { UserEntity } from "./user.entity";
@@ -14,5 +15,6 @@ export class SavedTalentEntity extends ExtendedBaseEntity {
   talent: UserEntity;
 
   @Column()
+  @IsDate()
   saved_at: Date;
 }

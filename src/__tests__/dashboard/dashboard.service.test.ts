@@ -8,6 +8,7 @@ import {
   NotificationType,
 } from "../../entities/notification.entity";
 import { SavedTalentEntity } from "../../entities/savedTalent.entity";
+import { SkillEntity } from "../../entities/skill.entity";
 import {
   ExperienceLevel,
   ProfileStatus,
@@ -64,6 +65,20 @@ describe("DashboardService", () => {
     }
   });
 
+  const createSkills = async (names: string[]) => {
+    const skillRepo = AppDataSource.getRepository(SkillEntity);
+    const skills = [];
+    for (const name of names) {
+      let skill = await skillRepo.findOne({ where: { name } });
+      if (!skill) {
+        skill = skillRepo.create({ name });
+        await skillRepo.save(skill);
+      }
+      skills.push(skill);
+    }
+    return skills;
+  };
+
   it("should throw NotFoundError if user or talent profile is not found", async () => {
     const nonExistentUUID = randomUUID();
     await expect(
@@ -80,13 +95,12 @@ describe("DashboardService", () => {
     const talent = userRepo.create(talentFactory());
     await userRepo.save(talent);
 
-    const skills = ["Node.js", "TypeScript"];
+    const skills = await createSkills(["Node.js", "TypeScript"]);
     const profile = talentProfileRepo.create({
       user: talent,
       resume_path: "path/to/resume.pdf",
       portfolio_url: "https://portfolio.example.com",
       skills,
-      skills_text: skills.join(" "),
       experience_level: ExperienceLevel.INTERMEDIATE,
       profile_status: ProfileStatus.APPROVED,
       job_title: "Software developer",
@@ -155,13 +169,12 @@ describe("DashboardService", () => {
     const talent = userRepo.create(talentFactory("t1@example.com"));
     await userRepo.save(talent);
 
-    const skills = ["Node.js", "React"];
+    const skills = await createSkills(["Node.js", "React"]);
     const talentProfile = profileRepo.create({
       user: talent,
       resume_path: "path/to/resume.pdf",
       portfolio_url: "https://portfolio.talent.com",
       skills,
-      skills_text: skills.join(" "),
       experience_level: ExperienceLevel.EXPERT,
       profile_status: ProfileStatus.APPROVED,
       job_title: "Software developer",

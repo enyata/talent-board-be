@@ -16,6 +16,7 @@ jest.mock("@src/datasource", () => {
 
 describe("OnboardingService", () => {
   let service: OnboardingService;
+  let mockGetOneOrFail: jest.Mock;
   let mockRepo: Partial<Repository<UserEntity>>;
 
   const userId = "user-id-1";
@@ -41,11 +42,21 @@ describe("OnboardingService", () => {
 
   beforeEach(() => {
     service = new OnboardingService();
+    mockGetOneOrFail = jest.fn();
     (AppDataSource as any).manager = {
       findOne: jest.fn(),
       save: jest.fn(),
       findOneOrFail: jest.fn(),
       create: jest.fn(),
+      createQueryBuilder: jest.fn().mockReturnValue({
+        delete: jest.fn().mockReturnThis(),
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        execute: jest.fn().mockResolvedValue({ affected: 1 }),
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        getOneOrFail: mockGetOneOrFail,
+      }),
+      transaction: jest.fn((cb) => cb((AppDataSource as any).manager)),
     };
   });
 
@@ -55,7 +66,7 @@ describe("OnboardingService", () => {
     (AppDataSource.manager.save as jest.Mock).mockImplementation(
       (input) => input,
     );
-    (AppDataSource.manager.findOneOrFail as jest.Mock).mockResolvedValue({
+    mockGetOneOrFail.mockResolvedValue({
       ...user,
       role: UserRole.TALENT,
       profile_completed: true,
@@ -78,7 +89,7 @@ describe("OnboardingService", () => {
     (AppDataSource.manager.save as jest.Mock).mockImplementation(
       (input) => input,
     );
-    (AppDataSource.manager.findOneOrFail as jest.Mock).mockResolvedValue({
+    mockGetOneOrFail.mockResolvedValue({
       ...user,
       role: UserRole.RECRUITER,
       profile_completed: true,

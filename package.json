@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only --require tsconfig-paths/register ./src/index.ts",
+    "dev": "ts-node-dev --poll --respawn --transpile-only --require tsconfig-paths/register ./src/index.ts",
     "start": "NODE_ENV=production node build/src/index.js",
     "build": "rimraf build && tsc -p tsconfig.json && tsc-alias",
     "prepare": "husky",
@@ -11,7 +11,7 @@
     "db:dev:up": "docker compose up -d --remove-orphans postgres redis adminer",
     "db:dev:rm": "docker compose rm -s -f -v postgres redis adminer",
     "db:dev:rebuild": "docker compose down -v && docker compose up -d --build postgres redis adminer",
-    "backend:dev:up": "yarn db:dev:up && docker compose up --remove-orphans backend",
+    "backend:dev:up": "yarn db:dev:up && docker compose up --watch --remove-orphans backend",
     "backend:dev:logs": "docker compose logs -f backend",
     "backend:dev:restart": "docker compose restart backend",
     "create-migration": "ts-node src/utils/createMigration.ts",

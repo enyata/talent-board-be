@@ -3,6 +3,7 @@ import AppDataSource, { initializeDataSource } from "../../datasource";
 import { MetricsEntity } from "../../entities/metrics.entity";
 import { NotificationEntity } from "../../entities/notification.entity";
 import { SavedTalentEntity } from "../../entities/savedTalent.entity";
+import { SkillEntity } from "../../entities/skill.entity";
 import {
   ExperienceLevel,
   ProfileStatus,
@@ -12,6 +13,7 @@ import { TalentUpvoteEntity } from "../../entities/talentUpvote.entity";
 import { UserEntity, UserProvider, UserRole } from "../../entities/user.entity";
 import { ClientError } from "../../exceptions/clientError";
 import { NotFoundError } from "../../exceptions/notFoundError";
+import { TalentSearchResult } from "../../interfaces";
 import { TalentService } from "../../talents/services/talent.service";
 import { resolveAssetUrl } from "../../utils/resolveAssetUrl";
 
@@ -77,6 +79,7 @@ describe("Talent Service", () => {
   const setupUsers = async (
     talentOverrides: Partial<TalentProfileEntity> = {},
     userOverrides: Partial<UserEntity> = {},
+    skillNames: string[] = ["React"],
   ) => {
     const userRepo = AppDataSource.getRepository(UserEntity);
     const profileRepo = AppDataSource.getRepository(TalentProfileEntity);
@@ -103,24 +106,30 @@ describe("Talent Service", () => {
     });
     await userRepo.save(talent);
 
-    const skills = talentOverrides.skills || ["React"];
+    const skillRepo = AppDataSource.getRepository(SkillEntity);
+    const skillEntities = [];
+
+    for (const name of skillNames) {
+      let skill = await skillRepo.findOne({ where: { name } });
+      if (!skill) {
+        skill = skillRepo.create({ name });
+        await skillRepo.save(skill);
+      }
+      skillEntities.push(skill);
+    }
+
     const profile = profileRepo.create({
       user: talent,
       resume_path: "resume.pdf",
-      skills,
-      skills_text: skills.join(" "),
+      skills: skillEntities,
       experience_level: ExperienceLevel.INTERMEDIATE,
+
       profile_status: ProfileStatus.APPROVED,
       job_title: "software developer",
       bio: "I am passionate developer",
       ...talentOverrides,
     });
     await profileRepo.save(profile);
-
-    await AppDataSource.query(
-      `UPDATE talent_profiles SET skills_text = array_to_string(skills, ' ') WHERE user_id = $1`,
-      [talent.id],
-    );
 
     const metricsRepo = AppDataSource.getRepository(MetricsEntity);
     const existing = await metricsRepo.findOne({
@@ -168,8 +177,9 @@ describe("Talent Service", () => {
       const notificationRepo = AppDataSource.getRepository(NotificationEntity);
 
       const { recruiter, talent } = await setupUsers(
-        { skills: ["TypeScript"] },
+        {},
         { email: "t2@example.com" },
+        ["TypeScript"],
       );
 
       await talentService.saveTalent(talent.id, recruiter.id);
@@ -196,29 +206,28 @@ describe("Talent Service", () => {
     });
 
     it("returns matching talents based on keyword q", async () => {
-      await setupUsers({ skills: ["React"] });
-      await setupUsers({ skills: ["Vue"] });
+      await setupUsers({}, {}, ["React"]);
+      await setupUsers({}, {}, ["Vue"]);
 
       const res = await talentService.searchTalents({
         skills: ["React"],
         limit: 10,
       });
 
-      const skillHits = res.results.flatMap((r) =>
+      const skillHits = res.results.flatMap((r: Partial<TalentSearchResult>) =>
         (r.skills ?? []).map((s: string) => s.toLowerCase()),
       );
       expect(skillHits).toEqual(expect.arrayContaining(["react"]));
     });
 
     it("filters by skills array and experience", async () => {
-      await setupUsers({
-        skills: ["Node.js", "TypeScript"],
-        experience_level: ExperienceLevel.EXPERT,
-      });
-      await setupUsers({
-        skills: ["React"],
-        experience_level: ExperienceLevel.ENTRY,
-      });
+      await setupUsers({ experience_level: ExperienceLevel.EXPERT }, {}, [
+        "Node.js",
+        "TypeScript",
+      ]);
+      await setupUsers({ experience_level: ExperienceLevel.ENTRY }, {}, [
+        "React",
+      ]);
 
       const res = await talentService.searchTalents({
         skills: ["Node.js"],
@@ -270,7 +279,7 @@ describe("Talent Service", () => {
       }
 
       const sortedInserted = inserted
-        .map((r) => r.talent)
+        .map((r: { talent: UserEntity }) => r.talent)
         .sort(
           (a, b) =>
             a.created_at.getTime() - a.created_at.getTime() ||
@@ -282,10 +291,9 @@ describe("Talent Service", () => {
         sort: "recent",
       });
       expect(firstPage.results.length).toBe(2);
-      expect(firstPage.results.map((r) => r.id)).toEqual([
-        sortedInserted[0].id,
-        sortedInserted[1].id,
-      ]);
+      expect(
+        firstPage.results.map((r: Partial<TalentSearchResult>) => r.id),
+      ).toEqual([sortedInserted[0].id, sortedInserted[1].id]);
 
       const secondPage = await talentService.searchTalents({
         limit: 2,
@@ -294,10 +302,9 @@ describe("Talent Service", () => {
         sort: "recent",
       });
       expect(secondPage.results.length).toBe(2);
-      expect(secondPage.results.map((r) => r.id)).toEqual([
-        sortedInserted[2].id,
-        sortedInserted[3].id,
-      ]);
+      expect(
+        secondPage.results.map((r: Partial<TalentSearchResult>) => r.id),
+      ).toEqual([sortedInserted[2].id, sortedInserted[3].id]);
     });
 
     it("applies sort by upvotes", async () => {
@@ -310,7 +317,7 @@ describe("Talent Service", () => {
         sort: "upvotes",
         limit: 10,
       });
-      const ids = res.results.map((r) => r.id);
+      const ids = res.results.map((r: Partial<TalentSearchResult>) => r.id);
       expect(ids.indexOf(t2.talent.id)).toBeLessThan(ids.indexOf(t1.talent.id));
     });
 
@@ -360,7 +367,6 @@ describe("Talent Service", () => {
         {
           resume_path: "jane-resume.pdf",
           portfolio_url: "https://jane.dev",
-          skills: ["React", "Node.js"],
           experience_level: ExperienceLevel.INTERMEDIATE,
         },
         {
@@ -368,6 +374,7 @@ describe("Talent Service", () => {
           last_name: "Doe",
           email: "jane@doe.com",
         },
+        ["React", "Node.js"],
       );
 
       await insertOrUpdateMetrics(talent.id, {
@@ -507,7 +514,7 @@ describe("Talent Service", () => {
         limit: 10,
       });
 
-      const ids = res.results.map((r) => r.id);
+      const ids = res.results.map((r: Partial<TalentSearchResult>) => r.id);
       expect(ids.indexOf(t2.talent.id)).toBeLessThan(ids.indexOf(t1.talent.id));
     });
 
@@ -556,9 +563,9 @@ describe("Talent Service", () => {
       expect(firstPage.results).toHaveLength(2);
       expect(secondPage.results).toHaveLength(2);
       expect([
-        ...firstPage.results.map((r) => r.id),
-        ...secondPage.results.map((r) => r.id),
-      ]).toEqual(sorted.map((r) => r.id));
+        ...firstPage.results.map((r: Partial<TalentSearchResult>) => r.id),
+        ...secondPage.results.map((r: Partial<TalentSearchResult>) => r.id),
+      ]).toEqual(sorted.map((r: { id: string }) => r.id));
     });
   });
 });

@@ -19,6 +19,7 @@ import {
 import { UserEntity, UserProvider, UserRole } from "../entities/user.entity";
 import { signToken } from "../utils/jwt";
 import log from "../utils/logger";
+import { seedSkills } from "./skills.seeder";
 
 type SeedOptions = {
   skipIfExists?: boolean;
@@ -55,6 +56,8 @@ export const seedTestDatabase = async (
     "Seeding users, profiles, metrics, tokens, saved talents, and notifications...",
   );
 
+  await seedSkills(dataSource);
+
   const talentUser = userRepo.create({
     first_name: "Google",
     last_name: "Talent",
@@ -83,14 +86,28 @@ export const seedTestDatabase = async (
 
   await userRepo.save([talentUser, recruiterUser]);
 
-  const talentSkills = ["JavaScript", "Node.js", "TypeScript"];
+  const skillRepo = dataSource.getRepository("skills");
+  const createSkills = async (names: string[]) => {
+    const skills = [];
+    for (const name of names) {
+      let skill = await skillRepo.findOne({ where: { name } });
+      if (!skill) {
+        skill = skillRepo.create({ name });
+        await skillRepo.save(skill);
+      }
+      skills.push(skill);
+    }
+    return skills;
+  };
+
+  const talentSkillNames = ["JavaScript", "Node.js", "TypeScript"];
+  const talentSkillEntities = await createSkills(talentSkillNames);
 
   const talentProfile = talentProfileRepo.create({
     user: talentUser,
     resume_path: "uploads/resume/talent.pdf",
     portfolio_url: "https://portfolio.talent.dev",
-    skills: talentSkills,
-    skills_text: talentSkills.join(" "),
+    skills: talentSkillEntities,
     experience_level: ExperienceLevel.INTERMEDIATE,
     profile_status: ProfileStatus.APPROVED,
     bio: "I am a passionate developer",
@@ -189,15 +206,15 @@ export const seedTestDatabase = async (
 
   await userRepo.save(secondTalent);
 
-  const janeSkills = ["Python", "FastAPI", "PostgreSQL"];
+  const janeSkillNames = ["Python", "FastAPI", "PostgreSQL"];
+  const janeSkillEntities = await createSkills(janeSkillNames);
 
   await talentProfileRepo.save(
     talentProfileRepo.create({
       user: secondTalent,
       resume_path: "uploads/resume/jane.pdf",
       portfolio_url: "https://portfolio.jane.dev",
-      skills: janeSkills,
-      skills_text: janeSkills.join(" "),
+      skills: janeSkillEntities,
       experience_level: ExperienceLevel.EXPERT,
       profile_status: ProfileStatus.APPROVED,
       bio: "I am a passionate developer",

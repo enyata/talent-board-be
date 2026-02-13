@@ -21,16 +21,26 @@ export const createOnboardingHandler = <T extends OnboardingPayload>(
     const userId = req.user.id;
     const payload = formatPayload(req);
 
-    const updatedUser = await service.onboardUser(userId, payload, role);
+    try {
+      const updatedUser = await service.onboardUser(userId, payload, role);
 
-    await createSendToken(
-      updatedUser,
-      200,
-      `${role.charAt(0).toUpperCase() + role.slice(1)} onboarded successfully`,
-      req,
-      res,
-      entityManager,
-    );
+      await createSendToken(
+        updatedUser,
+        200,
+        `${role.charAt(0).toUpperCase() + role.slice(1)} onboarded successfully`,
+        req,
+        res,
+        entityManager,
+      );
+    } catch (error) {
+      if (req.file) {
+        const fs = require("fs");
+        fs.unlink(req.file.path, (err: any) => {
+          if (err) console.error("Failed to delete file:", err);
+        });
+      }
+      throw error;
+    }
   });
 
 export const onboardTalent = createOnboardingHandler<TalentPayload>(

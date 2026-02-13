@@ -51,7 +51,9 @@ export const scoreTalentMatch = (
   recruiter: UserEntity,
   recruiterSkills: string[],
 ): number => {
-  const normalizedTalentSkills = normalizeSkills(talent.skills);
+  const normalizedTalentSkills = normalizeSkills(
+    talent.skills.map((s) => s.name),
+  );
 
   const skillMatchCount =
     normalizedTalentSkills.filter((skill) => recruiterSkills.includes(skill))

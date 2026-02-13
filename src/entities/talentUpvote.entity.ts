@@ -1,5 +1,6 @@
 import ExtendedBaseEntity from "@src/entities/base.entity";
 import { UserEntity } from "@src/entities/user.entity";
+import { IsDate } from "class-validator";
 import {
   CreateDateColumn,
   Entity,
@@ -20,5 +21,6 @@ export class TalentUpvoteEntity extends ExtendedBaseEntity {
   talent: UserEntity;
 
   @CreateDateColumn()
+  @IsDate()
   upvoted_at: Date;
 }

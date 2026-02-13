@@ -105,7 +105,12 @@ export class DashboardService {
           where: { recruiter: { id: userId } },
           order: { saved_at: "DESC" },
           take: 4,
-          relations: ["talent", "talent.talent_profile", "talent.metrics"],
+          relations: [
+            "talent",
+            "talent.talent_profile",
+            "talent.talent_profile.skills",
+            "talent.metrics",
+          ],
         }),
         this.talentRecommendationService.recommendTalents(userId),
         this.notificationRepository.find({
