@@ -1,7 +1,16 @@
 import { Expose } from "class-transformer";
-import { IsArray, IsEnum, IsOptional, IsString, IsUrl } from "class-validator";
-import { Column, Entity, JoinColumn, OneToOne } from "typeorm";
+import { IsEnum, IsOptional, IsString, IsUrl } from "class-validator";
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  OneToOne,
+} from "typeorm";
+
 import ExtendedBaseEntity from "./base.entity";
+import { SkillEntity } from "./skill.entity";
 import { UserEntity } from "./user.entity";
 
 export enum ExperienceLevel {
@@ -45,11 +54,20 @@ export class TalentProfileEntity extends ExtendedBaseEntity {
   @IsString()
   job_title: string;
 
-  @Column("text", { array: true })
+  @ManyToMany(() => SkillEntity)
+  @JoinTable({
+    name: "talent_skills",
+    joinColumn: {
+      name: "talent_profile_id",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "skill_id",
+      referencedColumnName: "id",
+    },
+  })
   @Expose()
-  @IsArray()
-  @IsString({ each: true })
-  skills: string[];
+  skills: SkillEntity[];
 
   @Column({ type: "enum", enum: ExperienceLevel })
   @Expose()
@@ -60,7 +78,4 @@ export class TalentProfileEntity extends ExtendedBaseEntity {
   @Expose()
   @IsEnum(ProfileStatus)
   profile_status: ProfileStatus;
-
-  @Column({ select: false })
-  skills_text?: string;
 }
