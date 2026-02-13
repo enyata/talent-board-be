@@ -19,6 +19,7 @@ import {
 import { UserEntity, UserProvider, UserRole } from "../entities/user.entity";
 import { signToken } from "../utils/jwt";
 import log from "../utils/logger";
+import { seedSkills } from "./skills.seeder";
 
 type SeedOptions = {
   skipIfExists?: boolean;
@@ -54,6 +55,8 @@ export const seedTestDatabase = async (
   log.info(
     "Seeding users, profiles, metrics, tokens, saved talents, and notifications...",
   );
+
+  await seedSkills(dataSource);
 
   const talentUser = userRepo.create({
     first_name: "Google",
