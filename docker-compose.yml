@@ -27,6 +27,7 @@ services:
     volumes:
       - ./data/test-db:/var/lib/postgresql/data
     restart: always
+
   redis:
     image: redis:7-alpine
     container_name: redis
@@ -57,11 +58,13 @@ services:
       - postgres
     restart: always
     profiles: ["dev"]
+
   backend:
     container_name: talentboard-backend
     build:
       context: .
       dockerfile: Dockerfile
+      target: builder
       args:
         - NODE_ENV=development
     ports:
@@ -71,13 +74,21 @@ services:
       NODE_ENV: development
       DB_HOST: postgres
       REDIS_HOST: redis
-    volumes:
-      - .:/app
     command: yarn dev
     depends_on:
       - postgres
       - redis
     profiles: ["dev"]
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
+          ignore:
+            - node_modules/
+            - data/
+        - action: rebuild
+          path: package.json
 
   backend_test:
     container_name: talentboard-backend-test
