@@ -4,7 +4,8 @@ import { TalentProfileEntity } from "@src/entities/talentProfile.entity";
 import { UserEntity } from "@src/entities/user.entity";
 import { CursorPayload, TalentSearchResult } from "@src/interfaces";
 import { resolveAssetUrl } from "@src/utils/resolveAssetUrl";
-import { SelectQueryBuilder } from "typeorm";
+import { Brackets, SelectQueryBuilder } from "typeorm";
+
 import { SearchTalentsDto } from "../schemas/searchTalents.schema";
 
 /**
@@ -51,7 +52,6 @@ export const applyTalentFilters = (
   query: SearchTalentsDto,
   alias = "talent",
 ) => {
-  const skillTextField = `${alias}.skills_text`;
   const levelField = `${alias}.experience_level`;
 
   if (query.q) {
@@ -64,18 +64,50 @@ export const applyTalentFilters = (
   }
 
   if (query.skills?.length) {
-    const skillQuery = query.skills.join(" ");
-    if (process.env.NODE_ENV === "test") {
-      qb.andWhere(`${skillTextField} ILIKE '%' || :skillQuery || '%'`, {
-        skillQuery,
-      });
-    } else {
-      qb.andWhere(
-        `similarity(${skillTextField}, :skillQuery) > 0.3
-         OR ${skillTextField} ILIKE '%' || :skillQuery || '%'`,
-        { skillQuery },
-      );
-    }
+    const skillQuery = query.skills;
+
+    // Join with skills relation if not already joined (assuming buildTalentQuery handles base joins)
+    // Actually, buildTalentQuery joins 'talent' but we need to join 'talent.skills' to filter by them.
+    // Since we can have multiple skills, we need to ensure we filter correctly.
+    // If we want talents who have AT LEAST one of the skills? Or all?
+    // Usually "includes".
+
+    // We need to join the skills table.
+    // Check if 'skills' alias is already used or we add it.
+    // Safer to use a subquery or join here if not present.
+    // But `applyTalentFilters` is called by `buildTalentQuery` which constructs the main query.
+    // `buildTalentQuery` joins `talent` (TalentProfile).
+
+    // Let's add the join here or assume it's available?
+    // `qb` is passed.
+
+    // We can use a subquery to find talent IDs that have the matching skills.
+    // Or just join and filter.
+
+    qb.innerJoin(`${alias}.skills`, "skill");
+
+    qb.andWhere("skill.name ILIKE ANY(:skillNames)", {
+      skillNames: skillQuery.map((s) => `%${s}%`),
+    });
+    // This finds talents having ANY of the skills.
+    // If we want exact match of names, consistent with our ILike logic:
+    // We might need to iterate or use `IN`.
+    // The previous logic was `ILIKE '%' || :skillQuery || '%'`.
+    // It treated the input as a string. `query.skills` is `string[]`.
+    // The previous code joined them: `query.skills.join(" ")`.
+
+    // New logic: Filter talents where ANY of their linked skills match the search terms.
+
+    qb.andWhere(
+      new Brackets((qb) => {
+        skillQuery.forEach((skill, index) => {
+          const paramName = `skill_${index}`;
+          qb.orWhere(`skill.name ILIKE :${paramName}`, {
+            [paramName]: `%${skill}%`,
+          });
+        });
+      }),
+    );
   }
 
   if (query.experience) {
@@ -111,12 +143,14 @@ export const buildTalentQuery = (
   if (source === "talent") {
     qb.innerJoinAndSelect("talent.user", "user")
       .leftJoinAndSelect("user.metrics", "metrics")
+      .leftJoinAndSelect("talent.skills", "skills")
       .where("user.profile_completed = true")
       .andWhere("talent.profile_status = 'approved'");
   } else {
     qb.innerJoinAndSelect("save.talent", "user")
       .innerJoinAndSelect("user.talent_profile", "talent")
       .leftJoinAndSelect("user.metrics", "metrics")
+      .leftJoinAndSelect("talent.skills", "skills")
       .where("save.recruiter_id = :recruiterId", { recruiterId })
       .andWhere("user.profile_completed = true")
       .andWhere("talent.profile_status = 'approved'");
@@ -195,7 +229,7 @@ export const formatTalentResult = (
     country: user.country,
     linkedin_profile: user.linkedin_profile,
     created_at: user.created_at,
-    skills: profile?.skills ?? [],
+    skills: profile?.skills ? profile.skills.map((s) => s.name) : [],
     bio: profile?.bio ?? "",
     job_title: profile?.job_title ?? "",
     experience_level: profile?.experience_level ?? "",
