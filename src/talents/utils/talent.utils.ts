@@ -66,37 +66,13 @@ export const applyTalentFilters = (
   if (query.skills?.length) {
     const skillQuery = query.skills;
 
-    // Join with skills relation if not already joined (assuming buildTalentQuery handles base joins)
-    // Actually, buildTalentQuery joins 'talent' but we need to join 'talent.skills' to filter by them.
-    // Since we can have multiple skills, we need to ensure we filter correctly.
-    // If we want talents who have AT LEAST one of the skills? Or all?
-    // Usually "includes".
-
-    // We need to join the skills table.
-    // Check if 'skills' alias is already used or we add it.
-    // Safer to use a subquery or join here if not present.
-    // But `applyTalentFilters` is called by `buildTalentQuery` which constructs the main query.
-    // `buildTalentQuery` joins `talent` (TalentProfile).
-
-    // Let's add the join here or assume it's available?
-    // `qb` is passed.
-
-    // We can use a subquery to find talent IDs that have the matching skills.
-    // Or just join and filter.
-
     qb.innerJoin(`${alias}.skills`, "skill");
 
     qb.andWhere("skill.name ILIKE ANY(:skillNames)", {
       skillNames: skillQuery.map((s) => `%${s}%`),
     });
-    // This finds talents having ANY of the skills.
-    // If we want exact match of names, consistent with our ILike logic:
-    // We might need to iterate or use `IN`.
-    // The previous logic was `ILIKE '%' || :skillQuery || '%'`.
-    // It treated the input as a string. `query.skills` is `string[]`.
-    // The previous code joined them: `query.skills.join(" ")`.
 
-    // New logic: Filter talents where ANY of their linked skills match the search terms.
+    // Filter talents where ANY of their linked skills match the search terms.
 
     qb.andWhere(
       new Brackets((qb) => {
