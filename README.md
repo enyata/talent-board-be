@@ -141,17 +141,36 @@ API_PREFIX=api/v1
 ### 4. Database Setup
 
 ```bash
-# Start local Postgres via Docker (if using Docker Compose)
-docker-compose up -d
+# Start development services (Postgres, Redis, Adminer, and Backend)
+docker compose --profile dev up -d
+```
 
-# Run migrations
-yarn typeorm migration:run
+#### Run Migrations
+
+If running the application via Docker:
+
+```bash
+docker compose exec backend yarn migration:run
+```
+
+If running the application locally:
+
+```bash
+yarn migration:run
 ```
 
 ### 5. Run in Development
 
+If running locally:
+
 ```bash
 yarn dev
+```
+
+Adminer (database UI) will be available at:
+
+```text
+http://localhost:8090
 ```
 
 Server will run on:  
@@ -215,4 +234,3 @@ Auto-generated from the files in `src/docs/`.
 - Wallet and Payments Integration
 
 ---
-
