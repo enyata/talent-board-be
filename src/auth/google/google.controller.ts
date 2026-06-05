@@ -72,7 +72,6 @@ export const googleOAuthCallback = asyncHandler(
       access_token: res.locals.access_token,
       ...(includeTokensInUrl && { refresh_token: res.locals.refresh_token }),
     }).toString();
-
     res.redirect(`${redirectUri}?${queryParams}`);
   },
 );

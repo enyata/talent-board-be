@@ -23,6 +23,7 @@ passport.use(
         log.info("Google profile received");
         return done(null, profileData as unknown as Express.User);
       } catch (error) {
+        // @ts-ignore
         log.error("Google OAuth error", error);
         return done(error, null);
       }

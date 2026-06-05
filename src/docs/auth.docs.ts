@@ -158,3 +158,70 @@ export const linkedInOAuthCallback = `
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 `;
+
+export const localSignup = `
+/**
+ * @swagger
+ * /api/v1/auth/signup:
+ *   post:
+ *     summary: Create a local user account
+ *     tags: [Authentication]
+ *     description: Registers a new user using email and password. This endpoint is used for the local signup flow.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: jane.doe@example.com
+ *               password:
+ *                 type: string
+ *                 example: Password1!
+ *               confirm_password:
+ *                 type: string
+ *                 example: Password1!
+ *             required:
+ *               - email
+ *               - password
+ *               - confirm_password
+ *     responses:
+ *       201:
+ *         description: Signup successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Signup successful.
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: a1b2c3d4-uuid
+ *                     email:
+ *                       type: string
+ *                       example: jane.doe@example.com
+ *                     is_email_verified:
+ *                       type: boolean
+ *                       example: false
+ *       400:
+ *         description: Invalid signup payload or passwords do not match
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       409:
+ *         description: User already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+`;

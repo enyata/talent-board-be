@@ -10,6 +10,7 @@ const redisClient = new Redis(redisUrl, {
 });
 
 redisClient.on("error", (error) => {
+  // @ts-ignore
   log.error("❌ Redis connection error:", error);
 });
 

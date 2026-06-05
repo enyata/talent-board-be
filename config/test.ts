@@ -14,15 +14,15 @@ export default {
     ? "postgres://test_user:test_password@postgres_test:5432/test_db"
     : "postgres://test_user:test_password@localhost:5433/test_db",
 
-  accessTokenTtl: "1m",
-  refreshTokenTtl: "7d",
+  ACCESS_TOKEN_TTL: "1m",
+  REFRESH_TOKEN_TTL: "7d",
 
-  accessTokenPublicKey: "test_public_key",
-  refreshTokenPublicKey: "test_public_key",
-  accessTokenPrivateKey: "test_private_key",
-  refreshTokenPrivateKey: "test_private_key",
+  ACCESS_TOKEN_PUBLIC_KEY: "test_public_key",
+  REFRESH_TOKEN_PUBLIC_KEY: "test_public_key",
+  ACCESS_TOKEN_PRIVATE_KEY: "test_private_key",
+  REFRESH_TOKEN_PRIVATE_KEY: "test_private_key",
 
-  cookieExpires: "1d",
+  COOKIE_EXPIRES: "1d",
   SWAGGER_JSON_URL: "",
 
   GOOGLE_CLIENT_ID: "google_client_id",

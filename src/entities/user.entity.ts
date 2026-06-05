@@ -19,6 +19,7 @@ import { TalentProfileEntity } from "./talentProfile.entity";
 export enum UserProvider {
   GOOGLE = "google",
   LINKEDIN = "linkedin",
+  LOCAL = "local",
 }
 
 export enum UserRole {
@@ -28,17 +29,19 @@ export enum UserRole {
 
 @Entity({ name: "users" })
 export class UserEntity extends ExtendedBaseEntity {
-  @Column()
+  @Column({ nullable: true })
   @Expose()
+  @IsOptional()
   @IsString()
   @Length(1, 50)
-  first_name: string;
+  first_name: string | null;
 
-  @Column()
+  @Column({ nullable: true })
   @Expose()
+  @IsOptional()
   @IsString()
   @Length(1, 50)
-  last_name: string;
+  last_name: string | null;
 
   @Column({ unique: true })
   @Expose()
@@ -84,6 +87,12 @@ export class UserEntity extends ExtendedBaseEntity {
   @IsOptional()
   @IsUrl()
   linkedin_profile: string;
+
+  @Column({ nullable: true })
+  password: string;
+
+  @Column({ nullable: true })
+  is_email_verified: boolean;
 
   @OneToMany(() => RefreshToken, (refresh) => refresh.user)
   refresh_tokens: RefreshToken[];

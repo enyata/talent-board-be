@@ -36,22 +36,26 @@ passport.use(
       const clientSecret = config.get<string>("LINKEDIN_CLIENT_SECRET");
       const redirectUri = `${config.get<string>("BASE_URL")}/${config.get<string>("API_PREFIX")}${LINKEDIN_CALLBACK_PATH}`;
 
+      const publishedData = new URLSearchParams({
+        grant_type: "authorization_code",
+        code: code.trim(),
+        redirect_uri: redirectUri,
+        client_id: clientId,
+        client_secret: clientSecret,
+      });
+
       const tokenRes = await axios.post(
         "https://www.linkedin.com/oauth/v2/accessToken",
-        new URLSearchParams({
-          grant_type: "authorization_code",
-          code,
-          redirect_uri: redirectUri,
-          client_id: clientId,
-          client_secret: clientSecret,
-        }),
+        publishedData,
         {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           httpsAgent: createHttpsAgent(),
+          timeout: 10000,
         },
       );
 
       const idToken = tokenRes.data.id_token;
+
       if (!idToken) {
         return done(
           new UnauthorizedError("ID Token not provided by LinkedIn"),
@@ -76,12 +80,12 @@ passport.use(
             email: payload.email,
             avatar: payload.picture || null,
           };
-
           log.info("LinkedIn profile received");
           return done(null, profileData);
         },
       );
     } catch (error) {
+      // @ts-ignore
       log.error("LinkedIn OAuth error", error);
       return done(error, null);
     }

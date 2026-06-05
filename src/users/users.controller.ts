@@ -19,8 +19,8 @@ export const getCurrentUser = asyncHandler(
 export const updateProfile = asyncHandler(
   async (req: Request, res: Response) => {
     const user = req.user!;
-    const data = req.body as UpdateProfileDTO & { avatar?: string };
 
+    const data = req.body as UpdateProfileDTO & { avatar?: string };
     const updated = await userService.updateProfile(user.id, user.role, data);
 
     res.status(200).json({

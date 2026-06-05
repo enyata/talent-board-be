@@ -35,7 +35,7 @@ const refreshAccessToken = async (
   refreshToken: string,
   entityManager: EntityManager,
 ): Promise<string | false> => {
-  const decoded = verifyToken(refreshToken, "refreshTokenPublicKey");
+  const decoded = verifyToken(refreshToken, "REFRESH_TOKEN_PUBLIC_KEY");
   if (!decoded) return false;
 
   const user = await checkUserExists(decoded.id);
@@ -47,8 +47,8 @@ const refreshAccessToken = async (
 
   if (!storedToken) return false;
 
-  const access_token = signToken(user.id, "accessTokenPrivateKey", {
-    expiresIn: config.get<number>("accessTokenTtl"),
+  const access_token = signToken(user.id, "ACCESS_TOKEN_PRIVATE_KEY", {
+    expiresIn: config.get<number>("ACCESS_TOKEN_TTL"),
   });
 
   return access_token;
@@ -60,7 +60,7 @@ export const deserializeUser = asyncHandler(
     const entityManager = AppDataSource.manager;
 
     const decoded = accessToken
-      ? verifyToken(accessToken, "accessTokenPublicKey")
+      ? verifyToken(accessToken, "ACCESS_TOKEN_PUBLIC_KEY")
       : null;
 
     if (decoded) {
@@ -83,7 +83,7 @@ export const deserializeUser = asyncHandler(
 
       res.setHeader("x-access-token", newAccessToken);
 
-      const newDecoded = verifyToken(newAccessToken, "accessTokenPublicKey");
+      const newDecoded = verifyToken(newAccessToken, "ACCESS_TOKEN_PUBLIC_KEY");
       req.user = await checkUserExists(newDecoded!.id);
     }
     return next();

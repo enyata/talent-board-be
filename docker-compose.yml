@@ -5,11 +5,11 @@ services:
     profiles: ["dev"]
     env_file: .env
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${TALENTS_DB_USER}
+      POSTGRES_PASSWORD: ${TALENTS_DB_PASSWORD}
+      POSTGRES_DB: ${TALENTS_DB_NAME}
     ports:
-      - "5432:5432"
+      - "5452:5432"
     volumes:
       - ./data/db:/var/lib/postgresql/data
     restart: always
@@ -23,16 +23,17 @@ services:
       POSTGRES_PASSWORD: test_password
       POSTGRES_DB: test_db
     ports:
-      - "5433:5432"
+      - "5453:5432"
     volumes:
       - ./data/test-db:/var/lib/postgresql/data
     restart: always
+
   redis:
     image: redis:7-alpine
     container_name: redis
     profiles: ["dev", "test"]
     ports:
-      - "6379:6379"
+      - "6389:6379"
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis_data:/data
@@ -42,7 +43,17 @@ services:
     image: adminer:4.8.1
     container_name: adminer
     ports:
-      - "8080:8080"
+      - "8090:8080"
+    depends_on:
+      - postgres
+    restart: always
+    profiles: ["dev"]
+
+  adminer_prod:
+    image: adminer:4.8.1
+    container_name: adminer-prod
+    ports:
+      - "8084:8080"
     depends_on:
       - postgres
     restart: always
@@ -53,6 +64,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: builder
       args:
         - NODE_ENV=development
     ports:
@@ -62,13 +74,21 @@ services:
       NODE_ENV: development
       DB_HOST: postgres
       REDIS_HOST: redis
-    volumes:
-      - .:/app
     command: yarn dev
     depends_on:
       - postgres
       - redis
     profiles: ["dev"]
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
+          ignore:
+            - node_modules/
+            - data/
+        - action: rebuild
+          path: package.json
 
   backend_test:
     container_name: talentboard-backend-test

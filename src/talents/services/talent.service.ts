@@ -139,7 +139,7 @@ export class TalentService {
         role: UserRole.TALENT,
         profile_completed: true,
       },
-      relations: ["talent_profile", "metrics"],
+      relations: ["talent_profile", "metrics", "talent_profile.skills"],
     });
 
     if (
@@ -272,7 +272,7 @@ export class TalentService {
 
   async getTopTalents(limit = 10): Promise<Partial<TalentSearchResult>[]> {
     const talents = await this.profileRepo.find({
-      relations: ["user", "user.metrics", "user.talent_profile"],
+      relations: ["skills", "user", "user.metrics", "user.talent_profile"],
       where: {
         user: {
           profile_completed: true,
@@ -292,7 +292,7 @@ export class TalentService {
       })
       .sort((a, b) => b.score - a.score)
       .slice(0, limit)
-      .map((entry) => formatTalentResult(entry.profile.user));
+      .map((entry) => formatTalentResult(entry.profile));
 
     return scored;
   }

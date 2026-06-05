@@ -5,6 +5,7 @@ import {
   RecruiterProfileEntity,
 } from "../../entities/recruiterProfile.entity";
 import { SavedTalentEntity } from "../../entities/savedTalent.entity";
+import { SkillEntity } from "../../entities/skill.entity";
 import {
   ExperienceLevel,
   ProfileStatus,
@@ -18,6 +19,7 @@ const service = new TalentRecommendationService();
 
 describe("TalentRecommendationService", () => {
   beforeEach(async () => {
+    await dataSource.query(`DELETE FROM "user_metrics"`);
     await dataSource.query(`DELETE FROM "saved_talents"`);
     await dataSource.query(`DELETE FROM "notifications"`);
     await dataSource.query(`DELETE FROM "talent_profiles"`);
@@ -33,15 +35,31 @@ describe("TalentRecommendationService", () => {
     const entityManager = AppDataSource.manager;
 
     await entityManager.query(`DELETE FROM "saved_talents"`);
+    await entityManager.query(`DELETE FROM "user_metrics"`);
     await entityManager.query(`DELETE FROM "notifications"`);
     await entityManager.query(`DELETE FROM "talent_profiles"`);
     await entityManager.query(`DELETE FROM "recruiter_profiles"`);
     await entityManager.query(`DELETE FROM "users"`);
+    await entityManager.query(`DELETE FROM "skills"`);
 
     if (dataSource.isInitialized) {
       await AppDataSource.destroy();
     }
   });
+
+  const createSkills = async (names: string[]) => {
+    const skillRepo = AppDataSource.getRepository(SkillEntity);
+    const skills = [];
+    for (const name of names) {
+      let skill = await skillRepo.findOne({ where: { name } });
+      if (!skill) {
+        skill = skillRepo.create({ name });
+        await skillRepo.save(skill);
+      }
+      skills.push(skill);
+    }
+    return skills;
+  };
 
   it("should return recommended talents ranked by match score", async () => {
     const userRepo = AppDataSource.getRepository(UserEntity);
@@ -83,13 +101,13 @@ describe("TalentRecommendationService", () => {
     });
     const savedTalentAUser = await userRepo.save(talentAUser);
 
+    const skillsA = await createSkills(["React", "Node.js"]);
     const talentAProfile = talentRepo.create({
       user: savedTalentAUser,
-      skills: ["React", "Node.js"],
+      skills: skillsA,
       experience_level: ExperienceLevel.EXPERT,
       resume_path: "path/to/talent_a.pdf",
       profile_status: ProfileStatus.APPROVED,
-      skills_text: "react,node.js",
       job_title: "Software developer",
       bio: "I am a passionate developer",
     });
@@ -107,13 +125,13 @@ describe("TalentRecommendationService", () => {
     });
     const savedTalentBUser = await userRepo.save(talentBUser);
 
+    const skillsB = await createSkills(["HTML", "CSS"]);
     const talentBProfile = talentRepo.create({
       user: savedTalentBUser,
-      skills: ["HTML", "CSS"],
+      skills: skillsB,
       experience_level: ExperienceLevel.ENTRY,
       resume_path: "path/to/talent_b.pdf",
       profile_status: ProfileStatus.APPROVED,
-      skills_text: "html,css",
       job_title: "Software developer",
       bio: "I am a passionate developer",
     });
@@ -131,13 +149,13 @@ describe("TalentRecommendationService", () => {
     });
     const savedTalentCUser = await userRepo.save(talentCUser);
 
+    const skillsC = await createSkills(["Python", "Django"]);
     const talentCProfile = talentRepo.create({
       user: savedTalentCUser,
-      skills: ["Python", "Django"],
+      skills: skillsC,
       experience_level: ExperienceLevel.INTERMEDIATE,
       resume_path: "path/to/talent_c.pdf",
       profile_status: ProfileStatus.APPROVED,
-      skills_text: "python,django",
       job_title: "Software developer",
       bio: "I am a passionate developer",
     });

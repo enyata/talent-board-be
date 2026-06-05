@@ -4,7 +4,7 @@ import { sign, verify } from "jsonwebtoken";
 
 export const signToken = (
   id: string,
-  keyName: "accessTokenPrivateKey" | "refreshTokenPrivateKey",
+  keyName: "ACCESS_TOKEN_PRIVATE_KEY" | "REFRESH_TOKEN_PRIVATE_KEY",
   options?: object,
 ): string => {
   const signingKey = Buffer.from(
@@ -20,7 +20,7 @@ export const signToken = (
 
 export const verifyToken = (
   token: string,
-  keyName: "accessTokenPublicKey" | "refreshTokenPublicKey",
+  keyName: "ACCESS_TOKEN_PUBLIC_KEY" | "REFRESH_TOKEN_PUBLIC_KEY",
 ): CustomJwtPayload | null => {
   const publicKey = Buffer.from(config.get<string>(keyName), "base64").toString(
     "ascii",
