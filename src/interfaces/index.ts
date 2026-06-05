@@ -26,6 +26,8 @@ export interface CreateSendTokenOptions {
 }
 
 export interface SharedFields {
+  first_name?: string;
+  last_name?: string;
   state: string;
   country: string;
   linkedin_profile: string;

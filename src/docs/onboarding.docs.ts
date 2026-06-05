@@ -12,7 +12,7 @@ export const talentOnboarding = `
  *   patch:
  *     summary: Complete onboarding for a talent user
  *     tags: [Onboarding]
- *     description: Completes the onboarding process for a talent after OAuth login.
+ *     description: Completes the onboarding process for a talent user.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -31,6 +31,12 @@ export const talentOnboarding = `
  *               - resume
  *               - experience_level
  *             properties:
+ *               first_name:
+ *                 type: string
+ *                 example: "Jane"
+ *               last_name:
+ *                 type: string
+ *                 example: "Doe"
  *               state:
  *                 type: string
  *                 example: "Lagos"
@@ -167,7 +173,7 @@ export const recruiterOnboarding = `
  *   patch:
  *     summary: Complete onboarding for a recruiter user
  *     tags: [Onboarding]
- *     description: Completes the onboarding process for a recruiter after OAuth login.
+ *     description: Completes the onboarding process for a recruiter user.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -185,6 +191,12 @@ export const recruiterOnboarding = `
  *               - roles_looking_for
  *               - hiring_for
  *             properties:
+ *               first_name:
+ *                 type: string
+ *                 example: "Jane"
+ *               last_name:
+ *                 type: string
+ *                 example: "Doe"
  *               state:
  *                 type: string
  *                 example: "Abuja"
