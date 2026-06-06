@@ -59,6 +59,15 @@ services:
     restart: always
     profiles: ["dev"]
 
+  maildev:
+    image: maildev/maildev
+    container_name: maildev
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+    restart: always
+    profiles: ["dev"]
+
   backend:
     container_name: talentboard-backend
     build:
@@ -78,6 +87,7 @@ services:
     depends_on:
       - postgres
       - redis
+      - maildev
     profiles: ["dev"]
     develop:
       watch:

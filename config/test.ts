@@ -4,6 +4,7 @@ export default {
   PORT: 8001,
   NODE_ENV: "test",
   API_PREFIX: "api/v1",
+  APP_NAME: "Talent Board",
 
   DB_USER: "test_user",
   DB_HOST: "localhost",

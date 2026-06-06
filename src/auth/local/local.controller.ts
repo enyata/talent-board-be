@@ -51,7 +51,7 @@ export const verifyEmail = async (
   await createSendToken(
     user,
     200,
-    "Email verified",
+    "Email verified Successfully",
     req,
     res,
     AppDataSource.manager,

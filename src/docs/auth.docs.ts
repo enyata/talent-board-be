@@ -268,9 +268,9 @@ export const localVerifyEmail = `
  *                 data:
  *                   type: object
  *                   properties:
- *                     accessToken:
+ *                     access_token:
  *                       $ref: '#/components/schemas/AccessToken'
- *                     refreshToken:
+ *                     refresh_token:
  *                       $ref: '#/components/schemas/RefreshToken'
  *       400:
  *         description: Invalid or expired OTP

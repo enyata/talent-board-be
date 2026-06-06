@@ -2,6 +2,8 @@ export default {
   PORT: Number(process.env.TALENTS_PORT) ?? 8000,
   NODE_ENV: process.env.TALENTS_NODE_ENV,
   API_PREFIX: process.env.TALENTS_API_PREFIX ?? "api/v1",
+  APP_NAME: process.env.TALENTS_APP_NAME ?? "Talent Board",
+  OTP_TTL_MINUTES: Number(process.env.TALENTS_OTP_TTL_MINUTES) || 10,
 
   DB_USER: process.env.TALENTS_DB_USER,
   DB_HOST: process.env.TALENTS_DB_HOST,
@@ -35,7 +37,7 @@ export default {
 
   SMTP_HOST: process.env.TALENTS_SMTP_HOST || "smtp.mailtrap.io",
   SMTP_PORT: parseInt(process.env.TALENTS_SMTP_PORT || "2525"),
-  SMTP_SECURE: process.env.TALENTS_SMTP_SECURE === "true",
+  SMTP_SECURE: String(process.env.TALENTS_SMTP_SECURE) === "true",
   SMTP_USER: process.env.TALENTS_SMTP_USER || "",
   SMTP_PASSWORD: process.env.TALENTS_SMTP_PASSWORD || "",
 
