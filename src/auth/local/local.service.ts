@@ -5,6 +5,7 @@ import { EmailService } from "@src/utils/email";
 import log from "@src/utils/logger";
 import { OtpUtil } from "@src/utils/otp.util";
 import { hash } from "argon2";
+import config from "config";
 import { EntityManager } from "typeorm";
 import type { LocalSignupDTO } from "./schemas/signup.schema";
 
@@ -63,8 +64,9 @@ export class LocalAuthService {
   async sendVerificationOtp(
     user: UserEntity,
     entityManager: EntityManager,
-    ttlMinutes = 10,
+    ttlMinutes = config.get<number>("OTP_TTL_MINUTES") || 10, // OTP validity duration
   ): Promise<void> {
+    // Invalidate any existing OTPs for this email
     const otp = OtpUtil.generate(6);
     const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
 
@@ -76,9 +78,10 @@ export class LocalAuthService {
     });
 
     await entityManager.save(otpRecord);
-    await EmailService.sendVerification(user.email, otp);
+    await EmailService.sendVerification(user.email, otp, ttlMinutes);
   }
 
+  // Returns the user if OTP is valid, otherwise null. Also marks email as verified and records OTP usage.
   async verifyEmail(
     email: string,
     otp: string,
@@ -91,6 +94,7 @@ export class LocalAuthService {
       });
 
       if (!record) return null;
+      if (record.used_at) return null;
       if (record.expires_at < new Date()) return null;
 
       const user = await tx.findOne(UserEntity, { where: { email } });
@@ -99,7 +103,8 @@ export class LocalAuthService {
       user.is_email_verified = true;
       await tx.save(user);
 
-      await tx.delete(EmailOtpEntity, { email });
+      record.used_at = new Date();
+      await tx.save(record);
       return user;
     });
   }

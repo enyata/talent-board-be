@@ -8,20 +8,20 @@ const getEmailProvider = () =>
 
 const getSmtpConfig = () => {
   const provider = getEmailProvider();
-  const host = config.get<string>("SMTP_HOST");
-  const port = Number(config.get<string>("SMTP_PORT") || 587);
-  const secure =
-    String(config.get<string>("SMTP_SECURE")).toLowerCase() === "true";
 
   if (provider === "gmail") {
-    const user = config.get<string>("GMAIL_USER");
-    const pass = config.get<string>("GMAIL_PASSWORD");
-
     return {
       service: "gmail",
-      auth: { user, pass },
+      auth: {
+        user: config.get<string>("GMAIL_USER"),
+        pass: config.get<string>("GMAIL_PASSWORD"),
+      },
     };
   }
+
+  const host = config.get<string>("SMTP_HOST");
+  const port = config.get<number>("SMTP_PORT") || 587;
+  const secure = config.get<boolean>("SMTP_SECURE");
 
   return {
     host,
@@ -35,29 +35,58 @@ const getSmtpConfig = () => {
 };
 
 export const EmailService = {
-  async sendVerification(to: string, otp: string) {
-    const template = verificationEmailTemplate(otp);
+  async sendVerification(to: string, otp: string, ttlMinutes?: number) {
+    const template = verificationEmailTemplate(otp, ttlMinutes);
     const mailOptions = {
-      from: config.get<string>("EMAIL_FROM"),
+      from:
+        config.get<string>("EMAIL_FROM") || "noreply@talent-board.enyata.com",
       to,
       subject: template.subject,
       text: template.text,
       html: template.html,
     };
-    const transportConfig = getSmtpConfig();
 
+    const transportConfig = getSmtpConfig();
     const transporter = createTransport(transportConfig);
 
-    const info = await transporter.sendMail(mailOptions);
-    log.info(
-      {
-        to,
-        messageId: info.messageId,
-        provider: getEmailProvider(),
-      },
-      "Email OTP sent",
-    );
+    // Validation check for credentials (only if not using local maildev)
+    const auth = (transportConfig as any).auth;
+    const isLocalDev =
+      config.get<string>("NODE_ENV") === "development" &&
+      (transportConfig as any).host === "maildev";
 
-    return info;
+    if (!isLocalDev && (!auth?.user || !auth?.pass)) {
+      const error = new Error(
+        `Email provider (${getEmailProvider()}) is missing credentials. Check your .env file.`,
+      );
+      log.error({ provider: getEmailProvider() }, error.message);
+      throw error;
+    }
+
+    try {
+      // Verify connection configuration
+      await transporter.verify();
+
+      const info = await transporter.sendMail(mailOptions);
+      log.info(
+        {
+          to,
+          messageId: info.messageId,
+          provider: getEmailProvider(),
+        },
+        "Email OTP sent successfully",
+      );
+      return info;
+    } catch (error) {
+      log.error(
+        {
+          err: error,
+          to,
+          provider: getEmailProvider(),
+        },
+        "Failed to send verification OTP",
+      );
+      throw error;
+    }
   },
 };
