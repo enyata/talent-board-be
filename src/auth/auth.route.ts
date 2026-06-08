@@ -8,14 +8,11 @@ import {
   linkedInOAuth,
   linkedInOAuthCallback,
 } from "./linkedin/linkedin.controller";
-import { LocalAuthController } from "./local/local.controller";
-import { LocalAuthService } from "./local/local.service";
+import { signupUser, verifyEmail } from "./local/local.controller";
 import { signupSchema } from "./local/schemas/signup.schema";
+import { verifyEmailSchema } from "./local/schemas/verifyEmail.schema";
 
 const router = express.Router();
-
-const localAuthService = new LocalAuthService();
-const localAuthController = new LocalAuthController(localAuthService);
 
 router.get("/google", googleOAuth);
 router.get(
@@ -33,10 +30,12 @@ router.get(
 
 router.post("/logout", logoutUser);
 
+router.post("/signup", validateData(signupSchema), asyncHandler(signupUser));
+
 router.post(
-  "/signup",
-  validateData(signupSchema),
-  asyncHandler(localAuthController.signupUser.bind(localAuthController)),
+  "/verify-email",
+  validateData(verifyEmailSchema),
+  asyncHandler(verifyEmail),
 );
 
 export default router;

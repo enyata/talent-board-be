@@ -1,34 +1,60 @@
 import AppDataSource from "@src/datasource";
+import asyncHandler from "@src/middlewares/asyncHandler";
+import { createSendToken } from "@src/utils/createSendToken";
 import { NextFunction, Request, Response } from "express";
 import { LocalAuthService } from "./local.service";
 import type { LocalSignupRequest } from "./schemas/signup.schema";
+import type { VerifyEmailRequest } from "./schemas/verifyEmail.schema";
 
-export class LocalAuthController {
-  constructor(private readonly service: LocalAuthService) {}
+const authService = new LocalAuthService();
 
-  /**
-   * POST /auth/signup
-   * Creates a local user account. OTP verification is implemented separately later.
-   */
-  async signupUser(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { email, password } = req.body as LocalSignupRequest;
+export const signupUser = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email, password } = req.body as LocalSignupRequest;
 
-      const user = await this.service.signup(
-        { email, password },
-        AppDataSource.manager,
-      );
+    const user = await authService.signup(
+      { email, password },
+      AppDataSource.manager,
+    );
 
-      return res.status(201).json({
-        message: "Signup successful.",
-        data: {
-          id: user.id,
-          email: user.email,
-          is_email_verified: user.is_email_verified,
-        },
+    await authService
+      .sendVerificationOtp(user, AppDataSource.manager)
+      .catch((error) => {
+        console.error("Failed to send verification OTP", error);
       });
-    } catch (error) {
-      next(error);
+
+    return res.status(201).json({
+      message: "Signup successful.",
+      data: {
+        id: user.id,
+        email: user.email,
+        is_email_verified: user.is_email_verified,
+      },
+    });
+  },
+);
+
+export const verifyEmail = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email, otp } = req.body as VerifyEmailRequest;
+
+    const user = await authService.verifyEmail(
+      email,
+      otp,
+      AppDataSource.manager,
+    );
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
     }
-  }
-}
+
+    await createSendToken(
+      user,
+      200,
+      "Email verified Successfully",
+      req,
+      res,
+      AppDataSource.manager,
+    );
+  },
+);

@@ -225,3 +225,58 @@ export const localSignup = `
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 `;
+
+export const localVerifyEmail = `
+/**
+ * @swagger
+ * /api/v1/auth/verify-email:
+ *   post:
+ *     summary: Verify a local user's email address
+ *     tags: [Authentication]
+ *     description: Confirms the OTP sent to the user's email and issues auth tokens when verification succeeds.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: jane.doe@example.com
+ *               otp:
+ *                 type: string
+ *                 example: 123456
+ *             required:
+ *               - email
+ *               - otp
+ *     responses:
+ *       200:
+ *         description: Email verified and tokens issued
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Email verified
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     access_token:
+ *                       $ref: '#/components/schemas/AccessToken'
+ *                     refresh_token:
+ *                       $ref: '#/components/schemas/RefreshToken'
+ *       400:
+ *         description: Invalid or expired OTP
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+`;

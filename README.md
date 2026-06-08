@@ -136,22 +136,60 @@ LINKEDIN_CLIENT_ID=your-linkedin-client-id
 LINKEDIN_CLIENT_SECRET=your-linkedin-client-secret
 BASE_URL=https://localhost:8000
 API_PREFIX=api/v1
+EMAIL_PROVIDER=gmail
+EMAIL_FROM=no-reply@yourdomain.com
+GMAIL_USER=your_gmail_address@gmail.com
+GMAIL_PASSWORD=your_gmail_app_password
 ```
+
+For local email testing with Gmail, set `EMAIL_PROVIDER=gmail`, and use an App Password if your Google account has 2FA enabled.
+
+If you prefer a local SMTP sandbox, use Mailtrap or another SMTP provider and set:
+
+```env
+EMAIL_PROVIDER=smtp
+SMTP_HOST=smtp.mailtrap.io
+SMTP_PORT=2525
+SMTP_SECURE=false
+SMTP_USER=your_mailtrap_user
+SMTP_PASSWORD=your_mailtrap_password
+```
+
+The email sender is implemented in `src/utils/email.ts`, so changing the env values lets you swap providers without changing the signup flow.
 
 ### 4. Database Setup
 
 ```bash
-# Start local Postgres via Docker (if using Docker Compose)
-docker-compose up -d
+# Start development services (Postgres, Redis, Adminer, and Backend)
+docker compose --profile dev up -d
+```
 
-# Run migrations
-yarn typeorm migration:run
+#### Run Migrations
+
+If running the application via Docker:
+
+```bash
+docker compose exec backend yarn migration:run
+```
+
+If running the application locally:
+
+```bash
+yarn migration:run
 ```
 
 ### 5. Run in Development
 
+If running locally:
+
 ```bash
 yarn dev
+```
+
+Adminer (database UI) will be available at:
+
+```text
+http://localhost:8090
 ```
 
 Server will run on:  
@@ -215,4 +253,3 @@ Auto-generated from the files in `src/docs/`.
 - Wallet and Payments Integration
 
 ---
-

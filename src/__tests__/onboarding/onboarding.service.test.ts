@@ -1,27 +1,29 @@
-import { Repository } from "typeorm";
-import AppDataSource from "../../datasource";
-import { ExperienceLevel } from "../../entities/talentProfile.entity";
-import { UserEntity, UserRole } from "../../entities/user.entity";
-import { ConflictError } from "../../exceptions/conflictError";
-import { NotFoundError } from "../../exceptions/notFoundError";
-import { OnboardingService } from "../../onboarding/onboarding.service";
+import AppDataSource from "@src/datasource";
+import { ExperienceLevel } from "@src/entities/talentProfile.entity";
+import { UserEntity, UserProvider, UserRole } from "@src/entities/user.entity";
+import { ClientError } from "@src/exceptions/clientError";
+import { ConflictError } from "@src/exceptions/conflictError";
+import { NotFoundError } from "@src/exceptions/notFoundError";
+import { OnboardingService } from "@src/onboarding/onboarding.service";
+import { EntityManager } from "typeorm";
 
-jest.mock("@src/datasource", () => {
-  const actual = jest.requireActual("@src/datasource");
-  return {
-    ...actual,
-    getRepository: jest.fn(),
-  };
-});
+jest.mock("@src/datasource", () => ({
+  manager: {
+    findOne: jest.fn(),
+    transaction: jest.fn(),
+  },
+}));
 
-describe("OnboardingService", () => {
-  let service: OnboardingService;
+describe("OnboardingService - Local User Refactor", () => {
+  let onboardingService: OnboardingService;
+  let mockManager: Partial<EntityManager>;
   let mockGetOneOrFail: jest.Mock;
-  let mockRepo: Partial<Repository<UserEntity>>;
 
   const userId = "user-id-1";
 
   const talentDto = {
+    first_name: "John",
+    last_name: "Doe",
     state: "Lagos",
     country: "Nigeria",
     portfolio_url: "https://portfolio.com",
@@ -29,43 +31,53 @@ describe("OnboardingService", () => {
     resume_path: "uploads/resumes/sample.pdf",
     skills: ["Node.js", "TypeScript"],
     experience_level: ExperienceLevel.INTERMEDIATE,
+    job_title: "Software Engineer",
+    bio: "Passionate developer",
   };
 
   const recruiterDto = {
+    first_name: "Jane",
+    last_name: "Smith",
     state: "Lagos",
     country: "Nigeria",
     linkedin_profile: "https://linkedin.com/in/sample",
     work_email: "recruiter@company.com",
     company_industry: "Tech",
     roles_looking_for: ["Frontend Developer", "Backend Developer"],
+    hiring_for: "my company",
   };
 
   beforeEach(() => {
-    service = new OnboardingService();
-    mockGetOneOrFail = jest.fn();
-    (AppDataSource as any).manager = {
-      findOne: jest.fn(),
+    onboardingService = new OnboardingService();
+    mockGetOneOrFail = jest.fn().mockResolvedValue({ profile_completed: true });
+
+    mockManager = {
       save: jest.fn(),
-      findOneOrFail: jest.fn(),
-      create: jest.fn(),
+      create: jest.fn().mockImplementation((_, data) => data),
       createQueryBuilder: jest.fn().mockReturnValue({
-        delete: jest.fn().mockReturnThis(),
-        from: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        execute: jest.fn().mockResolvedValue({ affected: 1 }),
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         getOneOrFail: mockGetOneOrFail,
+        where: jest.fn().mockReturnThis(),
       }),
-      transaction: jest.fn((cb) => cb((AppDataSource as any).manager)),
     };
+
+    (AppDataSource.manager.transaction as jest.Mock).mockImplementation((cb) =>
+      cb(mockManager),
+    );
+    jest.clearAllMocks();
   });
 
   it("should onboard a new talent successfully", async () => {
-    const user = { id: userId, profile_completed: false } as UserEntity;
+    const user = {
+      id: userId,
+      profile_completed: false,
+      provider: UserProvider.GOOGLE,
+      first_name: "John",
+      last_name: "Doe",
+    } as UserEntity;
+
     (AppDataSource.manager.findOne as jest.Mock).mockResolvedValue(user);
-    (AppDataSource.manager.save as jest.Mock).mockImplementation(
-      (input) => input,
-    );
+
     mockGetOneOrFail.mockResolvedValue({
       ...user,
       role: UserRole.TALENT,
@@ -73,44 +85,82 @@ describe("OnboardingService", () => {
       talent_profile: {},
     });
 
-    const result = await service.onboardUser(
+    const result = await onboardingService.onboardUser(
       userId,
       talentDto,
       UserRole.TALENT,
     );
 
-    expect(result.role).toBe(UserRole.TALENT);
     expect(result.profile_completed).toBe(true);
+    expect(mockManager.save).toHaveBeenCalled();
   });
 
-  it("should onboard a new recruiter successfully", async () => {
-    const user = { id: userId, profile_completed: false } as UserEntity;
-    (AppDataSource.manager.findOne as jest.Mock).mockResolvedValue(user);
-    (AppDataSource.manager.save as jest.Mock).mockImplementation(
-      (input) => input,
+  it("should throw ClientError if first_name is missing for a Local user", async () => {
+    const localUserId = "local-user-id";
+    const mockUser = {
+      id: localUserId,
+      provider: UserProvider.LOCAL,
+      is_email_verified: true,
+      first_name: null,
+      last_name: null,
+      profile_completed: false,
+    } as UserEntity;
+
+    (AppDataSource.manager.findOne as jest.Mock).mockResolvedValue(mockUser);
+
+    const incompletePayload = {
+      state: "Lagos",
+      country: "Nigeria",
+      linkedin_profile: "https://linkedin.com/in/test",
+    } as any;
+
+    await expect(
+      onboardingService.onboardUser(
+        localUserId,
+        incompletePayload,
+        UserRole.RECRUITER,
+      ),
+    ).rejects.toThrow(
+      new ClientError("First name is required to complete onboarding"),
     );
+  });
+
+  it("should successfully onboard Local user when names are provided in payload", async () => {
+    const localUserId = "local-user-id";
+    const mockUser = {
+      id: localUserId,
+      provider: UserProvider.LOCAL,
+      is_email_verified: true,
+      first_name: null,
+      last_name: null,
+      profile_completed: false,
+    } as UserEntity;
+
+    (AppDataSource.manager.findOne as jest.Mock).mockResolvedValue(mockUser);
+
     mockGetOneOrFail.mockResolvedValue({
-      ...user,
-      role: UserRole.RECRUITER,
+      ...mockUser,
+      first_name: "John",
+      last_name: "Doe",
       profile_completed: true,
-      recruiter_profile: {},
     });
 
-    const result = await service.onboardUser(
-      userId,
-      recruiterDto,
+    const result = await onboardingService.onboardUser(
+      localUserId,
+      recruiterDto as any,
       UserRole.RECRUITER,
     );
 
-    expect(result.role).toBe(UserRole.RECRUITER);
     expect(result.profile_completed).toBe(true);
+    expect(mockUser.first_name).toBe("Jane");
+    expect(mockUser.last_name).toBe("Smith");
   });
 
   it("should throw NotFoundError if user is not found", async () => {
     (AppDataSource.manager.findOne as jest.Mock).mockResolvedValue(null);
 
     await expect(
-      service.onboardUser(userId, talentDto, UserRole.TALENT),
+      onboardingService.onboardUser(userId, talentDto as any, UserRole.TALENT),
     ).rejects.toThrow(NotFoundError);
   });
 
@@ -121,7 +171,7 @@ describe("OnboardingService", () => {
     );
 
     await expect(
-      service.onboardUser(userId, talentDto, UserRole.TALENT),
+      onboardingService.onboardUser(userId, talentDto as any, UserRole.TALENT),
     ).rejects.toThrow(ConflictError);
   });
 });
