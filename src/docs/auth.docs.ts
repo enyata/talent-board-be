@@ -280,3 +280,47 @@ export const localVerifyEmail = `
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 `;
+
+export const localResendOtp = `
+/**
+ * @swagger
+ * /api/v1/auth/resend-otp:
+ *   post:
+ *     summary: Resend email verification OTP
+ *     tags: [Authentication]
+ *     description: Sends a new verification OTP to the user's email if the account exists and is not yet verified. Incorporates a cooldown period to prevent spam.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: jane.doe@example.com
+ *             required:
+ *               - email
+ *     responses:
+ *       200:
+ *         description: Success message (generic to prevent email enumeration)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: A new verification code has been sent.
+ *       400:
+ *         description: Cooldown active or email already verified
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+`;

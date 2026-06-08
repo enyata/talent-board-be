@@ -1,9 +1,10 @@
 import { LocalAuthService } from "@src/auth/local/local.service";
 import { EmailOtpEntity } from "@src/entities/emailOtp.entity";
-import { UserEntity } from "@src/entities/user.entity";
+import { UserEntity, UserProvider } from "@src/entities/user.entity";
+import { ClientError } from "@src/exceptions/clientError";
+import { NotFoundError } from "@src/exceptions/notFoundError";
 import { EmailService } from "@src/utils/email";
 import { EntityManager } from "typeorm";
-
 jest.mock("@src/utils/email", () => ({
   EmailService: {
     sendVerification: jest.fn().mockResolvedValue({}),
@@ -21,7 +22,7 @@ describe("LocalAuthService - Email Verification", () => {
       findOne: jest.fn(),
       save: jest.fn(),
       create: jest.fn().mockImplementation((entity, data) => data),
-      update: jest.fn(),
+      update: jest.fn().mockResolvedValue({ affected: 1 }),
     };
     jest.clearAllMocks();
   });
@@ -38,6 +39,11 @@ describe("LocalAuthService - Email Verification", () => {
         mockManager as EntityManager,
       );
 
+      expect(mockManager.update).toHaveBeenCalledWith(
+        EmailOtpEntity,
+        { email: "test@example.com", used_at: expect.anything() },
+        { expires_at: expect.any(Date) },
+      );
       expect(mockManager.create).toHaveBeenCalledWith(
         EmailOtpEntity,
         expect.objectContaining({
@@ -147,6 +153,86 @@ describe("LocalAuthService - Email Verification", () => {
         mockManager as EntityManager,
       );
       expect(result).toBeNull();
+    });
+  });
+
+  describe("resendOtp", () => {
+    const email = "test@example.com";
+
+    it("should successfully resend OTP if conditions are met", async () => {
+      const mockUser = {
+        email,
+        is_email_verified: false,
+        provider: UserProvider.LOCAL,
+      } as UserEntity;
+
+      (mockManager.findOne as jest.Mock)
+        .mockResolvedValueOnce(mockUser) // User find
+        .mockResolvedValueOnce(null); // lastOtp find (no cooldown)
+
+      const sendOtpSpy = jest
+        .spyOn(authService, "sendVerificationOtp")
+        .mockResolvedValueOnce();
+
+      await authService.resendOtp(email, mockManager as EntityManager);
+
+      expect(sendOtpSpy).toHaveBeenCalledWith(mockUser, mockManager);
+    });
+
+    it("should throw NotFoundError if user does not exist", async () => {
+      (mockManager.findOne as jest.Mock).mockResolvedValueOnce(null);
+
+      await expect(
+        authService.resendOtp(email, mockManager as EntityManager),
+      ).rejects.toThrow(NotFoundError);
+    });
+
+    it("should throw ClientError if user is already verified", async () => {
+      const mockUser = { email, is_email_verified: true } as UserEntity;
+      (mockManager.findOne as jest.Mock).mockResolvedValueOnce(mockUser);
+
+      await expect(
+        authService.resendOtp(email, mockManager as EntityManager),
+      ).rejects.toThrow(ClientError);
+    });
+
+    it("should throw ClientError if user is not LOCAL provider", async () => {
+      const mockUser = {
+        email,
+        is_email_verified: false,
+        provider: UserProvider.GOOGLE,
+      } as UserEntity;
+      (mockManager.findOne as jest.Mock).mockResolvedValueOnce(mockUser);
+
+      await expect(
+        authService.resendOtp(email, mockManager as EntityManager),
+      ).rejects.toThrow(ClientError);
+      await expect(
+        authService.resendOtp(email, mockManager as EntityManager),
+      ).rejects.toThrow(/social login/);
+    });
+
+    it("should throw ClientError if within cooldown period", async () => {
+      const mockUser = {
+        email,
+        is_email_verified: false,
+        provider: UserProvider.LOCAL,
+      } as UserEntity;
+
+      const lastOtp = {
+        created_at: new Date(Date.now() - 30 * 1000), // 30 seconds ago
+      };
+
+      (mockManager.findOne as jest.Mock)
+        .mockResolvedValueOnce(mockUser) // User check
+        .mockResolvedValueOnce(lastOtp); // Cooldown check
+
+      await expect(
+        authService.resendOtp(email, mockManager as EntityManager),
+      ).rejects.toThrow(ClientError);
+      await expect(
+        authService.resendOtp(email, mockManager as EntityManager),
+      ).rejects.toThrow(/Please wait/);
     });
   });
 });

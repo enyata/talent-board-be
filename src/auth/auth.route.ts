@@ -1,4 +1,3 @@
-import asyncHandler from "@src/middlewares/asyncHandler";
 import { validateData } from "@src/middlewares/validateData";
 import express from "express";
 import passport from "passport";
@@ -8,7 +7,8 @@ import {
   linkedInOAuth,
   linkedInOAuthCallback,
 } from "./linkedin/linkedin.controller";
-import { signupUser, verifyEmail } from "./local/local.controller";
+import { resendOtp, signupUser, verifyEmail } from "./local/local.controller";
+import { resendOtpSchema } from "./local/schemas/resendOtp.schema";
 import { signupSchema } from "./local/schemas/signup.schema";
 import { verifyEmailSchema } from "./local/schemas/verifyEmail.schema";
 
@@ -30,12 +30,10 @@ router.get(
 
 router.post("/logout", logoutUser);
 
-router.post("/signup", validateData(signupSchema), asyncHandler(signupUser));
+router.post("/signup", validateData(signupSchema), signupUser);
 
-router.post(
-  "/verify-email",
-  validateData(verifyEmailSchema),
-  asyncHandler(verifyEmail),
-);
+router.post("/verify-email", validateData(verifyEmailSchema), verifyEmail);
+
+router.post("/resend-otp", validateData(resendOtpSchema), resendOtp);
 
 export default router;
