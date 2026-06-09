@@ -5,6 +5,7 @@ import asyncHandler from "@src/middlewares/asyncHandler";
 import { createSendToken } from "@src/utils/createSendToken";
 import { NextFunction, Request, Response } from "express";
 import { LocalAuthService } from "./local.service";
+import type { LoginRequest } from "./schemas/login.schema";
 import type { ResendOtpRequest } from "./schemas/resendOtp.schema";
 import type { LocalSignupRequest } from "./schemas/signup.schema";
 import type { VerifyEmailRequest } from "./schemas/verifyEmail.schema";
@@ -62,9 +63,35 @@ export const verifyEmail = asyncHandler(
   },
 );
 
+export const loginUser = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email, password } = req.body as LoginRequest;
+
+    const user = await authService.login(
+      { email, password },
+      AppDataSource.manager,
+    );
+
+    await createSendToken(
+      user,
+      200,
+      "Login successful",
+      req,
+      res,
+      AppDataSource.manager,
+    );
+  },
+);
+
 export const resendOtp = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { email } = req.body as ResendOtpRequest;
+
+    const successResponse = {
+      status: "success",
+      message:
+        "If an account exists for this email, a new verification code has been sent.",
+    };
 
     try {
       await authService.resendOtp(email, AppDataSource.manager);
@@ -74,20 +101,12 @@ export const resendOtp = asyncHandler(
         error instanceof NotFoundError ||
         (error instanceof ClientError && error.message.includes("social login"))
       ) {
-        return res.status(200).json({
-          status: "success",
-          message:
-            "If an account exists for this email, a new verification code has been sent.",
-        });
+        return res.status(200).json(successResponse);
       }
       console.error("Failed to resend verification OTP", error);
       throw error;
     }
 
-    return res.status(200).json({
-      status: "success",
-      message:
-        "If an account exists for this email, a new verification code has been sent.",
-    });
+    return res.status(200).json(successResponse);
   },
 );

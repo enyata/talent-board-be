@@ -2,8 +2,8 @@ import { z } from "zod";
 
 export const resendOtpSchema = z.object({
   email: z
-    .string({ required_error: "Email is required" })
-    .email("Invalid email format")
+    .string({ required_error: "required" })
+    .email("invalid")
     .trim()
     .toLowerCase(),
 });

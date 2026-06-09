@@ -315,9 +315,64 @@ export const localResendOtp = `
  *                   example: success
  *                 message:
  *                   type: string
- *                   example: A new verification code has been sent.
+ *                   example: If an account exists for this email, a new verification code has been sent.
  *       400:
  *         description: Cooldown active or email already verified
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+`;
+
+export const localLogin = `
+/**
+ * @swagger
+ * /api/v1/auth/login:
+ *   post:
+ *     summary: Login a local user
+ *     tags: [Authentication]
+ *     description: Authenticates a user with email and password, returning auth tokens.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: jane.doe@example.com
+ *               password:
+ *                 type: string
+ *                 example: Password1!
+ *             required:
+ *               - email
+ *               - password
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Login successful
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     access_token:
+ *                       $ref: '#/components/schemas/AccessToken'
+ *                     refresh_token:
+ *                       $ref: '#/components/schemas/RefreshToken'
+ *       401:
+ *         description: Invalid credentials or unverified email
  *         content:
  *           application/json:
  *             schema:

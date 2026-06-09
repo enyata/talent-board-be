@@ -3,12 +3,17 @@ import { EmailOtpEntity } from "@src/entities/emailOtp.entity";
 import { UserEntity, UserProvider } from "@src/entities/user.entity";
 import { ClientError } from "@src/exceptions/clientError";
 import { NotFoundError } from "@src/exceptions/notFoundError";
+import { UnauthorizedError } from "@src/exceptions/unauthorizedError";
 import { EmailService } from "@src/utils/email";
 import { EntityManager } from "typeorm";
 jest.mock("@src/utils/email", () => ({
   EmailService: {
     sendVerification: jest.fn().mockResolvedValue({}),
   },
+}));
+
+jest.mock("argon2", () => ({
+  verify: jest.fn(),
 }));
 
 describe("LocalAuthService - Email Verification", () => {
@@ -233,6 +238,74 @@ describe("LocalAuthService - Email Verification", () => {
       await expect(
         authService.resendOtp(email, mockManager as EntityManager),
       ).rejects.toThrow(/Please wait/);
+    });
+  });
+
+  describe("login", () => {
+    const email = "test@example.com";
+    const password = "Password1!";
+
+    it("should return user if credentials are valid", async () => {
+      const mockUser = {
+        id: "1",
+        email,
+        password: "hashedPassword",
+        provider: UserProvider.LOCAL,
+        is_email_verified: true,
+      } as UserEntity;
+
+      (mockManager.findOne as jest.Mock).mockResolvedValueOnce(mockUser);
+      (verify as jest.Mock).mockResolvedValueOnce(true);
+
+      const result = await authService.login(
+        { email, password },
+        mockManager as EntityManager,
+      );
+
+      expect(result).toEqual(mockUser);
+      expect(verify).toHaveBeenCalledWith("hashedPassword", password);
+    });
+
+    it("should throw UnauthorizedError if user not found", async () => {
+      (mockManager.findOne as jest.Mock).mockResolvedValueOnce(null);
+
+      await expect(
+        authService.login({ email, password }, mockManager as EntityManager),
+      ).rejects.toThrow(UnauthorizedError);
+    });
+
+    it("should throw UnauthorizedError if provider is not LOCAL", async () => {
+      (mockManager.findOne as jest.Mock).mockResolvedValueOnce({
+        provider: UserProvider.GOOGLE,
+      });
+
+      await expect(
+        authService.login({ email, password }, mockManager as EntityManager),
+      ).rejects.toThrow(UnauthorizedError);
+    });
+
+    it("should throw UnauthorizedError if email is not verified", async () => {
+      (mockManager.findOne as jest.Mock).mockResolvedValueOnce({
+        provider: UserProvider.LOCAL,
+        is_email_verified: false,
+      });
+
+      await expect(
+        authService.login({ email, password }, mockManager as EntityManager),
+      ).rejects.toThrow(UnauthorizedError);
+    });
+
+    it("should throw UnauthorizedError if password is invalid", async () => {
+      (mockManager.findOne as jest.Mock).mockResolvedValueOnce({
+        provider: UserProvider.LOCAL,
+        is_email_verified: true,
+        password: "hash",
+      });
+      (verify as jest.Mock).mockResolvedValueOnce(false);
+
+      await expect(
+        authService.login({ email, password }, mockManager as EntityManager),
+      ).rejects.toThrow(UnauthorizedError);
     });
   });
 });

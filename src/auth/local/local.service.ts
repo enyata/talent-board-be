@@ -3,14 +3,15 @@ import { UserEntity, UserProvider } from "@src/entities/user.entity";
 import { ClientError } from "@src/exceptions/clientError";
 import { ConflictError } from "@src/exceptions/conflictError";
 import { NotFoundError } from "@src/exceptions/notFoundError";
+import { UnauthorizedError } from "@src/exceptions/unauthorizedError";
 import { EmailService } from "@src/utils/email";
 import log from "@src/utils/logger";
 import { OtpUtil } from "@src/utils/otp.util";
-import { hash } from "argon2";
+import { hash, verify } from "argon2";
 import config from "config";
 import { EntityManager, IsNull } from "typeorm";
+import type { LoginRequest } from "./schemas/login.schema";
 import type { LocalSignupDTO } from "./schemas/signup.schema";
-
 /**
  * LocalAuthService handles:
  * - Email/password signup
@@ -119,6 +120,49 @@ export class LocalAuthService {
       await tx.save(record);
       return user;
     });
+  }
+
+  async login(
+    data: LoginRequest,
+    entityManager: EntityManager,
+  ): Promise<UserEntity> {
+    const { email, password } = data;
+
+    const user = await entityManager.findOne(UserEntity, {
+      where: { email },
+      // We need to select the password field explicitly since it's excluded by default for security reasons, but we need it here to verify the password. We also need to select provider and is_email_verified to enforce login rules.
+      select: [
+        "id",
+        "email",
+        "password",
+        "provider",
+        "is_email_verified",
+        "role",
+        "profile_completed",
+      ],
+    });
+
+    // Return custom error messages for better UX, but avoid leaking info about which part is incorrect
+    // This also prevents user enumeration attacks by not revealing whether the email exists or not
+    // This handles both non-existent users, users with incorrect passwords in the same way and Oauth users trying to log in with email/password as well as users who haven't verified their email yet.
+    if (!user || user.provider !== UserProvider.LOCAL) {
+      throw new UnauthorizedError("Invalid email or password");
+    }
+
+    // Users must verify their email before log in
+    if (!user.is_email_verified) {
+      throw new UnauthorizedError(
+        "Please verify your email address before logging in",
+      );
+    }
+
+    // Verify the password using argon2's verify function, which safely compares the hashed password with the provided one
+    const isValid = await verify(user.password!, password);
+    if (!isValid) {
+      throw new UnauthorizedError("Invalid email or password");
+    }
+
+    return user;
   }
 
   async resendOtp(email: string, entityManager: EntityManager): Promise<void> {

@@ -3,6 +3,7 @@ import { LocalAuthService } from "../../../auth/local/local.service";
 import { ClientError } from "../../../exceptions/clientError";
 import { ConflictError } from "../../../exceptions/conflictError";
 import { NotFoundError } from "../../../exceptions/notFoundError";
+import { UnauthorizedError } from "../../../exceptions/unauthorizedError";
 import { createSendToken } from "../../../utils/createSendToken";
 
 jest.mock("../../../utils/createSendToken", () => ({
@@ -114,6 +115,46 @@ describe("LocalAuthController", () => {
     });
   });
 
+  describe("loginUser", () => {
+    it("should return tokens on successful login", async () => {
+      const email = "john.doe@example.com";
+      const password = "Password1!";
+      req = mockRequest({ email, password });
+
+      const mockUser = {
+        id: "user-123",
+        email,
+        is_email_verified: true,
+      } as any;
+      jest
+        .spyOn(LocalAuthService.prototype, "login")
+        .mockResolvedValueOnce(mockUser);
+
+      await controller.loginUser(req, res, mockNext);
+
+      expect(createSendToken).toHaveBeenCalledWith(
+        mockUser,
+        200,
+        "Login successful",
+        req,
+        res,
+        expect.any(Object),
+      );
+    });
+
+    it("should forward login errors to next", async () => {
+      req = mockRequest({ email: "test@example.com", password: "wrong" });
+      const error = new UnauthorizedError("Invalid email or password");
+      jest
+        .spyOn(LocalAuthService.prototype, "login")
+        .mockRejectedValueOnce(error);
+
+      await controller.loginUser(req, res, mockNext);
+
+      expect(mockNext).toHaveBeenCalledWith(error);
+    });
+  });
+
   describe("resendOtp", () => {
     const email = "test@example.com";
 
@@ -153,7 +194,9 @@ describe("LocalAuthController", () => {
       jest
         .spyOn(LocalAuthService.prototype, "resendOtp")
         .mockRejectedValueOnce(
-          new ClientError("This account uses social login"),
+          new ClientError(
+            "This account uses social login and does not require verification.",
+          ),
         );
 
       await controller.resendOtp(req, res, mockNext);
