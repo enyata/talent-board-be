@@ -8,7 +8,8 @@ import {
   linkedInOAuth,
   linkedInOAuthCallback,
 } from "./linkedin/linkedin.controller";
-import { signupUser, verifyEmail } from "./local/local.controller";
+import { loginUser, signupUser, verifyEmail } from "./local/local.controller";
+import { loginSchema } from "./local/schemas/login.schema";
 import { signupSchema } from "./local/schemas/signup.schema";
 import { verifyEmailSchema } from "./local/schemas/verifyEmail.schema";
 
@@ -29,6 +30,8 @@ router.get(
 );
 
 router.post("/logout", logoutUser);
+
+router.post("/login", validateData(loginSchema), loginUser);
 
 router.post("/signup", validateData(signupSchema), asyncHandler(signupUser));
 

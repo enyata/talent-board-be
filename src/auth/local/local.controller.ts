@@ -3,6 +3,7 @@ import asyncHandler from "@src/middlewares/asyncHandler";
 import { createSendToken } from "@src/utils/createSendToken";
 import { NextFunction, Request, Response } from "express";
 import { LocalAuthService } from "./local.service";
+import type { LoginRequest } from "./schemas/login.schema";
 import type { LocalSignupRequest } from "./schemas/signup.schema";
 import type { VerifyEmailRequest } from "./schemas/verifyEmail.schema";
 
@@ -52,6 +53,26 @@ export const verifyEmail = asyncHandler(
       user,
       200,
       "Email verified Successfully",
+      req,
+      res,
+      AppDataSource.manager,
+    );
+  },
+);
+
+export const loginUser = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email, password } = req.body as LoginRequest;
+
+    const user = await authService.login(
+      { email, password },
+      AppDataSource.manager,
+    );
+
+    await createSendToken(
+      user,
+      200,
+      "Login successful",
       req,
       res,
       AppDataSource.manager,
