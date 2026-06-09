@@ -1,16 +1,17 @@
 import { EmailOtpEntity } from "@src/entities/emailOtp.entity";
 import { UserEntity, UserProvider } from "@src/entities/user.entity";
+import { ClientError } from "@src/exceptions/clientError";
 import { ConflictError } from "@src/exceptions/conflictError";
+import { NotFoundError } from "@src/exceptions/notFoundError";
 import { UnauthorizedError } from "@src/exceptions/unauthorizedError";
 import { EmailService } from "@src/utils/email";
 import log from "@src/utils/logger";
 import { OtpUtil } from "@src/utils/otp.util";
 import { hash, verify } from "argon2";
 import config from "config";
-import { EntityManager } from "typeorm";
+import { EntityManager, IsNull } from "typeorm";
 import type { LoginRequest } from "./schemas/login.schema";
 import type { LocalSignupDTO } from "./schemas/signup.schema";
-
 /**
  * LocalAuthService handles:
  * - Email/password signup
@@ -68,7 +69,14 @@ export class LocalAuthService {
     entityManager: EntityManager,
     ttlMinutes = config.get<number>("OTP_TTL_MINUTES") || 10, // OTP validity duration
   ): Promise<void> {
-    // Invalidate any existing OTPs for this email
+    // Invalidate any existing unused OTPs for this email to ensure only the latest one is valid
+    await entityManager.update(
+      EmailOtpEntity,
+
+      { email: user.email, used_at: IsNull() },
+      { expires_at: new Date() },
+    );
+
     const otp = OtpUtil.generate(6);
     const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
 
@@ -95,12 +103,15 @@ export class LocalAuthService {
         order: { created_at: "DESC" },
       });
 
+      // Validation checks: record must exist, not be used, and should not be expired
       if (!record) return null;
       if (record.used_at) return null;
       if (record.expires_at < new Date()) return null;
 
       const user = await tx.findOne(UserEntity, { where: { email } });
-      if (!user) return null;
+
+      // Only allow verification for LOCAL users
+      if (!user || user.provider !== UserProvider.LOCAL) return null;
 
       user.is_email_verified = true;
       await tx.save(user);
@@ -152,5 +163,41 @@ export class LocalAuthService {
     }
 
     return user;
+  }
+
+  async resendOtp(email: string, entityManager: EntityManager): Promise<void> {
+    const cooldownSeconds =
+      config.get<number>("OTP_RESEND_COOLDOWN_SECONDS") || 60;
+    const user = await entityManager.findOne(UserEntity, { where: { email } });
+
+    if (!user) throw new NotFoundError("User not found");
+    if (user.is_email_verified)
+      throw new ClientError("Email is already verified");
+
+    // Only LOCAL users should have OTPs. If the user exists but isn't LOCAL,
+    if (user.provider !== UserProvider.LOCAL) {
+      throw new ClientError(
+        "This account uses social login and does not require verification.",
+      );
+    }
+
+    // Check for cooldown to prevent spamming
+    const lastOtp = await entityManager.findOne(EmailOtpEntity, {
+      where: { email },
+      order: { created_at: "DESC" },
+    });
+
+    if (lastOtp) {
+      // Calculate seconds since last OTP was created for cooldown enforcement
+      const secondsSinceLastOtp =
+        (Date.now() - lastOtp.created_at.getTime()) / 1000;
+      if (secondsSinceLastOtp < cooldownSeconds) {
+        throw new ClientError(
+          `Please wait ${Math.ceil(cooldownSeconds - secondsSinceLastOtp)} seconds before requesting a new code.`,
+        );
+      }
+    }
+
+    await this.sendVerificationOtp(user, entityManager);
   }
 }

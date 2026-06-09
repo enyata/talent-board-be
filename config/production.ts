@@ -4,6 +4,7 @@ export default {
   API_PREFIX: process.env.TALENTS_API_PREFIX ?? "api/v1",
   APP_NAME: process.env.TALENTS_APP_NAME ?? "Talent Board",
   OTP_TTL_MINUTES: Number(process.env.TALENTS_OTP_TTL_MINUTES) || 10,
+  OTP_RESEND_COOLDOWN_SECONDS: 60,
 
   DB_USER: process.env.TALENTS_DB_USER,
   DB_HOST: process.env.TALENTS_DB_HOST,

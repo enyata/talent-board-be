@@ -1,9 +1,12 @@
 import AppDataSource from "@src/datasource";
+import { ClientError } from "@src/exceptions/clientError";
+import { NotFoundError } from "@src/exceptions/notFoundError";
 import asyncHandler from "@src/middlewares/asyncHandler";
 import { createSendToken } from "@src/utils/createSendToken";
 import { NextFunction, Request, Response } from "express";
 import { LocalAuthService } from "./local.service";
 import type { LoginRequest } from "./schemas/login.schema";
+import type { ResendOtpRequest } from "./schemas/resendOtp.schema";
 import type { LocalSignupRequest } from "./schemas/signup.schema";
 import type { VerifyEmailRequest } from "./schemas/verifyEmail.schema";
 
@@ -77,5 +80,33 @@ export const loginUser = asyncHandler(
       res,
       AppDataSource.manager,
     );
+  },
+);
+
+export const resendOtp = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email } = req.body as ResendOtpRequest;
+
+    const successResponse = {
+      status: "success",
+      message:
+        "If an account exists for this email, a new verification code has been sent.",
+    };
+
+    try {
+      await authService.resendOtp(email, AppDataSource.manager);
+    } catch (error) {
+      // Handle specific cases where OTP cannot be resent, but treat them as "success" for user experience
+      if (
+        error instanceof NotFoundError ||
+        (error instanceof ClientError && error.message.includes("social login"))
+      ) {
+        return res.status(200).json(successResponse);
+      }
+      console.error("Failed to resend verification OTP", error);
+      throw error;
+    }
+
+    return res.status(200).json(successResponse);
   },
 );
