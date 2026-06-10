@@ -8,13 +8,17 @@ import {
   linkedInOAuthCallback,
 } from "./linkedin/linkedin.controller";
 import {
+  forgetPassword,
   loginUser,
   resendOtp,
+  resetPassword,
   signupUser,
   verifyEmail,
 } from "./local/local.controller";
+import { forgotPasswordSchema } from "./local/schemas/forgotPassword.schema";
 import { loginSchema } from "./local/schemas/login.schema";
 import { resendOtpSchema } from "./local/schemas/resendOtp.schema";
+import { resetPasswordSchema } from "./local/schemas/resetPassword.schema";
 import { signupSchema } from "./local/schemas/signup.schema";
 import { verifyEmailSchema } from "./local/schemas/verifyEmail.schema";
 
@@ -43,5 +47,17 @@ router.post("/signup", validateData(signupSchema), signupUser);
 router.post("/verify-email", validateData(verifyEmailSchema), verifyEmail);
 
 router.post("/resend-otp", validateData(resendOtpSchema), resendOtp);
+
+router.post(
+  "/forgot-password",
+  validateData(forgotPasswordSchema),
+  forgetPassword,
+);
+
+router.post(
+  "/reset-password",
+  validateData(resetPasswordSchema),
+  resetPassword,
+);
 
 export default router;

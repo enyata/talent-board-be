@@ -1,6 +1,9 @@
 import config from "config";
 import { createTransport } from "nodemailer";
-import { verificationEmailTemplate } from "./emailTemplate";
+import {
+  passwordResetEmailTemplate,
+  verificationEmailTemplate,
+} from "./emailTemplate";
 import log from "./logger";
 
 const getEmailProvider = () =>
@@ -85,6 +88,45 @@ export const EmailService = {
           provider: getEmailProvider(),
         },
         "Failed to send verification OTP",
+      );
+      throw error;
+    }
+  },
+
+  async sendPasswordReset(to: string, resetLink: string, ttlMinutes?: number) {
+    const template = passwordResetEmailTemplate(resetLink, ttlMinutes);
+    const mailOptions = {
+      from:
+        config.get<string>("EMAIL_FROM") || "noreply@talent-board.enyata.com",
+      to,
+      subject: template.subject,
+      text: template.text,
+      html: template.html,
+    };
+
+    const transportConfig = getSmtpConfig();
+    const transporter = createTransport(transportConfig);
+
+    try {
+      await transporter.verify();
+      const info = await transporter.sendMail(mailOptions);
+      log.info(
+        {
+          to,
+          messageId: info.messageId,
+          provider: getEmailProvider(),
+        },
+        "Password reset email sent successfully",
+      );
+      return info;
+    } catch (error) {
+      log.error(
+        {
+          err: error,
+          to,
+          provider: getEmailProvider(),
+        },
+        "Failed to send password reset email",
       );
       throw error;
     }
