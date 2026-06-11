@@ -379,3 +379,103 @@ export const localLogin = `
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 `;
+
+export const localForgotPassword = `
+/**
+ * @swagger
+ * /api/v1/auth/forgot-password:
+ *   post:
+ *     summary: Request a password reset link
+ *     tags: [Authentication]
+ *     description: Initiates the password reset process. Sends an email with a reset link if the account exists and uses the local provider. Returns a generic success message to prevent user enumeration.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: jane.doe@example.com
+ *             required:
+ *               - email
+ *     responses:
+ *       200:
+ *         description: Success message (generic to prevent enumeration)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: If an account exists for this email, a password reset link has been sent.
+ *       400:
+ *         description: Cooldown active or validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+`;
+
+export const localResetPassword = `
+/**
+ * @swagger
+ * /api/v1/auth/reset-password:
+ *   post:
+ *     summary: Reset password using a token
+ *     tags: [Authentication]
+ *     description: Verifies the password reset token and updates the user's password in a single transaction.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: jane.doe@example.com
+ *               token:
+ *                 type: string
+ *                 example: your-secure-token-here
+ *               password:
+ *                 type: string
+ *                 example: NewSecurePassword1!
+ *               confirm_password:
+ *                 type: string
+ *                 example: NewSecurePassword1!
+ *             required:
+ *               - email
+ *               - token
+ *               - password
+ *               - confirm_password
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Password reset successful. You can now log in with your new password.
+ *       400:
+ *         description: Invalid or expired token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+`;
