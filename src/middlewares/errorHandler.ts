@@ -9,39 +9,40 @@ const handleJWTError = (err: any) =>
   new AppError("Invalid or expired token", 401);
 
 export const sendErrorDev = (err: any, req: Request, res: Response) => {
-  if (req.originalUrl.startsWith("/api")) {
-    return res.status(err.statusCode).json({
-      status: err.status,
-      error: err,
-      message: err.message,
-      stack: err.stack,
-    });
-  }
+  log.error(`💥: ${err}`);
+  log.error(`💥: ${err.stack}`);
+
+  return res.status(err.statusCode).json({
+    status: err.status,
+    error: err,
+    message: err.message,
+    stack: err.stack,
+  });
 };
 
 export const sendErrorProd = (err: any, req: Request, res: Response) => {
-  if (req.originalUrl.startsWith("/api")) {
-    if (err.isOperational) {
-      const appError = err as AppError;
+  if (err.isOperational) {
+    const appError = err as AppError;
 
-      let response = {
-        status: appError.status,
-        message: appError.message,
-        status_code: appError.statusCode,
-      } as IResponseError;
+    let response = {
+      status: appError.status,
+      message: appError.message,
+      status_code: appError.statusCode,
+    } as IResponseError;
 
-      return res.status(appError.statusCode).json(response);
-    }
+    log.error(`💥 Operational Error: ${appError.message}`);
 
-    log.error(`💥: ${err}`);
-    log.error(`💥: ${err.stack}`);
-
-    return res.status(500).json({
-      status: "error",
-      message: "Something went wrong!",
-      status_code: 500,
-    });
+    return res.status(appError.statusCode).json(response);
   }
+
+  log.error(`💥: ${err}`);
+  log.error(`💥: ${err.stack}`);
+
+  return res.status(500).json({
+    status: "error",
+    message: "Something went wrong!",
+    status_code: 500,
+  });
 };
 
 const errorHandler = (
