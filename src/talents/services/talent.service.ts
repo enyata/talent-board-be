@@ -274,6 +274,7 @@ export class TalentService {
     const talents = await this.profileRepo.find({
       relations: ["skills", "user", "user.metrics", "user.talent_profile"],
       where: {
+        profile_status: ProfileStatus.APPROVED,
         user: {
           profile_completed: true,
           role: UserRole.TALENT,
@@ -283,7 +284,7 @@ export class TalentService {
 
     const scored = talents
       .map((profile) => {
-        const metrics = profile.user.metrics;
+        const metrics = profile.user?.metrics;
         const score =
           (metrics?.upvotes || 0) * 3 +
           (metrics?.recruiter_saves || 0) * 2 +
