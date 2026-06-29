@@ -3,7 +3,7 @@
 Welcome to the **Talent Board API** repository.  
 This project provides the backend server to manage **authentication (Google/LinkedIn OAuth)**, **user onboarding**, and **future recruiter-talent matching features**.
 
-Built with **Node.js**, **Express**, **TypeScript**, **PostgreSQL**, **TypeORM**, **Passport.js**, and **Jest** for testing.
+Built with **Node.js**, **Express**, **TypeScript**, **PostgreSQL**, **TypeORM**, **Passport.js**, **Docker**, **Jest** for testing.
 
 ---
 
