@@ -1,3 +1,5 @@
+import * as Sentry from "@sentry/node";
+import { nodeProfilingIntegration } from "@sentry/profiling-node";
 import compression from "compression";
 import config from "config";
 import cookieParser from "cookie-parser";
@@ -7,6 +9,13 @@ import helmet from "helmet";
 import hpp from "hpp";
 import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
+
+Sentry.init({
+  dsn: config.get<string>("SENTRY_DSN") || "",
+  integrations: [nodeProfilingIntegration()],
+  tracesSampleRate: 1.0,
+  profilesSampleRate: 1.0,
+});
 
 import "@src/auth/loadStrategies";
 import { MethodNotAllowedError } from "@src/exceptions/methodNotAllowedError";
@@ -100,6 +109,7 @@ app.all("*", (req: Request, res: Response, next: NextFunction) => {
   next(new NotFoundError(`Can't find ${req.originalUrl} on this server!`));
 });
 
+Sentry.setupExpressErrorHandler(app);
 app.use(globalErrorHandler);
 
 export default app;

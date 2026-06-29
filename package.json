@@ -82,7 +82,9 @@
     "swagger-ui-express": "^5.0.1",
     "ts-node": "^10.9.2",
     "typeorm": "^0.3.22",
-    "zod": "^3.24.2"
+    "zod": "^3.24.2",
+    "@sentry/node": "^8.9.2",
+    "@sentry/profiling-node": "^8.9.2"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",
