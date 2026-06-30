@@ -1,5 +1,7 @@
 export default {
   SENTRY_DSN: process.env.TALENTS_SENTRY_DSN || "",
+  SENTRY_PROFILING_ENABLED:
+    String(process.env.TALENTS_SENTRY_PROFILING_ENABLED) === "true",
   PORT: Number(process.env.TALENTS_PORT) ?? 8000,
   NODE_ENV: process.env.TALENTS_NODE_ENV,
   API_PREFIX: process.env.TALENTS_API_PREFIX ?? "api/v1",

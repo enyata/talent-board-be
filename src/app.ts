@@ -1,5 +1,4 @@
 import * as Sentry from "@sentry/node";
-import { nodeProfilingIntegration } from "@sentry/profiling-node";
 import compression from "compression";
 import config from "config";
 import cookieParser from "cookie-parser";
@@ -10,11 +9,28 @@ import hpp from "hpp";
 import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
 
+const sentryIntegrations: Parameters<typeof Sentry.init>[0]["integrations"] =
+  [];
+const sentryProfilingEnabled = config.get<boolean>("SENTRY_PROFILING_ENABLED");
+let sentryProfilesSampleRate = 0;
+
+if (sentryProfilingEnabled) {
+  try {
+    const { nodeProfilingIntegration } = require("@sentry/profiling-node");
+    sentryIntegrations.push(nodeProfilingIntegration());
+    sentryProfilesSampleRate = 1.0;
+  } catch (error) {
+    console.warn(
+      "Sentry profiling disabled: profiler bindings failed to load.",
+    );
+  }
+}
+
 Sentry.init({
   dsn: config.get<string>("SENTRY_DSN") || "",
-  integrations: [nodeProfilingIntegration()],
+  integrations: sentryIntegrations,
   tracesSampleRate: 1.0,
-  profilesSampleRate: 1.0,
+  profilesSampleRate: sentryProfilesSampleRate,
 });
 
 import "@src/auth/loadStrategies";
