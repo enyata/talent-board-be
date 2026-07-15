@@ -6,6 +6,7 @@ import { ConflictError } from "@src/exceptions/conflictError";
 import { NotFoundError } from "@src/exceptions/notFoundError";
 import { UnauthorizedError } from "@src/exceptions/unauthorizedError";
 import { EmailService } from "@src/utils/email";
+import { getInitialIncompleteSignupReminderDate } from "@src/utils/email/incompleteSignupReminderSchedule";
 import log from "@src/utils/logger";
 import { OtpUtil } from "@src/utils/otp.util";
 import { hash, verify } from "argon2";
@@ -51,6 +52,10 @@ export class LocalAuthService {
         is_email_verified: false,
         first_name: null,
         last_name: null,
+        incomplete_signup_next_reminder_at:
+          getInitialIncompleteSignupReminderDate(),
+        incomplete_signup_last_reminder_at: null,
+        incomplete_signup_reminder_count: 0,
       });
 
       await tx.save(user);
@@ -271,7 +276,7 @@ export class LocalAuthService {
     await entityManager.save(resetRecord);
 
     const frontendUrl = config.get<string>("FRONTEND_URL");
-    const resetLink = `${frontendUrl}/reset-password?token=${rawToken}&email=${encodeURIComponent(email)}`;
+    const resetLink = `${frontendUrl.replace(/\/$/, "")}/reset-password?token=${rawToken}&email=${encodeURIComponent(email)}`;
     await EmailService.sendPasswordReset(email, resetLink, ttlMinutes);
   }
 

@@ -61,6 +61,8 @@ export class OnboardingService {
       user.linkedin_profile = payload.linkedin_profile;
       user.role = role;
       user.profile_completed = true;
+      user.incomplete_signup_next_reminder_at = null;
+      user.incomplete_signup_last_reminder_at = null;
 
       await transactionalEntityManager.save(user);
 

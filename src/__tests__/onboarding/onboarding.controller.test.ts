@@ -7,6 +7,7 @@ import {
 } from "../../onboarding/onboarding.controller";
 import { OnboardingService } from "../../onboarding/onboarding.service";
 import * as tokenUtils from "../../utils/createSendToken";
+import { EmailService } from "../../utils/email";
 
 jest.mock("@src/datasource", () => ({
   __esModule: true,
@@ -17,6 +18,7 @@ jest.mock("@src/datasource", () => ({
 
 const mockOnboardUser = jest.fn();
 const mockCreateSendToken = jest.fn();
+const mockSendWelcome = jest.fn();
 
 describe("onboard controller", () => {
   let mockReq: Partial<Request>;
@@ -33,6 +35,8 @@ describe("onboard controller", () => {
     jest
       .spyOn(tokenUtils, "createSendToken")
       .mockImplementation(mockCreateSendToken);
+
+    jest.spyOn(EmailService, "sendWelcome").mockImplementation(mockSendWelcome);
 
     mockRes = {
       status: jest.fn().mockReturnThis(),
@@ -74,6 +78,12 @@ describe("onboard controller", () => {
       mockRes,
       { mocked: "manager" },
     );
+    expect(mockSendWelcome).toHaveBeenCalledWith(
+      "test@example.com",
+      "http://localhost:3000/dashboard",
+      "there",
+      "talent",
+    );
   });
 
   it("should onboard a new recruiter and send token", async () => {
@@ -106,6 +116,12 @@ describe("onboard controller", () => {
       mockReq,
       mockRes,
       { mocked: "manager" },
+    );
+    expect(mockSendWelcome).toHaveBeenCalledWith(
+      "recruiter@company.com",
+      "http://localhost:3000/dashboard",
+      "there",
+      "recruiter",
     );
   });
 });

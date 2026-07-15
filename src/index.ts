@@ -5,6 +5,7 @@ import "reflect-metadata";
 
 import app from "./app";
 import AppDataSource from "./datasource";
+import { startIncompleteSignupReminderScheduler } from "./utils/email/incompleteSignupReminder.scheduler";
 import log from "./utils/logger";
 import "./workers/index";
 
@@ -15,6 +16,8 @@ const bootstrap = async () => {
   try {
     await AppDataSource.initialize();
     log.info("Database connected successfully");
+
+    startIncompleteSignupReminderScheduler();
 
     app.listen(port, () => {
       log.info(

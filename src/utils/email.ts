@@ -1,134 +1,68 @@
-import config from "config";
-import { createTransport } from "nodemailer";
 import {
-  passwordResetEmailTemplate,
-  verificationEmailTemplate,
-} from "./emailTemplate";
-import log from "./logger";
-
-const getEmailProvider = () =>
-  config.get<string>("EMAIL_PROVIDER")?.toLowerCase() || "smtp";
-
-const getSmtpConfig = () => {
-  const provider = getEmailProvider();
-
-  if (provider === "gmail") {
-    return {
-      service: "gmail",
-      auth: {
-        user: config.get<string>("GMAIL_USER"),
-        pass: config.get<string>("GMAIL_PASSWORD"),
-      },
-    };
-  }
-
-  const host = config.get<string>("SMTP_HOST");
-  const port = config.get<number>("SMTP_PORT") || 587;
-  const secure = config.get<boolean>("SMTP_SECURE");
-
-  return {
-    host,
-    port,
-    secure,
-    auth: {
-      user: config.get<string>("SMTP_USER"),
-      pass: config.get<string>("SMTP_PASSWORD"),
-    },
-  };
-};
+  incompleteSignupEmailTemplate,
+  resetPasswordEmailTemplate,
+  sendEmail,
+  type UserAudience,
+  verifyEmailTemplate,
+  welcomeEmail,
+} from "./email/index";
 
 export const EmailService = {
   async sendVerification(to: string, otp: string, ttlMinutes?: number) {
-    const template = verificationEmailTemplate(otp, ttlMinutes);
-    const mailOptions = {
-      from:
-        config.get<string>("EMAIL_FROM") || "noreply@talent-board.enyata.com",
+    const template = verifyEmailTemplate({
+      otp,
+      expiresInMinutes: ttlMinutes,
+    });
+    return sendEmail({
       to,
-      subject: template.subject,
-      text: template.text,
-      html: template.html,
-    };
-
-    const transportConfig = getSmtpConfig();
-    const transporter = createTransport(transportConfig);
-
-    // Validation check for credentials (only if not using local maildev)
-    const auth = (transportConfig as any).auth;
-    const isLocalDev =
-      config.get<string>("NODE_ENV") === "development" &&
-      (transportConfig as any).host === "maildev";
-
-    if (!isLocalDev && (!auth?.user || !auth?.pass)) {
-      const error = new Error(
-        `Email provider (${getEmailProvider()}) is missing credentials. Check your .env file.`,
-      );
-      log.error({ provider: getEmailProvider() }, error.message);
-      throw error;
-    }
-
-    try {
-      // Verify connection configuration
-      await transporter.verify();
-
-      const info = await transporter.sendMail(mailOptions);
-      log.info(
-        {
-          to,
-          messageId: info.messageId,
-          provider: getEmailProvider(),
-        },
-        "Email OTP sent successfully",
-      );
-      return info;
-    } catch (error) {
-      log.error(
-        {
-          err: error,
-          to,
-          provider: getEmailProvider(),
-        },
-        "Failed to send verification OTP",
-      );
-      throw error;
-    }
+      template,
+      from: "Enyata Talentboard <hello@talentboard.ng>",
+    });
   },
 
   async sendPasswordReset(to: string, resetLink: string, ttlMinutes?: number) {
-    const template = passwordResetEmailTemplate(resetLink, ttlMinutes);
-    const mailOptions = {
-      from:
-        config.get<string>("EMAIL_FROM") || "noreply@talent-board.enyata.com",
+    const template = resetPasswordEmailTemplate({
+      firstName: "there",
+      email: to,
+      resetPasswordUrl: resetLink,
+      expiresInMinutes: ttlMinutes,
+    });
+    return sendEmail({
       to,
-      subject: template.subject,
-      text: template.text,
-      html: template.html,
-    };
+      template,
+      from: "Enyata Talentboard <hello@talentboard.ng>",
+    });
+  },
 
-    const transportConfig = getSmtpConfig();
-    const transporter = createTransport(transportConfig);
+  async sendWelcome(
+    to: string,
+    getStartedUrl: string,
+    firstName: string,
+    audience: UserAudience = "talent",
+  ) {
+    const template = welcomeEmail({ firstName, getStartedUrl, audience });
+    return sendEmail({
+      to,
+      template,
+      from: "Enyata Talentboard <hello@talentboard.ng>",
+    });
+  },
 
-    try {
-      await transporter.verify();
-      const info = await transporter.sendMail(mailOptions);
-      log.info(
-        {
-          to,
-          messageId: info.messageId,
-          provider: getEmailProvider(),
-        },
-        "Password reset email sent successfully",
-      );
-      return info;
-    } catch (error) {
-      log.error(
-        {
-          err: error,
-          to,
-          provider: getEmailProvider(),
-        },
-        "Failed to send password reset email",
-      );
-      throw error;
-    }
+  async sendIncompleteSignup(
+    to: string,
+    completeSignupUrl: string,
+    firstName: string,
+    audience: UserAudience = "talent",
+  ) {
+    const template = incompleteSignupEmailTemplate({
+      firstName,
+      completeSignupUrl,
+      audience,
+    });
+    return sendEmail({
+      to,
+      template,
+      from: "Enyata Talentboard <hello@talentboard.ng>",
+    });
   },
 };

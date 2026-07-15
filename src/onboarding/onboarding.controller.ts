@@ -7,6 +7,9 @@ import {
 } from "@src/interfaces";
 import asyncHandler from "@src/middlewares/asyncHandler";
 import { createSendToken } from "@src/utils/createSendToken";
+import { EmailService } from "@src/utils/email";
+import log from "@src/utils/logger";
+import config from "config";
 import { NextFunction, Request, Response } from "express";
 import { OnboardingService } from "./onboarding.service";
 
@@ -23,6 +26,25 @@ export const createOnboardingHandler = <T extends OnboardingPayload>(
 
     try {
       const updatedUser = await service.onboardUser(userId, payload, role);
+
+      const firstName = updatedUser.first_name || "there";
+      const audience = role === UserRole.RECRUITER ? "recruiter" : "talent";
+      const frontendUrl =
+        config.get<string>("FRONTEND_URL") || "http://localhost:3000";
+      const getStartedUrl = `${frontendUrl.replace(/\/$/, "")}/dashboard`;
+
+      await EmailService.sendWelcome(
+        updatedUser.email,
+        getStartedUrl,
+        firstName,
+        audience,
+      ).catch((error) => {
+        // Welcome email failure should not block successful onboarding.
+        log.error(
+          { err: error, userId: updatedUser.id, email: updatedUser.email },
+          "Failed to send welcome email after onboarding",
+        );
+      });
 
       await createSendToken(
         updatedUser,
