@@ -52,6 +52,10 @@ export interface MetricsJobData {
     | "weekly_search_appearances";
 }
 
+export interface IncompleteSignupReminderJobData {
+  userId: string;
+}
+
 export interface TalentSearchResult {
   result: { upvotes: number; recruiter_saves: number };
   id: string;

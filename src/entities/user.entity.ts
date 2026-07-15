@@ -94,6 +94,15 @@ export class UserEntity extends ExtendedBaseEntity {
   @Column({ nullable: true })
   is_email_verified: boolean;
 
+  @Column({ type: "timestamp", nullable: true })
+  incomplete_signup_last_reminder_at: Date | null;
+
+  @Column({ type: "timestamp", nullable: true })
+  incomplete_signup_next_reminder_at: Date | null;
+
+  @Column({ type: "int", default: 0 })
+  incomplete_signup_reminder_count: number;
+
   @OneToMany(() => RefreshToken, (refresh) => refresh.user)
   refresh_tokens: RefreshToken[];
 
