@@ -179,5 +179,5 @@ if (require.main === module) {
       await seedSkills(dataSource);
       await dataSource.destroy();
     })
-    .catch((error) => console.error("Skills seeding failed:", error));
+    .catch((error) => log.error({ err: error }, "Skills seeding failed"));
 }

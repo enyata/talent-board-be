@@ -13,13 +13,26 @@ const sentryIntegrations: Parameters<typeof Sentry.init>[0]["integrations"] =
 const sentryProfilingEnabled = config.get<boolean>("SENTRY_PROFILING_ENABLED");
 let sentryProfilesSampleRate = 0;
 
+import "@src/auth/loadStrategies";
+import { MethodNotAllowedError } from "@src/exceptions/methodNotAllowedError";
+import { NotFoundError } from "@src/exceptions/notFoundError";
+import globalErrorHandler from "@src/middlewares/errorHandler";
+import router from "@src/routes/index.route";
+import log, { logHttpRequests } from "@src/utils/logger";
+import corsOptions from "../config/corsOptions";
+import helmetOptions from "../config/helmetOptions";
+import hppOptions from "../config/hppOptions";
+import swaggerSpec from "../config/swaggerConfig";
+import AppDataSource from "./datasource";
+
 if (sentryProfilingEnabled) {
   try {
     const { nodeProfilingIntegration } = require("@sentry/profiling-node");
     sentryIntegrations.push(nodeProfilingIntegration());
     sentryProfilesSampleRate = 1.0;
   } catch (error) {
-    console.warn(
+    log.warn(
+      { err: error },
       "Sentry profiling disabled: profiler bindings failed to load.",
     );
   }
@@ -31,18 +44,6 @@ Sentry.init({
   tracesSampleRate: 1.0,
   profilesSampleRate: sentryProfilesSampleRate,
 });
-
-import "@src/auth/loadStrategies";
-import { MethodNotAllowedError } from "@src/exceptions/methodNotAllowedError";
-import { NotFoundError } from "@src/exceptions/notFoundError";
-import globalErrorHandler from "@src/middlewares/errorHandler";
-import router from "@src/routes/index.route";
-import { logHttpRequests } from "@src/utils/logger";
-import corsOptions from "../config/corsOptions";
-import helmetOptions from "../config/helmetOptions";
-import hppOptions from "../config/hppOptions";
-import swaggerSpec from "../config/swaggerConfig";
-import AppDataSource from "./datasource";
 
 const app: Express = express();
 app.disable("x-powered-by");

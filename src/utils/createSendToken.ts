@@ -5,6 +5,7 @@ import config from "config";
 import type { Request, Response } from "express";
 import { EntityManager } from "typeorm";
 import { signToken } from "./jwt";
+import log from "./logger";
 import { sanitizeUser } from "./sanitizeUser";
 
 interface CookieOptions {
@@ -117,19 +118,23 @@ export const createSendToken = async (
     cookieOptions.maxAge = 7 * 24 * 60 * 60 * 1000;
   }
 
-  console.log("Final cookie options before setting:", {
-    expires: cookieOptions.expires,
-    expiresType: cookieOptions.expires
-      ? typeof cookieOptions.expires
-      : "undefined",
-    expiresValid: cookieOptions.expires
-      ? !isNaN(cookieOptions.expires.getTime())
-      : "no expires",
-    maxAge: cookieOptions.maxAge,
-    maxAgeType: cookieOptions.maxAge
-      ? typeof cookieOptions.maxAge
-      : "undefined",
-  });
+  log.debug(
+    {
+      event: "refresh_cookie_options",
+      expires: cookieOptions.expires,
+      expiresType: cookieOptions.expires
+        ? typeof cookieOptions.expires
+        : "undefined",
+      expiresValid: cookieOptions.expires
+        ? !isNaN(cookieOptions.expires.getTime())
+        : "no expires",
+      maxAge: cookieOptions.maxAge,
+      maxAgeType: cookieOptions.maxAge
+        ? typeof cookieOptions.maxAge
+        : "undefined",
+    },
+    "Resolved refresh token cookie options",
+  );
 
   if (options.mode === "redirect") {
     res.locals.access_token = accessToken;

@@ -51,7 +51,7 @@ export const resetPasswordEmailTemplate = (
       teamLabel: "",
       copyrightLabel: "Talentboard 2026",
       helpLabel: "Need a hand?",
-      helpUrl: "http://help.talentboard.ng",
+      helpUrl: "community@enyata.com",
       supportEmail: undefined,
     },
   });
@@ -66,7 +66,7 @@ export const resetPasswordEmailTemplate = (
       Or paste this link into your browser: ${data.resetPasswordUrl}
       For your security, this link expires in ${expiresInMinutes} minutes and can only be used once.
       Didn't request this? No action needed - your password stays the same. If you keep seeing these emails, let us know at ${supportEmail}
-      Need a hand? help.talentboard.ng
+      Need a hand? contact us at ${supportEmail}
     `),
   };
 };

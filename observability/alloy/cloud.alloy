@@ -25,7 +25,7 @@ discovery.relabel "docker" {
 loki.source.docker "containers" {
   host          = "unix:///var/run/docker.sock"
   targets       = discovery.docker.containers.targets
-  labels        = { environment = "staging", platform = "docker", cluster = sys.env("GRAFANA_CLUSTER") }
+  labels        = { environment = sys.env("GRAFANA_ENVIRONMENT"), platform = "docker", cluster = sys.env("GRAFANA_CLUSTER") }
   relabel_rules = discovery.relabel.docker.rules
   forward_to    = [loki.process.talent_board.receiver]
 }

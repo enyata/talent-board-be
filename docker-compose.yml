@@ -81,6 +81,7 @@ services:
     env_file: .env
     environment:
       NODE_ENV: development
+      IS_DOCKER: true
       DB_HOST: postgres
       REDIS_HOST: redis
     command: yarn dev
@@ -120,24 +121,23 @@ services:
       - redis
     profiles: ["test"]
 
-  alloy_staging:
+  alloy:
     image: grafana/alloy:latest
-    container_name: talentboard-alloy-staging
+    container_name: talentboard-alloy
     command:
       - run
       - --server.http.listen-addr=0.0.0.0:12345
       - --storage.path=/var/lib/alloy/data
-      - /etc/alloy/staging-cloud.alloy
-    env_file: .env.staging
+      - /etc/alloy/cloud.alloy
+    env_file: .env
     volumes:
-      - ./observability/alloy/staging-cloud.alloy:/etc/alloy/staging-cloud.alloy:ro
+      - ./observability/alloy/cloud.alloy:/etc/alloy/cloud.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - alloy_staging_data:/var/lib/alloy/data
+      - alloy_data:/var/lib/alloy/data
     ports:
       - "127.0.0.1:12345:12345"
     restart: unless-stopped
-    profiles: ["staging-observability"]
 
 volumes:
-  alloy_staging_data:
+  alloy_data:
   redis_data:

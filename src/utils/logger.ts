@@ -1,14 +1,17 @@
+import { randomUUID } from "crypto";
 import dayjs from "dayjs";
 import type { NextFunction, Request, Response } from "express";
 import pino from "pino";
 import { getNodeEnv, isDevelopmentEnv } from "./environment";
 
 const nodeEnv = getNodeEnv();
-const transport = isDevelopmentEnv()
-  ? pino.transport({
-      target: "pino-pretty",
-    })
-  : undefined;
+const isDocker = process.env.IS_DOCKER === "true";
+const transport =
+  isDevelopmentEnv() && !isDocker
+    ? pino.transport({
+        target: "pino-pretty",
+      })
+    : undefined;
 
 const loggerOptions: pino.LoggerOptions = {
   level: process.env.LOG_LEVEL || "info",
@@ -21,25 +24,36 @@ const loggerOptions: pino.LoggerOptions = {
 
 const log = transport ? pino(loggerOptions, transport) : pino(loggerOptions);
 
+export const buildRequestContext = (req: Request) => ({
+  requestId: req.requestId,
+  method: req.method,
+  path: req.originalUrl,
+  route: req.route?.path,
+  ip: req.ip,
+  userAgent: req.get("user-agent"),
+  userId: req.user?.id,
+  userRole: req.user?.role,
+});
+
 export const logHttpRequests = (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
+  const incomingRequestId =
+    req.get("x-request-id") || req.get("x-correlation-id");
+  req.requestId = incomingRequestId || randomUUID();
+  res.setHeader("x-request-id", req.requestId);
+
   const startedAt = process.hrtime.bigint();
 
   res.on("finish", () => {
     const durationMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
-    const requestId = req.get("x-request-id") || req.get("x-correlation-id");
     const payload = {
       event: "http_request",
-      requestId: requestId || undefined,
-      method: req.method,
-      path: req.originalUrl,
+      request: buildRequestContext(req),
       statusCode: res.statusCode,
       durationMs: Number(durationMs.toFixed(2)),
-      remoteAddress: req.ip,
-      userAgent: req.get("user-agent"),
     };
 
     if (res.statusCode >= 500) {

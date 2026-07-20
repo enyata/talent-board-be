@@ -1,3 +1,4 @@
+import log, { buildRequestContext } from "@src/utils/logger";
 import type { NextFunction, Request, Response } from "express";
 import { z, ZodError } from "zod";
 
@@ -20,6 +21,20 @@ export const validateData =
         const errorMessages = error.errors.map((issue: any) => ({
           message: `${issue.path.join(".")} is ${issue.message}`,
         }));
+
+        log.warn(
+          {
+            event: "validation_failed",
+            request: buildRequestContext(req),
+            issues: error.errors.map((issue) => ({
+              path: issue.path.join("."),
+              message: issue.message,
+              code: issue.code,
+            })),
+          },
+          "Request validation failed",
+        );
+
         res.status(422).json({ errors: errorMessages });
       } else {
         res.status(500).json({ error: "Internal server error" });
