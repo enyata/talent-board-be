@@ -4,11 +4,13 @@ import pino from "pino";
 import { getNodeEnv, isDevelopmentEnv } from "./environment";
 
 const nodeEnv = getNodeEnv();
-const transport = isDevelopmentEnv()
-  ? pino.transport({
-      target: "pino-pretty",
-    })
-  : undefined;
+const isDocker = process.env.IS_DOCKER === "true";
+const transport =
+  isDevelopmentEnv() && !isDocker
+    ? pino.transport({
+        target: "pino-pretty",
+      })
+    : undefined;
 
 const loggerOptions: pino.LoggerOptions = {
   level: process.env.LOG_LEVEL || "info",
