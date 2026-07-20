@@ -21,9 +21,9 @@ const corsOptions: CorsOptions = {
     if (!origin) return callback(null, true);
 
     const allowedOrigins =
-      config.get<string>("NODE_ENV") === "production"
-        ? prodOrigins
-        : devOrigins;
+      config.get<string>("NODE_ENV") === "development"
+        ? devOrigins
+        : prodOrigins;
 
     if (allowedOrigins.includes(origin)) {
       callback(null, true);

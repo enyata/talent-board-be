@@ -8,9 +8,15 @@ import { JsonWebTokenError } from "jsonwebtoken";
 const handleJWTError = (err: any) =>
   new AppError("Invalid or expired token", 401);
 
+const buildRequestContext = (req: Request) => ({
+  method: req.method,
+  path: req.originalUrl,
+  requestId: req.get("x-request-id") || req.get("x-correlation-id"),
+  ip: req.ip,
+});
+
 export const sendErrorDev = (err: any, req: Request, res: Response) => {
-  log.error(`💥: ${err}`);
-  log.error(`💥: ${err.stack}`);
+  log.error({ err, request: buildRequestContext(req) }, "Request failed");
 
   return res.status(err.statusCode).json({
     status: err.status,
@@ -30,13 +36,18 @@ export const sendErrorProd = (err: any, req: Request, res: Response) => {
       status_code: appError.statusCode,
     } as IResponseError;
 
-    log.error(`💥 Operational Error: ${appError.message}`);
+    log.warn(
+      { err: appError, request: buildRequestContext(req) },
+      "Operational request error",
+    );
 
     return res.status(appError.statusCode).json(response);
   }
 
-  log.error(`💥: ${err}`);
-  log.error(`💥: ${err.stack}`);
+  log.error(
+    { err, request: buildRequestContext(req) },
+    "Unhandled request error",
+  );
 
   return res.status(500).json({
     status: "error",
@@ -58,7 +69,7 @@ const errorHandler = (
 
   if (env === "development") {
     sendErrorDev(err, req, res);
-  } else if (env === "production") {
+  } else {
     if (err instanceof JsonWebTokenError) err = handleJWTError(err);
     sendErrorProd(err, req, res);
   }

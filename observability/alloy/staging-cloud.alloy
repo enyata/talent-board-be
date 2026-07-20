@@ -1,0 +1,67 @@
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "docker" {
+  targets = []
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "service"
+  }
+}
+
+loki.source.docker "containers" {
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.docker.containers.targets
+  labels        = { environment = "staging", platform = "docker", cluster = sys.env("GRAFANA_CLUSTER") }
+  relabel_rules = discovery.relabel.docker.rules
+  forward_to    = [loki.process.talent_board.receiver]
+}
+
+loki.process "talent_board" {
+  forward_to = [loki.write.grafana_cloud.receiver]
+
+  stage.json {
+    expressions = {
+      app   = "app",
+      level = "level",
+      msg   = "msg",
+      time  = "time",
+    }
+  }
+
+  stage.timestamp {
+    source = "time"
+    format = "RFC3339"
+  }
+
+  stage.labels {
+    values = {
+      app   = "",
+      level = "",
+    }
+  }
+}
+
+loki.write "grafana_cloud" {
+  endpoint {
+    url = sys.env("GRAFANA_LOKI_URL")
+
+    basic_auth {
+      username = sys.env("GRAFANA_LOKI_USERNAME")
+      password = sys.env("GRAFANA_LOKI_PASSWORD")
+    }
+  }
+}

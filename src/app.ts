@@ -6,7 +6,6 @@ import cors from "cors";
 import express, { Express, NextFunction, Request, Response } from "express";
 import helmet from "helmet";
 import hpp from "hpp";
-import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
 
 const sentryIntegrations: Parameters<typeof Sentry.init>[0]["integrations"] =
@@ -38,6 +37,7 @@ import { MethodNotAllowedError } from "@src/exceptions/methodNotAllowedError";
 import { NotFoundError } from "@src/exceptions/notFoundError";
 import globalErrorHandler from "@src/middlewares/errorHandler";
 import router from "@src/routes/index.route";
+import { logHttpRequests } from "@src/utils/logger";
 import corsOptions from "../config/corsOptions";
 import helmetOptions from "../config/helmetOptions";
 import hppOptions from "../config/hppOptions";
@@ -68,11 +68,8 @@ app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser());
 
-if (config.get<string>("NODE_ENV") === "development") {
-  app.use(morgan("dev"));
-}
-
 app.use(compression());
+app.use(logHttpRequests);
 app.get("/", (_req, res) => {
   res.status(200).json({ status: "success", message: "API is running" });
 });
