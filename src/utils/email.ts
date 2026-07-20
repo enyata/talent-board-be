@@ -16,7 +16,6 @@ export const EmailService = {
     return sendEmail({
       to,
       template,
-      from: "Enyata Talentboard <hello@talentboard.ng>",
     });
   },
 
@@ -30,7 +29,6 @@ export const EmailService = {
     return sendEmail({
       to,
       template,
-      from: "Enyata Talentboard <hello@talentboard.ng>",
     });
   },
 
@@ -44,7 +42,6 @@ export const EmailService = {
     return sendEmail({
       to,
       template,
-      from: "Enyata Talentboard <hello@talentboard.ng>",
     });
   },
 
@@ -62,7 +59,6 @@ export const EmailService = {
     return sendEmail({
       to,
       template,
-      from: "Enyata Talentboard <hello@talentboard.ng>",
     });
   },
 };
