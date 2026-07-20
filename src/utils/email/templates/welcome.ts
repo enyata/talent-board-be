@@ -4,7 +4,7 @@ import { baseEmailLayout } from "../layouts/baseLayout";
 import type { EmailTemplatePayload, WelcomeTemplateData } from "../types";
 
 const appName = config.get<string>("APP_NAME") || "Talentboard";
-const supportEmail = config.get<string>("EMAIL_FROM") || "hello@talentboard.ng";
+const supportEmail = config.get<string>("EMAIL_FROM");
 
 const toPlainText = (value: string) => value.replace(/\s+/g, " ").trim();
 
