@@ -47,7 +47,7 @@ export const sendEmail = async ({
     from:
       from ||
       config.get<string>("EMAIL_FROM") ||
-      "Enyata Talentboard <hello@talentboard.ng>",
+      "Enyata Community <community@enyata.com>",
     to,
     subject: template.subject,
     text: template.text,

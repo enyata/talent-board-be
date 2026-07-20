@@ -10,7 +10,7 @@ export const emailFooter = ({
   supportEmail,
 }: FooterProps): string => {
   const helpLinkLabel = helpUrl.replace(/^https?:\/\//i, "");
-  const fallbackSupportEmail = "hello@talentboard.ng";
+  const fallbackSupportEmail = "community@enyata.com";
 
   const helpText = supportEmail
     ? `${helpLabel} <a href="mailto:${supportEmail}" style="color:#1d4ed8;text-decoration:none;">${supportEmail}</a>.`

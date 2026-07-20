@@ -4,7 +4,7 @@ import { baseEmailLayout } from "../layouts/baseLayout";
 import type { EmailTemplatePayload, ResetPasswordTemplateData } from "../types";
 
 const appName = config.get<string>("APP_NAME") || "Talentboard";
-const supportEmail = config.get<string>("EMAIL_FROM") || "hello@talentboard.ng";
+const supportEmail = config.get<string>("EMAIL_FROM");
 
 const toPlainText = (value: string) => value.replace(/\s+/g, " ").trim();
 
@@ -37,7 +37,7 @@ export const resetPasswordEmailTemplate = (
       For your security, this link expires in <strong>${expiresInMinutes} minutes</strong> and can only be used once.
     </p>
     <p style="margin:0;font-family:Arial,sans-serif;font-size:14px;line-height:22px;color:#64748b;">
-      <strong>Didn't request this?</strong> No action needed - your password stays the same. If you keep seeing these emails, let us know at <a href="mailto:hello@talentboard.ng" style="color:#1d4ed8;text-decoration:none;">hello@talentboard.ng</a>
+      <strong>Didn't request this?</strong> No action needed - your password stays the same. If you keep seeing these emails, let us know at <a href="mailto:${supportEmail}" style="color:#1d4ed8;text-decoration:none;">${supportEmail}</a>
     </p>
   `;
 
@@ -65,7 +65,7 @@ export const resetPasswordEmailTemplate = (
       Reset Password: ${data.resetPasswordUrl}
       Or paste this link into your browser: ${data.resetPasswordUrl}
       For your security, this link expires in ${expiresInMinutes} minutes and can only be used once.
-      Didn't request this? No action needed - your password stays the same. If you keep seeing these emails, let us know at hello@talentboard.ng
+      Didn't request this? No action needed - your password stays the same. If you keep seeing these emails, let us know at ${supportEmail}
       Need a hand? help.talentboard.ng
     `),
   };
