@@ -81,7 +81,6 @@ services:
     env_file: .env
     environment:
       NODE_ENV: development
-      IS_DOCKER: true
       DB_HOST: postgres
       REDIS_HOST: redis
     command: yarn dev
@@ -100,6 +99,7 @@ services:
             - data/
         - action: rebuild
           path: package.json
+
 
   backend_test:
     container_name: talentboard-backend-test
@@ -129,7 +129,6 @@ services:
       - --server.http.listen-addr=0.0.0.0:12345
       - --storage.path=/var/lib/alloy/data
       - /etc/alloy/cloud.alloy
-    env_file: .env
     volumes:
       - ./observability/alloy/cloud.alloy:/etc/alloy/cloud.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
