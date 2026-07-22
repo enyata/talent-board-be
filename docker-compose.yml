@@ -3,7 +3,6 @@ services:
     image: postgres:17
     container_name: postgres-dev
     profiles: ["dev"]
-    env_file: .env
     environment:
       POSTGRES_USER: ${TALENTS_DB_USER}
       POSTGRES_PASSWORD: ${TALENTS_DB_PASSWORD}
@@ -78,7 +77,6 @@ services:
         - NODE_ENV=development
     ports:
       - "8000:8000"
-    env_file: .env
     environment:
       NODE_ENV: development
       DB_HOST: postgres
