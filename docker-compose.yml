@@ -4,9 +4,9 @@ services:
     container_name: postgres-dev
     profiles: ["dev"]
     environment:
-      POSTGRES_USER: ${TALENTS_DB_USER}
-      POSTGRES_PASSWORD: ${TALENTS_DB_PASSWORD}
-      POSTGRES_DB: ${TALENTS_DB_NAME}
+      POSTGRES_USER: ${TALENTS_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${TALENTS_DB_PASSWORD:-password123}
+      POSTGRES_DB: ${TALENTS_DB_NAME:-talent_board}
     ports:
       - "5452:5432"
     volumes:
