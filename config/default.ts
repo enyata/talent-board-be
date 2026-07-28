@@ -10,6 +10,11 @@ export default {
   PASSWORD_RESET_TOKEN_TTL_MINUTES: 60, // Token valid for 60 minutes
   OTP_RESEND_COOLDOWN_SECONDS: 60,
   PASSWORD_RESET_COOLDOWN_SECONDS: 120, // 2 minutes cooldown between reset requests
+  MESSAGE_REQUEST_DECLINE_COOLDOWN_DAYS:
+    Number(
+      process.env.TALENTS_MESSAGE_REQUEST_DECLINE_COOLDOWN_DAYS ||
+        process.env.MESSAGE_REQUEST_DECLINE_COOLDOWN_DAYS,
+    ) || 30,
 
   DB_USER: process.env.TALENTS_DB_USER,
   DB_HOST: process.env.TALENTS_DB_HOST,

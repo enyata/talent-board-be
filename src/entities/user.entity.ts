@@ -10,6 +10,9 @@ import {
 } from "class-validator";
 import { Column, Entity, OneToMany, OneToOne } from "typeorm";
 import ExtendedBaseEntity from "./base.entity";
+import { ConversationThreadEntity } from "./conversationThread.entity";
+import { MessageRequestEntity } from "./messageRequest.entity";
+import { MessageEntity } from "./message.entity";
 import { MetricsEntity } from "./metrics.entity";
 import { NotificationEntity } from "./notification.entity";
 import { RecruiterProfileEntity } from "./recruiterProfile.entity";
@@ -122,4 +125,19 @@ export class UserEntity extends ExtendedBaseEntity {
 
   @OneToOne(() => MetricsEntity, (m) => m.user)
   metrics: MetricsEntity;
+
+  @OneToMany(() => MessageRequestEntity, (request) => request.recruiter)
+  sent_message_requests: MessageRequestEntity[];
+
+  @OneToMany(() => MessageRequestEntity, (request) => request.talent)
+  received_message_requests: MessageRequestEntity[];
+
+  @OneToMany(() => ConversationThreadEntity, (thread) => thread.recruiter)
+  recruiter_conversation_threads: ConversationThreadEntity[];
+
+  @OneToMany(() => ConversationThreadEntity, (thread) => thread.talent)
+  talent_conversation_threads: ConversationThreadEntity[];
+
+  @OneToMany(() => MessageEntity, (message) => message.sender)
+  sent_messages: MessageEntity[];
 }
