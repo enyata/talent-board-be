@@ -45,6 +45,10 @@ const swaggerDefinition: SwaggerDefinition = {
       name: "Onboarding",
       description: "Onboarding routes",
     },
+    {
+      name: "Messaging",
+      description: "Consent-gated message request routes",
+    },
   ],
   components: {
     securitySchemes: {
