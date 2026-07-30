@@ -12,6 +12,10 @@ export const listMessageRequestsSchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(20),
 });
 
+export const messageRequestParamsSchema = z.object({
+  requestId: z.string().uuid(),
+});
+
 export type CreateMessageRequestDto = z.infer<
   typeof createMessageRequestSchema
 >;
