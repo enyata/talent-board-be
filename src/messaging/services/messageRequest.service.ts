@@ -13,72 +13,20 @@ import { UserEntity, UserRole } from "@src/entities/user.entity";
 import { ClientError } from "@src/exceptions/clientError";
 import { ConflictError } from "@src/exceptions/conflictError";
 import { NotFoundError } from "@src/exceptions/notFoundError";
+import {
+  AcceptedMessageRequestSummary,
+  ConversationThreadSummary,
+  MessageRequestSummary,
+  MessageRequestUserSummary,
+  MessageSummary,
+  PaginatedMessageRequestSummary,
+} from "@src/interfaces";
 import config from "config";
 import { Repository } from "typeorm";
 import {
   CreateMessageRequestDto,
   ListMessageRequestsDto,
 } from "../schemas/messageRequest.schema";
-
-interface MessageRequestUserSummary {
-  id: string;
-  first_name: string | null;
-  last_name: string | null;
-  avatar: string | null;
-  role: UserRole | null;
-}
-
-export interface MessageRequestSummary {
-  id: string;
-  intro_note: string | null;
-  status: MessageRequestStatus;
-  responded_at: Date | null;
-  created_at: Date;
-  updated_at: Date;
-  recruiter: MessageRequestUserSummary;
-  talent: MessageRequestUserSummary;
-}
-
-export interface ConversationThreadSummary {
-  id: string;
-  recruiter_last_seen_at: Date | null;
-  talent_last_seen_at: Date | null;
-  latest_message_at: Date | null;
-  created_at: Date;
-  updated_at: Date;
-  accepted_request_id: string | null;
-  recruiter: MessageRequestUserSummary;
-  talent: MessageRequestUserSummary;
-}
-
-export interface MessageSummary {
-  id: string;
-  body: string;
-  created_at: Date;
-  updated_at: Date;
-  sender: MessageRequestUserSummary;
-  source_request_id: string | null;
-}
-
-export interface AcceptedMessageRequestSummary {
-  request: MessageRequestSummary;
-  thread: ConversationThreadSummary;
-  initial_message: MessageSummary | null;
-}
-
-export interface MessageRequestPagination {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
-
-export interface PaginatedMessageRequestSummary {
-  requests: MessageRequestSummary[];
-  pagination: MessageRequestPagination;
-}
 
 export class MessageRequestService {
   private readonly userRepo = AppDataSource.getRepository(UserEntity);
