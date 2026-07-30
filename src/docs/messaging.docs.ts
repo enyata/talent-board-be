@@ -80,6 +80,61 @@
  *         hasPreviousPage:
  *           type: boolean
  *           example: false
+ *     ConversationThread:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           example: "c3d4e5f6-3333-4444-8555-123456789abc"
+ *         recruiter_last_seen_at:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         talent_last_seen_at:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         latest_message_at:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         created_at:
+ *           type: string
+ *           format: date-time
+ *         updated_at:
+ *           type: string
+ *           format: date-time
+ *         accepted_request_id:
+ *           type: string
+ *           format: uuid
+ *           nullable: true
+ *         recruiter:
+ *           $ref: '#/components/schemas/MessageRequestUserSummary'
+ *         talent:
+ *           $ref: '#/components/schemas/MessageRequestUserSummary'
+ *     Message:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           example: "d4e5f6a7-4444-4555-8666-123456789abc"
+ *         body:
+ *           type: string
+ *           example: "We would like to schedule an interview with you."
+ *         created_at:
+ *           type: string
+ *           format: date-time
+ *         updated_at:
+ *           type: string
+ *           format: date-time
+ *         source_request_id:
+ *           type: string
+ *           format: uuid
+ *           nullable: true
+ *         sender:
+ *           $ref: '#/components/schemas/MessageRequestUserSummary'
  */
 
 export const createMessageRequest = `
@@ -156,6 +211,164 @@ export const createMessageRequest = `
    *               $ref: '#/components/schemas/ErrorResponse'
    *       409:
    *         description: Conflict - pending request, active conversation, or declined-request cooldown already applies
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       422:
+   *         description: Validation error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       500:
+   *         description: Internal server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   */
+`;
+
+export const acceptMessageRequest = `
+  /**
+   * @swagger
+   * /api/v1/messages/requests/{requestId}/accept:
+   *   patch:
+   *     summary: Accept an incoming message request
+   *     tags: [Messaging]
+   *     description: Allows a talent to accept a pending message request. Acceptance unlocks a persistent conversation thread for the recruiter and talent. If the recruiter sent an intro note, that note becomes the first visible message in the thread.
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: requestId
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *         description: ID of the message request to accept
+   *     responses:
+   *       200:
+   *         description: Message request accepted successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: "success"
+   *                 message:
+   *                   type: string
+   *                   example: "Message request accepted successfully"
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     request:
+   *                       $ref: '#/components/schemas/MessageRequest'
+   *                     thread:
+   *                       $ref: '#/components/schemas/ConversationThread'
+   *                     initial_message:
+   *                       allOf:
+   *                         - $ref: '#/components/schemas/Message'
+   *                       nullable: true
+   *       401:
+   *         description: Unauthorized - token missing or invalid
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       403:
+   *         description: Forbidden - only talents can accept message requests
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       404:
+   *         description: Message request not found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       409:
+   *         description: Conflict - request has already been accepted or declined
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       422:
+   *         description: Validation error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       500:
+   *         description: Internal server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   */
+`;
+
+export const declineMessageRequest = `
+  /**
+   * @swagger
+   * /api/v1/messages/requests/{requestId}/decline:
+   *   patch:
+   *     summary: Decline an incoming message request
+   *     tags: [Messaging]
+   *     description: Allows a talent to decline a pending message request. Declining closes the request and does not create or unlock a conversation thread.
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: requestId
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *         description: ID of the message request to decline
+   *     responses:
+   *       200:
+   *         description: Message request declined successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: "success"
+   *                 message:
+   *                   type: string
+   *                   example: "Message request declined successfully"
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     request:
+   *                       $ref: '#/components/schemas/MessageRequest'
+   *       401:
+   *         description: Unauthorized - token missing or invalid
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       403:
+   *         description: Forbidden - only talents can decline message requests
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       404:
+   *         description: Message request not found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       409:
+   *         description: Conflict - request has already been accepted or declined
    *         content:
    *           application/json:
    *             schema:
