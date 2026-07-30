@@ -1,5 +1,6 @@
 import AppDataSource from "@src/datasource";
 import { ConversationThreadEntity } from "@src/entities/conversationThread.entity";
+import { MessageEntity } from "@src/entities/message.entity";
 import {
   MessageRequestEntity,
   MessageRequestStatus,
@@ -16,6 +17,9 @@ jest.mock("@src/datasource", () => ({
   __esModule: true,
   default: {
     getRepository: jest.fn(),
+    manager: {
+      transaction: jest.fn(),
+    },
   },
 }));
 
@@ -40,6 +44,17 @@ const mockRequestRepo = {
 
 const mockThreadRepo = {
   findOne: jest.fn(),
+  create: jest.fn(),
+  save: jest.fn(),
+};
+
+const mockMessageRepo = {
+  create: jest.fn(),
+  save: jest.fn(),
+};
+
+const mockTransactionManager = {
+  getRepository: jest.fn(),
 };
 
 const now = new Date("2026-07-28T12:00:00.000Z");
@@ -79,6 +94,34 @@ const buildRequest = (
     ...overrides,
   }) as MessageRequestEntity;
 
+const buildThread = (
+  overrides: Partial<ConversationThreadEntity> = {},
+): ConversationThreadEntity =>
+  ({
+    id: "44444444-4444-4444-8444-444444444444",
+    recruiter_last_seen_at: null,
+    talent_last_seen_at: null,
+    latest_message_at: null,
+    created_at: now,
+    updated_at: now,
+    accepted_request: null,
+    recruiter,
+    talent,
+    ...overrides,
+  }) as ConversationThreadEntity;
+
+const buildMessage = (overrides: Partial<MessageEntity> = {}): MessageEntity =>
+  ({
+    id: "55555555-5555-4555-8555-555555555555",
+    body: "We would like to chat.",
+    created_at: now,
+    updated_at: now,
+    sender: recruiter,
+    source_request: null,
+    thread: buildThread(),
+    ...overrides,
+  }) as MessageEntity;
+
 const mockUsersFound = () => {
   mockUserRepo.findOne.mockImplementation(({ where }) => {
     if (where.role === UserRole.RECRUITER) return Promise.resolve(recruiter);
@@ -105,6 +148,18 @@ describe("MessageRequestService", () => {
       if (entity === UserEntity) return mockUserRepo;
       if (entity === MessageRequestEntity) return mockRequestRepo;
       if (entity === ConversationThreadEntity) return mockThreadRepo;
+      if (entity === MessageEntity) return mockMessageRepo;
+      return {};
+    });
+
+    (AppDataSource.manager.transaction as jest.Mock).mockImplementation(
+      async (callback) => callback(mockTransactionManager),
+    );
+
+    mockTransactionManager.getRepository.mockImplementation((entity) => {
+      if (entity === MessageRequestEntity) return mockRequestRepo;
+      if (entity === ConversationThreadEntity) return mockThreadRepo;
+      if (entity === MessageEntity) return mockMessageRepo;
       return {};
     });
 
@@ -248,6 +303,152 @@ describe("MessageRequestService", () => {
       ).rejects.toThrow(ConflictError);
 
       expect(mockRequestRepo.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("acceptMessageRequest", () => {
+    it("accepts a pending request, creates a thread, and converts the intro note into the first message", async () => {
+      const request = buildRequest({
+        intro_note: "We would like to schedule an interview.",
+      });
+      const savedThread = buildThread({
+        accepted_request: request,
+      });
+      const initialMessage = buildMessage({
+        body: request.intro_note,
+        source_request: request,
+        thread: savedThread,
+      });
+
+      mockRequestRepo.findOne.mockResolvedValue(request);
+      mockRequestRepo.save.mockImplementation(async (entity) => entity);
+      mockThreadRepo.findOne.mockResolvedValue(null);
+      mockThreadRepo.create.mockReturnValue(savedThread);
+      mockThreadRepo.save.mockImplementation(async (entity) => ({
+        ...entity,
+        id: entity.id || savedThread.id,
+        created_at: entity.created_at || now,
+        updated_at: now,
+      }));
+      mockMessageRepo.create.mockReturnValue(initialMessage);
+      mockMessageRepo.save.mockResolvedValue(initialMessage);
+
+      const result = await service.acceptMessageRequest(talent.id, request.id);
+
+      expect(AppDataSource.manager.transaction).toHaveBeenCalled();
+      expect(mockRequestRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: MessageRequestStatus.ACCEPTED,
+          responded_at: now,
+        }),
+      );
+      expect(mockThreadRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          recruiter,
+          talent,
+          accepted_request: request,
+          latest_message_at: null,
+        }),
+      );
+      expect(mockMessageRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          thread: expect.objectContaining({ id: savedThread.id }),
+          sender: recruiter,
+          source_request: request,
+          body: request.intro_note,
+          created_at: request.created_at,
+          updated_at: request.created_at,
+        }),
+      );
+      expect(mockThreadRepo.save).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          latest_message_at: initialMessage.created_at,
+        }),
+      );
+      expect(result.request.status).toBe(MessageRequestStatus.ACCEPTED);
+      expect(result.thread.accepted_request_id).toBe(request.id);
+      expect(result.initial_message).toEqual(
+        expect.objectContaining({
+          body: request.intro_note,
+          source_request_id: request.id,
+        }),
+      );
+    });
+
+    it("accepts a request without an intro note without creating an initial message", async () => {
+      const request = buildRequest({ intro_note: null });
+      const savedThread = buildThread({
+        accepted_request: request,
+      });
+
+      mockRequestRepo.findOne.mockResolvedValue(request);
+      mockRequestRepo.save.mockImplementation(async (entity) => entity);
+      mockThreadRepo.findOne.mockResolvedValue(null);
+      mockThreadRepo.create.mockReturnValue(savedThread);
+      mockThreadRepo.save.mockResolvedValue(savedThread);
+
+      const result = await service.acceptMessageRequest(talent.id, request.id);
+
+      expect(mockMessageRepo.create).not.toHaveBeenCalled();
+      expect(mockMessageRepo.save).not.toHaveBeenCalled();
+      expect(result.request.status).toBe(MessageRequestStatus.ACCEPTED);
+      expect(result.thread.accepted_request_id).toBe(request.id);
+      expect(result.initial_message).toBeNull();
+    });
+
+    it("rejects accept attempts for requests that do not belong to the talent", async () => {
+      const request = buildRequest();
+      mockRequestRepo.findOne.mockResolvedValue(request);
+
+      await expect(
+        service.acceptMessageRequest(
+          "99999999-9999-4999-8999-999999999999",
+          request.id,
+        ),
+      ).rejects.toThrow(NotFoundError);
+
+      expect(mockRequestRepo.save).not.toHaveBeenCalled();
+      expect(mockThreadRepo.save).not.toHaveBeenCalled();
+      expect(mockMessageRepo.save).not.toHaveBeenCalled();
+    });
+
+    it("rejects accept attempts for requests that are no longer pending", async () => {
+      const request = buildRequest({
+        status: MessageRequestStatus.DECLINED,
+      });
+      mockRequestRepo.findOne.mockResolvedValue(request);
+
+      await expect(
+        service.acceptMessageRequest(talent.id, request.id),
+      ).rejects.toThrow(ConflictError);
+
+      expect(mockRequestRepo.save).not.toHaveBeenCalled();
+      expect(mockThreadRepo.save).not.toHaveBeenCalled();
+      expect(mockMessageRepo.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("declineMessageRequest", () => {
+    it("declines a pending request without creating a thread or message", async () => {
+      const request = buildRequest();
+      mockRequestRepo.findOne.mockResolvedValue(request);
+      mockRequestRepo.save.mockImplementation(async (entity) => entity);
+
+      const result = await service.declineMessageRequest(talent.id, request.id);
+
+      expect(AppDataSource.manager.transaction).toHaveBeenCalled();
+      expect(mockRequestRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: MessageRequestStatus.DECLINED,
+          responded_at: now,
+        }),
+      );
+      expect(mockThreadRepo.create).not.toHaveBeenCalled();
+      expect(mockThreadRepo.save).not.toHaveBeenCalled();
+      expect(mockMessageRepo.create).not.toHaveBeenCalled();
+      expect(mockMessageRepo.save).not.toHaveBeenCalled();
+      expect(result.status).toBe(MessageRequestStatus.DECLINED);
+      expect(result.responded_at).toEqual(now);
     });
   });
 

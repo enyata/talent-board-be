@@ -1,5 +1,6 @@
 import AppDataSource from "@src/datasource";
 import { ConversationThreadEntity } from "@src/entities/conversationThread.entity";
+import { MessageEntity } from "@src/entities/message.entity";
 import {
   MessageRequestEntity,
   MessageRequestStatus,
@@ -12,44 +13,20 @@ import { UserEntity, UserRole } from "@src/entities/user.entity";
 import { ClientError } from "@src/exceptions/clientError";
 import { ConflictError } from "@src/exceptions/conflictError";
 import { NotFoundError } from "@src/exceptions/notFoundError";
+import {
+  AcceptedMessageRequestSummary,
+  ConversationThreadSummary,
+  MessageRequestSummary,
+  MessageRequestUserSummary,
+  MessageSummary,
+  PaginatedMessageRequestSummary,
+} from "@src/interfaces";
 import config from "config";
+import { Repository } from "typeorm";
 import {
   CreateMessageRequestDto,
   ListMessageRequestsDto,
 } from "../schemas/messageRequest.schema";
-
-interface MessageRequestUserSummary {
-  id: string;
-  first_name: string | null;
-  last_name: string | null;
-  avatar: string | null;
-  role: UserRole | null;
-}
-
-export interface MessageRequestSummary {
-  id: string;
-  intro_note: string | null;
-  status: MessageRequestStatus;
-  responded_at: Date | null;
-  created_at: Date;
-  updated_at: Date;
-  recruiter: MessageRequestUserSummary;
-  talent: MessageRequestUserSummary;
-}
-
-export interface MessageRequestPagination {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
-
-export interface PaginatedMessageRequestSummary {
-  requests: MessageRequestSummary[];
-  pagination: MessageRequestPagination;
-}
 
 export class MessageRequestService {
   private readonly userRepo = AppDataSource.getRepository(UserEntity);
@@ -111,6 +88,94 @@ export class MessageRequestService {
       }
       throw error;
     }
+  }
+
+  async acceptMessageRequest(
+    talentId: string,
+    requestId: string,
+  ): Promise<AcceptedMessageRequestSummary> {
+    return AppDataSource.manager.transaction(async (manager) => {
+      const requestRepo = manager.getRepository(MessageRequestEntity);
+      const threadRepo = manager.getRepository(ConversationThreadEntity);
+      const messageRepo = manager.getRepository(MessageEntity);
+
+      const request = await requestRepo.findOne({
+        where: { id: requestId },
+        relations: ["recruiter", "talent"],
+      });
+
+      this.assertTalentCanRespondToRequest(request, talentId);
+
+      request.status = MessageRequestStatus.ACCEPTED;
+      request.responded_at = new Date();
+
+      const savedRequest = await requestRepo.save(request);
+
+      let thread = await threadRepo.findOne({
+        where: {
+          recruiter: { id: savedRequest.recruiter.id },
+          talent: { id: savedRequest.talent.id },
+        },
+        relations: ["recruiter", "talent", "accepted_request"],
+      });
+
+      if (!thread) {
+        thread = threadRepo.create({
+          recruiter: savedRequest.recruiter,
+          talent: savedRequest.talent,
+          accepted_request: savedRequest,
+          recruiter_last_seen_at: null,
+          talent_last_seen_at: null,
+          latest_message_at: null,
+        });
+      } else {
+        thread.accepted_request = savedRequest;
+      }
+
+      thread = await threadRepo.save(thread);
+
+      const initialMessage = await this.createInitialMessageFromRequest(
+        messageRepo,
+        savedRequest,
+        thread,
+      );
+
+      if (initialMessage) {
+        thread.latest_message_at =
+          initialMessage.created_at || savedRequest.created_at;
+        thread = await threadRepo.save(thread);
+      }
+
+      return {
+        request: this.formatMessageRequest(savedRequest),
+        thread: this.formatConversationThread(thread),
+        initial_message: initialMessage
+          ? this.formatMessage(initialMessage)
+          : null,
+      };
+    });
+  }
+
+  async declineMessageRequest(
+    talentId: string,
+    requestId: string,
+  ): Promise<MessageRequestSummary> {
+    return AppDataSource.manager.transaction(async (manager) => {
+      const requestRepo = manager.getRepository(MessageRequestEntity);
+
+      const request = await requestRepo.findOne({
+        where: { id: requestId },
+        relations: ["recruiter", "talent"],
+      });
+
+      this.assertTalentCanRespondToRequest(request, talentId);
+
+      request.status = MessageRequestStatus.DECLINED;
+      request.responded_at = new Date();
+
+      const savedRequest = await requestRepo.save(request);
+      return this.formatMessageRequest(savedRequest);
+    });
   }
 
   async getIncomingRequests(
@@ -233,6 +298,44 @@ export class MessageRequestService {
     }
   }
 
+  private assertTalentCanRespondToRequest(
+    request: MessageRequestEntity | null,
+    talentId: string,
+  ): asserts request is MessageRequestEntity {
+    if (!request || request.talent.id !== talentId) {
+      throw new NotFoundError("Message request not found");
+    }
+
+    if (request.status !== MessageRequestStatus.PENDING) {
+      throw new ConflictError(
+        `Message request has already been ${request.status}`,
+      );
+    }
+  }
+
+  private async createInitialMessageFromRequest(
+    messageRepo: Repository<MessageEntity>,
+    request: MessageRequestEntity,
+    thread: ConversationThreadEntity,
+  ): Promise<MessageEntity | null> {
+    const introNote = this.normalizeIntroNote(request.intro_note || undefined);
+
+    if (!introNote) {
+      return null;
+    }
+
+    const initialMessage = messageRepo.create({
+      thread,
+      sender: request.recruiter,
+      source_request: request,
+      body: introNote,
+      created_at: request.created_at,
+      updated_at: request.created_at,
+    });
+
+    return messageRepo.save(initialMessage);
+  }
+
   private isApprovedTalent(user: UserEntity | null): user is UserEntity & {
     talent_profile: TalentProfileEntity;
   } {
@@ -282,6 +385,33 @@ export class MessageRequestService {
       updated_at: request.updated_at,
       recruiter: this.formatUser(request.recruiter),
       talent: this.formatUser(request.talent),
+    };
+  }
+
+  private formatConversationThread(
+    thread: ConversationThreadEntity,
+  ): ConversationThreadSummary {
+    return {
+      id: thread.id,
+      recruiter_last_seen_at: thread.recruiter_last_seen_at,
+      talent_last_seen_at: thread.talent_last_seen_at,
+      latest_message_at: thread.latest_message_at,
+      created_at: thread.created_at,
+      updated_at: thread.updated_at,
+      accepted_request_id: thread.accepted_request?.id || null,
+      recruiter: this.formatUser(thread.recruiter),
+      talent: this.formatUser(thread.talent),
+    };
+  }
+
+  private formatMessage(message: MessageEntity): MessageSummary {
+    return {
+      id: message.id,
+      body: message.body,
+      created_at: message.created_at,
+      updated_at: message.updated_at,
+      sender: this.formatUser(message.sender),
+      source_request_id: message.source_request?.id || null,
     };
   }
 
