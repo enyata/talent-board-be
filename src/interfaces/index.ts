@@ -103,7 +103,7 @@ export interface AcceptedMessageRequestSummary {
   initial_message: MessageSummary | null;
 }
 
-export interface MessageRequestPagination {
+export interface PaginationMeta {
   page: number;
   limit: number;
   total: number;
@@ -112,9 +112,32 @@ export interface MessageRequestPagination {
   hasPreviousPage: boolean;
 }
 
+export interface MessageRequestPagination extends PaginationMeta {}
+
 export interface PaginatedMessageRequestSummary {
   requests: MessageRequestSummary[];
   pagination: MessageRequestPagination;
+}
+
+export interface ConversationInboxItemSummary
+  extends ConversationThreadSummary {
+  conversation_partner: MessageRequestUserSummary;
+  latest_message: MessageSummary | null;
+}
+
+export interface PaginatedConversationInboxSummary {
+  threads: ConversationInboxItemSummary[];
+  pagination: PaginationMeta;
+}
+
+export interface PaginatedMessageSummary {
+  messages: MessageSummary[];
+  pagination: PaginationMeta;
+}
+
+export interface SentConversationMessageSummary {
+  thread: ConversationThreadSummary;
+  message: MessageSummary;
 }
 
 export interface TalentSearchResult {

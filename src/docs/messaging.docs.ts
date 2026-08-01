@@ -59,7 +59,7 @@
  *           $ref: '#/components/schemas/MessageRequestUserSummary'
  *         talent:
  *           $ref: '#/components/schemas/MessageRequestUserSummary'
- *     MessageRequestPagination:
+ *     PaginationMeta:
  *       type: object
  *       properties:
  *         page:
@@ -135,7 +135,281 @@
  *           nullable: true
  *         sender:
  *           $ref: '#/components/schemas/MessageRequestUserSummary'
+ *     ConversationInboxItem:
+ *       allOf:
+ *         - $ref: '#/components/schemas/ConversationThread'
+ *         - type: object
+ *           properties:
+ *             conversation_partner:
+ *               $ref: '#/components/schemas/MessageRequestUserSummary'
+ *             latest_message:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/Message'
+ *               nullable: true
  */
+
+export const getConversationInbox = `
+  /**
+   * @swagger
+   * /api/v1/messages/threads:
+   *   get:
+   *     summary: List active conversation threads
+   *     tags: [Messaging]
+   *     description: Returns accepted conversation threads for the authenticated recruiter or talent, sorted by most recent activity.
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *           default: 1
+   *           minimum: 1
+   *         description: Page number to return
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *           default: 20
+   *           minimum: 1
+   *           maximum: 100
+   *         description: Maximum number of threads to return
+   *     responses:
+   *       200:
+   *         description: Conversation inbox fetched successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: "success"
+   *                 message:
+   *                   type: string
+   *                   example: "Conversation inbox fetched successfully"
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     threads:
+   *                       type: array
+   *                       items:
+   *                         $ref: '#/components/schemas/ConversationInboxItem'
+   *                     pagination:
+   *                       $ref: '#/components/schemas/PaginationMeta'
+   *       401:
+   *         description: Unauthorized - token missing or invalid
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       403:
+   *         description: Forbidden - only recruiters and talents can view conversations
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       422:
+   *         description: Validation error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       500:
+   *         description: Internal server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   */
+`;
+
+export const getConversationMessages = `
+  /**
+   * @swagger
+   * /api/v1/messages/threads/{threadId}/messages:
+   *   get:
+   *     summary: List messages in an active conversation thread
+   *     tags: [Messaging]
+   *     description: Returns messages for an accepted conversation thread. Page 1 loads the most recent messages, and higher pages fetch older history. Messages within each page are returned oldest-to-newest for display. Only the recruiter or talent who belongs to the thread can access it.
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: threadId
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *         description: ID of the conversation thread
+   *       - in: query
+   *         name: page
+   *         schema:
+   *           type: integer
+   *           default: 1
+   *           minimum: 1
+   *         description: Page number to return
+   *       - in: query
+   *         name: limit
+   *         schema:
+   *           type: integer
+   *           default: 50
+   *           minimum: 1
+   *           maximum: 100
+   *         description: Maximum number of messages to return
+   *     responses:
+   *       200:
+   *         description: Conversation messages fetched successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: "success"
+   *                 message:
+   *                   type: string
+   *                   example: "Conversation messages fetched successfully"
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     messages:
+   *                       type: array
+   *                       items:
+   *                         $ref: '#/components/schemas/Message'
+   *                     pagination:
+   *                       $ref: '#/components/schemas/PaginationMeta'
+   *       401:
+   *         description: Unauthorized - token missing or invalid
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       403:
+   *         description: Forbidden - only thread participants can view messages
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       404:
+   *         description: Conversation thread not found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       409:
+   *         description: Conflict - conversation is not active
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       422:
+   *         description: Validation error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       500:
+   *         description: Internal server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   */
+`;
+
+export const sendConversationMessage = `
+  /**
+   * @swagger
+   * /api/v1/messages/threads/{threadId}/messages:
+   *   post:
+   *     summary: Send a message in an active conversation thread
+   *     tags: [Messaging]
+   *     description: Sends a free-text message in an accepted conversation thread. Line breaks are preserved in the message body.
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: threadId
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *         description: ID of the conversation thread
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - body
+   *             properties:
+   *               body:
+   *                 type: string
+   *                 minLength: 1
+   *                 maxLength: 5000
+   *                 example: "Thanks for accepting.\\nCan we schedule a call this week?"
+   *     responses:
+   *       201:
+   *         description: Message sent successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: "success"
+   *                 message:
+   *                   type: string
+   *                   example: "Message sent successfully"
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     thread:
+   *                       $ref: '#/components/schemas/ConversationThread'
+   *                     message:
+   *                       $ref: '#/components/schemas/Message'
+   *       401:
+   *         description: Unauthorized - token missing or invalid
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       403:
+   *         description: Forbidden - only thread participants can send messages
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       404:
+   *         description: Conversation thread not found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       409:
+   *         description: Conflict - conversation is not active
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       422:
+   *         description: Validation error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   *       500:
+   *         description: Internal server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+   */
+`;
 
 export const createMessageRequest = `
   /**
@@ -442,7 +716,7 @@ export const getIncomingMessageRequests = `
    *                       items:
    *                         $ref: '#/components/schemas/MessageRequest'
   *                     pagination:
-  *                       $ref: '#/components/schemas/MessageRequestPagination'
+  *                       $ref: '#/components/schemas/PaginationMeta'
    *       401:
    *         description: Unauthorized - token missing or invalid
    *         content:
@@ -524,7 +798,7 @@ export const getOutgoingMessageRequests = `
    *                       items:
    *                         $ref: '#/components/schemas/MessageRequest'
   *                     pagination:
-  *                       $ref: '#/components/schemas/MessageRequestPagination'
+  *                       $ref: '#/components/schemas/PaginationMeta'
    *       401:
    *         description: Unauthorized - token missing or invalid
    *         content:
