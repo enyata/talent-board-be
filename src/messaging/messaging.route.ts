@@ -7,9 +7,18 @@ import {
   acceptMessageRequest,
   createMessageRequest,
   declineMessageRequest,
+  getConversationInbox,
+  getConversationMessages,
   getIncomingMessageRequests,
   getOutgoingMessageRequests,
+  sendConversationMessage,
 } from "./messaging.controller";
+import {
+  conversationThreadParamsSchema,
+  listConversationMessagesSchema,
+  listConversationThreadsSchema,
+  sendConversationMessageSchema,
+} from "./schemas/conversation.schema";
 import {
   createMessageRequestSchema,
   listMessageRequestsSchema,
@@ -19,6 +28,29 @@ import {
 const router = Router();
 
 router.use(deserializeUser);
+
+router.get(
+  "/threads",
+  checkRole([UserRole.RECRUITER, UserRole.TALENT]),
+  validateData(listConversationThreadsSchema, ["query"]),
+  getConversationInbox,
+);
+
+router.get(
+  "/threads/:threadId/messages",
+  checkRole([UserRole.RECRUITER, UserRole.TALENT]),
+  validateData(conversationThreadParamsSchema, ["params"]),
+  validateData(listConversationMessagesSchema, ["query"]),
+  getConversationMessages,
+);
+
+router.post(
+  "/threads/:threadId/messages",
+  checkRole([UserRole.RECRUITER, UserRole.TALENT]),
+  validateData(conversationThreadParamsSchema, ["params"]),
+  validateData(sendConversationMessageSchema),
+  sendConversationMessage,
+);
 
 router.post(
   "/requests",
