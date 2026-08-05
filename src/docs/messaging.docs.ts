@@ -99,6 +99,14 @@
  *           type: string
  *           format: date-time
  *           nullable: true
+ *         latest_message_seen_at:
+ *           type: string
+ *           format: date-time
+ *           nullable: true
+ *         latest_message_seen_status:
+ *           type: string
+ *           enum: [seen, unseen, no_messages]
+ *           example: "seen"
  *         created_at:
  *           type: string
  *           format: date-time
@@ -146,6 +154,23 @@
  *               allOf:
  *                 - $ref: '#/components/schemas/Message'
  *               nullable: true
+ *     MessageTemplate:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           example: "intro-product-fit"
+ *         title:
+ *           type: string
+ *           example: "Product Fit Intro"
+ *         body:
+ *           type: string
+ *           example: "Hi {{first_name}}, I came across your profile..."
+ *         use_cases:
+ *           type: array
+ *           items:
+ *             type: string
+ *             enum: [intro_note, active_message_compose]
  */
 
 export const getConversationInbox = `
@@ -316,6 +341,56 @@ export const getConversationMessages = `
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/ErrorResponse'
+   */
+`;
+
+export const markConversationThreadSeen = `
+  /**
+   * @swagger
+   * /api/v1/messages/threads/{threadId}/seen:
+   *   patch:
+   *     summary: Mark a conversation thread as seen
+   *     tags: [Messaging]
+   *     description: Marks the thread as seen for the authenticated participant and returns updated latest-message seen timestamp and status.
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: threadId
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *     requestBody:
+   *       required: false
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               seen_at:
+   *                 type: string
+   *                 format: date-time
+   *                 description: Optional explicit seen timestamp. Defaults to current time.
+   *     responses:
+   *       200:
+   *         description: Conversation thread marked as seen
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: "success"
+   *                 message:
+   *                   type: string
+   *                   example: "Conversation thread marked as seen"
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     thread:
+   *                       $ref: '#/components/schemas/ConversationThread'
    */
 `;
 
@@ -823,5 +898,53 @@ export const getOutgoingMessageRequests = `
    *           application/json:
    *             schema:
    *               $ref: '#/components/schemas/ErrorResponse'
+   */
+`;
+
+export const getMessageTemplates = `
+  /**
+   * @swagger
+   * /api/v1/messages/templates:
+   *   get:
+  *     summary: Fetch fixed role-based message templates
+   *     tags: [Messaging]
+  *     description: Returns templates based on the authenticated role. Recruiters receive templates for messaging talent (including intro outreach), while talents receive templates for messaging recruiters in active conversation compose.
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: use_case
+   *         schema:
+   *           type: string
+   *           enum: [intro_note, active_message_compose]
+   *         description: Optional filter by where the template is intended to be used.
+  *       - in: query
+  *         name: target_user_id
+  *         required: true
+  *         schema:
+  *           type: string
+  *           format: uuid
+  *         description: Recipient user ID used to personalize template greeting.
+   *     responses:
+   *       200:
+   *         description: Message templates fetched successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: "success"
+   *                 message:
+   *                   type: string
+   *                   example: "Message templates fetched successfully"
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     templates:
+   *                       type: array
+   *                       items:
+   *                         $ref: '#/components/schemas/MessageTemplate'
    */
 `;

@@ -150,6 +150,8 @@ describe("ConversationService", () => {
       });
       expect(result.threads[0].conversation_partner.id).toBe(talent.id);
       expect(result.threads[0].latest_message?.body).toBe("Latest update");
+      expect(result.threads[0].latest_message_seen_at).toBeNull();
+      expect(result.threads[0].latest_message_seen_status).toBe("unseen");
       expect(result.pagination).toEqual({
         page: 1,
         limit: 20,
@@ -249,10 +251,15 @@ describe("ConversationService", () => {
       });
       expect(mockMessageRepo.save).toHaveBeenCalledWith(savedMessage);
       expect(mockThreadRepo.save).toHaveBeenCalledWith(
-        expect.objectContaining({ latest_message_at: later }),
+        expect.objectContaining({
+          latest_message_at: later,
+          talent_last_seen_at: later,
+        }),
       );
       expect(result.message.body).toBe(body);
       expect(result.thread.latest_message_at).toEqual(later);
+      expect(result.thread.latest_message_seen_at).toEqual(later);
+      expect(result.thread.latest_message_seen_status).toBe("seen");
     });
 
     it("blocks sending to inactive threads", async () => {
@@ -270,6 +277,46 @@ describe("ConversationService", () => {
 
       expect(mockMessageRepo.save).not.toHaveBeenCalled();
       expect(mockThreadRepo.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("markThreadAsSeen", () => {
+    it("updates participant seen timestamp and returns seen status", async () => {
+      const thread = buildThread({ recruiter_last_seen_at: null });
+      mockThreadRepo.findOne.mockResolvedValue(thread);
+      mockThreadRepo.save.mockImplementation(async (entity) => entity);
+
+      const result = await service.markThreadAsSeen(
+        recruiter.id,
+        thread.id,
+        {},
+      );
+
+      expect(AppDataSource.manager.transaction).toHaveBeenCalled();
+      expect(mockThreadRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ recruiter_last_seen_at: later }),
+      );
+      expect(result.latest_message_seen_at).toEqual(later);
+      expect(result.latest_message_seen_status).toBe("seen");
+    });
+
+    it("keeps the later seen timestamp when an older timestamp is provided", async () => {
+      const existingSeenAt = new Date("2026-08-01T10:06:00.000Z");
+      const olderSeenAt = new Date("2026-08-01T10:04:00.000Z");
+      const thread = buildThread({ recruiter_last_seen_at: existingSeenAt });
+
+      mockThreadRepo.findOne.mockResolvedValue(thread);
+      mockThreadRepo.save.mockImplementation(async (entity) => entity);
+
+      const result = await service.markThreadAsSeen(recruiter.id, thread.id, {
+        seen_at: olderSeenAt,
+      });
+
+      expect(mockThreadRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ recruiter_last_seen_at: existingSeenAt }),
+      );
+      expect(result.latest_message_seen_at).toEqual(existingSeenAt);
+      expect(result.latest_message_seen_status).toBe("seen");
     });
   });
 });
