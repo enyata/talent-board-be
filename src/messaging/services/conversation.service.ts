@@ -17,6 +17,7 @@ import {
 import {
   ListConversationMessagesDto,
   ListConversationThreadsDto,
+  MarkConversationThreadSeenDto,
   SendConversationMessageDto,
 } from "../schemas/conversation.schema";
 
@@ -112,12 +113,49 @@ export class ConversationService {
       const savedMessage = await messageRepo.save(message);
 
       thread.latest_message_at = savedMessage.created_at || new Date();
+      if (thread.recruiter.id === userId) {
+        thread.recruiter_last_seen_at = thread.latest_message_at;
+      } else {
+        thread.talent_last_seen_at = thread.latest_message_at;
+      }
       const savedThread = await threadRepo.save(thread);
 
       return {
-        thread: this.formatConversationThread(savedThread),
+        thread: this.formatConversationThread(savedThread, userId),
         message: this.formatMessage(savedMessage),
       };
+    });
+  }
+
+  async markThreadAsSeen(
+    userId: string,
+    threadId: string,
+    payload: MarkConversationThreadSeenDto,
+  ): Promise<ConversationThreadSummary> {
+    return AppDataSource.manager.transaction(async (manager) => {
+      const threadRepo = manager.getRepository(ConversationThreadEntity);
+      const thread = await threadRepo.findOne({
+        where: { id: threadId },
+        relations: ["recruiter", "talent", "accepted_request"],
+      });
+
+      this.assertThreadIsAccessibleAndActive(thread, userId);
+
+      const seenAt = payload.seen_at ?? new Date();
+      if (thread.recruiter.id === userId) {
+        thread.recruiter_last_seen_at = this.getLaterDate(
+          thread.recruiter_last_seen_at,
+          seenAt,
+        );
+      } else {
+        thread.talent_last_seen_at = this.getLaterDate(
+          thread.talent_last_seen_at,
+          seenAt,
+        );
+      }
+
+      const savedThread = await threadRepo.save(thread);
+      return this.formatConversationThread(savedThread, userId);
     });
   }
 
@@ -163,7 +201,7 @@ export class ConversationService {
     latestMessage: MessageEntity | null,
   ): ConversationInboxItemSummary {
     return {
-      ...this.formatConversationThread(thread),
+      ...this.formatConversationThread(thread, userId),
       conversation_partner: this.formatUser(
         thread.recruiter.id === userId ? thread.talent : thread.recruiter,
       ),
@@ -173,12 +211,23 @@ export class ConversationService {
 
   private formatConversationThread(
     thread: ConversationThreadEntity,
+    viewerUserId?: string,
   ): ConversationThreadSummary {
+    const latestMessageSeenAt = this.resolveLatestMessageSeenAt(
+      thread,
+      viewerUserId,
+    );
+
     return {
       id: thread.id,
       recruiter_last_seen_at: thread.recruiter_last_seen_at,
       talent_last_seen_at: thread.talent_last_seen_at,
       latest_message_at: thread.latest_message_at,
+      latest_message_seen_at: latestMessageSeenAt,
+      latest_message_seen_status: this.resolveLatestMessageSeenStatus(
+        thread.latest_message_at,
+        latestMessageSeenAt,
+      ),
       created_at: thread.created_at,
       updated_at: thread.updated_at,
       accepted_request_id: thread.accepted_request?.id || null,
@@ -231,5 +280,51 @@ export class ConversationService {
       hasNextPage: page * limit < total,
       hasPreviousPage: page > 1,
     };
+  }
+
+  private resolveLatestMessageSeenAt(
+    thread: ConversationThreadEntity,
+    viewerUserId?: string,
+  ): Date | null {
+    if (!viewerUserId) {
+      return null;
+    }
+
+    if (thread.recruiter.id === viewerUserId) {
+      return thread.recruiter_last_seen_at;
+    }
+
+    if (thread.talent.id === viewerUserId) {
+      return thread.talent_last_seen_at;
+    }
+
+    return null;
+  }
+
+  private resolveLatestMessageSeenStatus(
+    latestMessageAt: Date | null,
+    latestMessageSeenAt: Date | null,
+  ): "seen" | "unseen" | "no_messages" {
+    if (!latestMessageAt) {
+      return "no_messages";
+    }
+
+    if (!latestMessageSeenAt) {
+      return "unseen";
+    }
+
+    return latestMessageSeenAt.getTime() >= latestMessageAt.getTime()
+      ? "seen"
+      : "unseen";
+  }
+
+  private getLaterDate(currentDate: Date | null, candidateDate: Date): Date {
+    if (!currentDate) {
+      return candidateDate;
+    }
+
+    return currentDate.getTime() > candidateDate.getTime()
+      ? currentDate
+      : candidateDate;
   }
 }

@@ -65,6 +65,8 @@ export interface MessageRequestUserSummary {
   role: UserRole | null;
 }
 
+export type LatestMessageSeenStatus = "seen" | "unseen" | "no_messages";
+
 export interface MessageRequestSummary {
   id: string;
   intro_note: string | null;
@@ -81,6 +83,8 @@ export interface ConversationThreadSummary {
   recruiter_last_seen_at: Date | null;
   talent_last_seen_at: Date | null;
   latest_message_at: Date | null;
+  latest_message_seen_at: Date | null;
+  latest_message_seen_status: LatestMessageSeenStatus;
   created_at: Date;
   updated_at: Date;
   accepted_request_id: string | null;
@@ -138,6 +142,17 @@ export interface PaginatedMessageSummary {
 export interface SentConversationMessageSummary {
   thread: ConversationThreadSummary;
   message: MessageSummary;
+}
+
+export interface MessageTemplateSummary {
+  id: string;
+  title: string;
+  body: string;
+  use_cases: string[];
+}
+
+export interface MessageTemplateLibrarySummary {
+  templates: MessageTemplateSummary[];
 }
 
 export interface TalentSearchResult {

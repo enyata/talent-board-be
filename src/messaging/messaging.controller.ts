@@ -3,13 +3,17 @@ import { Request, Response } from "express";
 import {
   ListConversationMessagesDto,
   ListConversationThreadsDto,
+  MarkConversationThreadSeenDto,
 } from "./schemas/conversation.schema";
 import { ListMessageRequestsDto } from "./schemas/messageRequest.schema";
+import { ListMessageTemplatesDto } from "./schemas/template.schema";
 import { ConversationService } from "./services/conversation.service";
 import { MessageRequestService } from "./services/messageRequest.service";
+import { MessageTemplateService } from "./services/messageTemplate.service";
 
 const messageRequestService = new MessageRequestService();
 const conversationService = new ConversationService();
+const messageTemplateService = new MessageTemplateService();
 
 export const acceptMessageRequest = asyncHandler(
   async (req: Request, res: Response) => {
@@ -114,6 +118,38 @@ export const getOutgoingMessageRequests = asyncHandler(
       status: "success",
       message: "Outgoing message requests fetched successfully",
       data: result,
+    });
+  },
+);
+
+export const getMessageTemplates = asyncHandler(
+  async (req: Request, res: Response) => {
+    const result = await messageTemplateService.getTemplates(
+      req.user.id,
+      req.user.role,
+      req.query as ListMessageTemplatesDto,
+    );
+
+    res.status(200).json({
+      status: "success",
+      message: "Message templates fetched successfully",
+      data: result,
+    });
+  },
+);
+
+export const markConversationThreadSeen = asyncHandler(
+  async (req: Request, res: Response) => {
+    const thread = await conversationService.markThreadAsSeen(
+      req.user.id,
+      req.params.threadId,
+      req.body as MarkConversationThreadSeenDto,
+    );
+
+    res.status(200).json({
+      status: "success",
+      message: "Conversation thread marked as seen",
+      data: { thread },
     });
   },
 );
