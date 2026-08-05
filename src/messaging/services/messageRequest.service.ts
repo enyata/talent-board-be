@@ -148,7 +148,7 @@ export class MessageRequestService {
 
       return {
         request: this.formatMessageRequest(savedRequest),
-        thread: this.formatConversationThread(thread),
+        thread: this.formatConversationThread(thread, talentId),
         initial_message: initialMessage
           ? this.formatMessage(initialMessage)
           : null,
@@ -390,12 +390,23 @@ export class MessageRequestService {
 
   private formatConversationThread(
     thread: ConversationThreadEntity,
+    viewerUserId?: string,
   ): ConversationThreadSummary {
+    const latestMessageSeenAt = this.resolveLatestMessageSeenAt(
+      thread,
+      viewerUserId,
+    );
+
     return {
       id: thread.id,
       recruiter_last_seen_at: thread.recruiter_last_seen_at,
       talent_last_seen_at: thread.talent_last_seen_at,
       latest_message_at: thread.latest_message_at,
+      latest_message_seen_at: latestMessageSeenAt,
+      latest_message_seen_status: this.resolveLatestMessageSeenStatus(
+        thread.latest_message_at,
+        latestMessageSeenAt,
+      ),
       created_at: thread.created_at,
       updated_at: thread.updated_at,
       accepted_request_id: thread.accepted_request?.id || null,
@@ -423,5 +434,41 @@ export class MessageRequestService {
       avatar: user.avatar,
       role: user.role,
     };
+  }
+
+  private resolveLatestMessageSeenAt(
+    thread: ConversationThreadEntity,
+    viewerUserId?: string,
+  ): Date | null {
+    if (!viewerUserId) {
+      return null;
+    }
+
+    if (thread.recruiter.id === viewerUserId) {
+      return thread.recruiter_last_seen_at;
+    }
+
+    if (thread.talent.id === viewerUserId) {
+      return thread.talent_last_seen_at;
+    }
+
+    return null;
+  }
+
+  private resolveLatestMessageSeenStatus(
+    latestMessageAt: Date | null,
+    latestMessageSeenAt: Date | null,
+  ): "seen" | "unseen" | "no_messages" {
+    if (!latestMessageAt) {
+      return "no_messages";
+    }
+
+    if (!latestMessageSeenAt) {
+      return "unseen";
+    }
+
+    return latestMessageSeenAt.getTime() >= latestMessageAt.getTime()
+      ? "seen"
+      : "unseen";
   }
 }

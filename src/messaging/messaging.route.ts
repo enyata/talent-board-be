@@ -10,13 +10,16 @@ import {
   getConversationInbox,
   getConversationMessages,
   getIncomingMessageRequests,
+  getMessageTemplates,
   getOutgoingMessageRequests,
+  markConversationThreadSeen,
   sendConversationMessage,
 } from "./messaging.controller";
 import {
   conversationThreadParamsSchema,
   listConversationMessagesSchema,
   listConversationThreadsSchema,
+  markConversationThreadSeenSchema,
   sendConversationMessageSchema,
 } from "./schemas/conversation.schema";
 import {
@@ -24,6 +27,7 @@ import {
   listMessageRequestsSchema,
   messageRequestParamsSchema,
 } from "./schemas/messageRequest.schema";
+import { listMessageTemplatesSchema } from "./schemas/template.schema";
 
 const router = Router();
 
@@ -42,6 +46,14 @@ router.get(
   validateData(conversationThreadParamsSchema, ["params"]),
   validateData(listConversationMessagesSchema, ["query"]),
   getConversationMessages,
+);
+
+router.patch(
+  "/threads/:threadId/seen",
+  checkRole([UserRole.RECRUITER, UserRole.TALENT]),
+  validateData(conversationThreadParamsSchema, ["params"]),
+  validateData(markConversationThreadSeenSchema),
+  markConversationThreadSeen,
 );
 
 router.post(
@@ -71,6 +83,13 @@ router.get(
   checkRole(UserRole.RECRUITER),
   validateData(listMessageRequestsSchema, ["query"]),
   getOutgoingMessageRequests,
+);
+
+router.get(
+  "/templates",
+  checkRole([UserRole.RECRUITER, UserRole.TALENT]),
+  validateData(listMessageTemplatesSchema, ["query"]),
+  getMessageTemplates,
 );
 
 router.patch(
