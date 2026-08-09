@@ -69,6 +69,12 @@ export const deserializeUser = asyncHandler(
       return next();
     }
 
+    if (accessToken && !refreshToken) {
+      return next(
+        new UnauthorizedError("Invalid access token! Please log in again."),
+      );
+    }
+
     if (refreshToken) {
       const newAccessToken = await refreshAccessToken(
         refreshToken,

@@ -11,8 +11,8 @@ import {
 import { Column, Entity, OneToMany, OneToOne } from "typeorm";
 import ExtendedBaseEntity from "./base.entity";
 import { ConversationThreadEntity } from "./conversationThread.entity";
-import { MessageRequestEntity } from "./messageRequest.entity";
 import { MessageEntity } from "./message.entity";
+import { MessageRequestEntity } from "./messageRequest.entity";
 import { MetricsEntity } from "./metrics.entity";
 import { NotificationEntity } from "./notification.entity";
 import { RecruiterProfileEntity } from "./recruiterProfile.entity";

@@ -27,6 +27,7 @@ import {
   CreateMessageRequestDto,
   ListMessageRequestsDto,
 } from "../schemas/messageRequest.schema";
+import { MessagingEngagementService } from "./messagingEngagement.service";
 
 export class MessageRequestService {
   private readonly userRepo = AppDataSource.getRepository(UserEntity);
@@ -35,6 +36,8 @@ export class MessageRequestService {
   private readonly threadRepo = AppDataSource.getRepository(
     ConversationThreadEntity,
   );
+  private readonly messagingEngagementService =
+    new MessagingEngagementService();
 
   async createMessageRequest(
     recruiterId: string,
@@ -79,6 +82,11 @@ export class MessageRequestService {
 
     try {
       const savedRequest = await this.requestRepo.save(messageRequest);
+
+      void this.messagingEngagementService.onMessageRequestCreated(
+        savedRequest,
+      );
+
       return this.formatMessageRequest(savedRequest);
     } catch (error: any) {
       if (error?.code === "23505") {
@@ -94,7 +102,7 @@ export class MessageRequestService {
     talentId: string,
     requestId: string,
   ): Promise<AcceptedMessageRequestSummary> {
-    return AppDataSource.manager.transaction(async (manager) => {
+    const result = await AppDataSource.manager.transaction(async (manager) => {
       const requestRepo = manager.getRepository(MessageRequestEntity);
       const threadRepo = manager.getRepository(ConversationThreadEntity);
       const messageRepo = manager.getRepository(MessageEntity);
@@ -147,6 +155,7 @@ export class MessageRequestService {
       }
 
       return {
+        savedRequest,
         request: this.formatMessageRequest(savedRequest),
         thread: this.formatConversationThread(thread, talentId),
         initial_message: initialMessage
@@ -154,28 +163,43 @@ export class MessageRequestService {
           : null,
       };
     });
+
+    void this.messagingEngagementService.onMessageRequestAccepted(
+      result.savedRequest,
+    );
+
+    return {
+      request: result.request,
+      thread: result.thread,
+      initial_message: result.initial_message,
+    };
   }
 
   async declineMessageRequest(
     talentId: string,
     requestId: string,
   ): Promise<MessageRequestSummary> {
-    return AppDataSource.manager.transaction(async (manager) => {
-      const requestRepo = manager.getRepository(MessageRequestEntity);
+    const savedRequest = await AppDataSource.manager.transaction(
+      async (manager) => {
+        const requestRepo = manager.getRepository(MessageRequestEntity);
 
-      const request = await requestRepo.findOne({
-        where: { id: requestId },
-        relations: ["recruiter", "talent"],
-      });
+        const request = await requestRepo.findOne({
+          where: { id: requestId },
+          relations: ["recruiter", "talent"],
+        });
 
-      this.assertTalentCanRespondToRequest(request, talentId);
+        this.assertTalentCanRespondToRequest(request, talentId);
 
-      request.status = MessageRequestStatus.DECLINED;
-      request.responded_at = new Date();
+        request.status = MessageRequestStatus.DECLINED;
+        request.responded_at = new Date();
 
-      const savedRequest = await requestRepo.save(request);
-      return this.formatMessageRequest(savedRequest);
-    });
+        return requestRepo.save(request);
+      },
+    );
+
+    void this.messagingEngagementService.onMessageRequestDeclined(savedRequest);
+
+    return this.formatMessageRequest(savedRequest);
   }
 
   async getIncomingRequests(

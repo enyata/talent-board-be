@@ -33,7 +33,9 @@ export const getCurrentUser = `
  *                   type: object
  *                   properties:
  *                     user:
- *                       $ref: '#/components/schemas/User'
+ *                       type: object
+ *                       allOf:
+ *                         - $ref: '#/components/schemas/User'
  *       401:
  *         description: Unauthorized - No or invalid token provided
  *         content:

@@ -133,9 +133,8 @@ describe("DashboardService", () => {
     expect(data).toHaveProperty("profile_views", 25);
     expect(data).toHaveProperty("recruiter_saves", 5);
     expect(data).toHaveProperty("search_appearances", 12);
-    expect(data.notifications.length).toBeGreaterThanOrEqual(1);
-    expect(data.notifications[0]).toHaveProperty("message");
-    expect(data.notifications[0]).toHaveProperty("sender");
+    expect(data).not.toHaveProperty("unread_message_count");
+    expect(data).not.toHaveProperty("notifications");
   });
 
   it("should throw NotFoundError if recruiter profile is missing", async () => {
@@ -194,6 +193,7 @@ describe("DashboardService", () => {
     );
 
     expect(dashboard).toHaveProperty("welcome_message");
+    expect(dashboard).not.toHaveProperty("unread_message_count");
     expect(dashboard.saved_talents).toHaveLength(1);
     expect(dashboard.saved_talents[0]).toMatchObject({
       first_name: "Test",

@@ -20,12 +20,15 @@ import {
   MarkConversationThreadSeenDto,
   SendConversationMessageDto,
 } from "../schemas/conversation.schema";
+import { MessagingEngagementService } from "./messagingEngagement.service";
 
 export class ConversationService {
   private readonly threadRepo = AppDataSource.getRepository(
     ConversationThreadEntity,
   );
   private readonly messageRepo = AppDataSource.getRepository(MessageEntity);
+  private readonly messagingEngagementService =
+    new MessagingEngagementService();
 
   async getInbox(
     userId: string,
@@ -92,7 +95,7 @@ export class ConversationService {
     threadId: string,
     payload: SendConversationMessageDto,
   ): Promise<SentConversationMessageSummary> {
-    return AppDataSource.manager.transaction(async (manager) => {
+    const result = await AppDataSource.manager.transaction(async (manager) => {
       const threadRepo = manager.getRepository(ConversationThreadEntity);
       const messageRepo = manager.getRepository(MessageEntity);
 
@@ -121,10 +124,24 @@ export class ConversationService {
       const savedThread = await threadRepo.save(thread);
 
       return {
+        savedThread,
+        sender,
+        body: savedMessage.body,
         thread: this.formatConversationThread(savedThread, userId),
         message: this.formatMessage(savedMessage),
       };
     });
+
+    void this.messagingEngagementService.onMessageSent({
+      thread: result.savedThread,
+      sender: result.sender,
+      body: result.body,
+    });
+
+    return {
+      thread: result.thread,
+      message: result.message,
+    };
   }
 
   async markThreadAsSeen(
