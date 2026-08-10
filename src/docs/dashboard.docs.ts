@@ -12,7 +12,7 @@ export const talentDashboard = `
    *   get:
    *     summary: Get talent dashboard data
    *     tags: [Dashboard]
-   *     description: Fetches real-time dashboard metrics and notifications for a talent user.
+  *     description: Fetches real-time dashboard metrics for a talent user.
    *     security:
    *       - bearerAuth: []
    *     responses:
@@ -48,38 +48,6 @@ export const talentDashboard = `
    *                     recruiter_saves:
    *                       type: number
    *                       example: 5
-   *                     notifications:
-   *                       type: array
-   *                       items:
-   *                         type: object
-   *                         properties:
-   *                           id:
-   *                             type: string
-   *                           type:
-   *                             type: string
-   *                             enum: [upvote, message, view, save]
-   *                           message:
-   *                             type: string
-   *                           read:
-   *                             type: boolean
-   *                           timestamp:
-   *                             type: string
-   *                             format: date-time
-   *                           sender:
-   *                             type: object
-   *                             properties:
-   *                               name:
-   *                                 type: string
-   *                                 example: "Jane Doe"
-   *                               role:
-   *                                 type: string
-   *                                 example: "Tech"
-   *                               avatar:
-   *                                 type: string
-   *                                 example: "https://example.com/avatar.png"
-   *                               location:
-   *                                 type: string
-   *                                 example: "Lagos, Nigeria"
    *       401:
    *         description: Unauthorized - Token missing or invalid
    *         content:
@@ -186,10 +154,6 @@ export const recruiterDashboard = `
    *                       type: array
    *                       items:
    *                         $ref: '#/components/schemas/TalentProfileSummary'
-   *                     notifications:
-   *                       type: array
-   *                       items:
-   *                         $ref: '#/components/schemas/NotificationSummary'
    *       401:
    *         description: Unauthorized - Token missing or invalid
    *         content:
@@ -230,5 +194,161 @@ export const recruiterDashboard = `
    *               status: "error"
    *               message: "Something went wrong!"
    *               status_code: 500
+   */
+`;
+
+export const dashboardNotifications = `
+  /**
+   * @swagger
+   * /api/v1/dashboard/notifications:
+   *   get:
+   *     summary: List user notifications
+   *     tags: [Dashboard]
+  *     description: Returns recent notifications for authenticated recruiters and talents.
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: limit
+   *         required: false
+   *         schema:
+   *           type: integer
+   *           minimum: 1
+   *           maximum: 100
+   *           default: 20
+   *         description: Number of notifications to return.
+   *     responses:
+   *       200:
+   *         description: Notifications fetched successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: "success"
+   *                 message:
+   *                   type: string
+   *                   example: "Notifications fetched successfully"
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       id:
+   *                         type: string
+   *                       type:
+   *                         type: string
+   *                         enum: [upvote, message, view, save]
+   *                       message:
+   *                         type: string
+   *                       read:
+   *                         type: boolean
+   *                       timestamp:
+   *                         type: string
+   *                         format: date-time
+   *                       sender:
+   *                         type: object
+   *                         properties:
+   *                           id:
+   *                             type: string
+   *                             nullable: true
+   *                           first_name:
+   *                             type: string
+   *                             nullable: true
+   *                           last_name:
+   *                             type: string
+   *                             nullable: true
+   *                           avatar:
+   *                             type: string
+   *                             nullable: true
+   *                           role:
+   *                             type: string
+   *                             nullable: true
+  *                 summary:
+  *                   type: object
+  *                   properties:
+  *                     unread_count:
+  *                       type: integer
+  *                       example: 3
+  *                     unread_message_count:
+  *                       type: integer
+  *                       example: 1
+   *       401:
+   *         description: Unauthorized - Token missing or invalid
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+  *       403:
+  *         description: Forbidden - Role not permitted
+  *         content:
+  *           application/json:
+  *             schema:
+  *               $ref: '#/components/schemas/ErrorResponse'
+   */
+
+  /**
+   * @swagger
+   * /api/v1/dashboard/notifications/{notificationId}/read:
+   *   patch:
+   *     summary: Mark one notification as read
+   *     tags: [Dashboard]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: notificationId
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *     responses:
+   *       200:
+   *         description: Notification marked as read
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: "success"
+   *                 message:
+   *                   type: string
+   *                   example: "Notification marked as read"
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     id:
+   *                       type: string
+   *                     type:
+   *                       type: string
+   *                     message:
+   *                       type: string
+   *                     read:
+   *                       type: boolean
+   *                     timestamp:
+   *                       type: string
+   *                       format: date-time
+   *       401:
+   *         description: Unauthorized - Token missing or invalid
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
+  *       403:
+  *         description: Forbidden - Role not permitted
+  *         content:
+  *           application/json:
+  *             schema:
+  *               $ref: '#/components/schemas/ErrorResponse'
+   *       404:
+   *         description: Notification not found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/ErrorResponse'
    */
 `;

@@ -19,20 +19,26 @@ jest.mock("@src/datasource", () => ({
 const mockRepo = {
   findOne: jest.fn(),
 };
-
-(AppDataSource.getRepository as jest.Mock).mockReturnValue(mockRepo);
 const mockManager = AppDataSource.manager;
 
 describe("UserService", () => {
-  const service = new UserService();
+  let service: UserService;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (AppDataSource.getRepository as jest.Mock).mockImplementation(
+      () => mockRepo,
+    );
+    service = new UserService();
   });
 
   describe("getCurrentUser", () => {
     it("should return sanitized user if found", async () => {
-      const mockUser = { id: "1", email: "jane@example.com" } as UserEntity;
+      const mockUser = {
+        id: "1",
+        email: "jane@example.com",
+        role: UserRole.TALENT,
+      } as UserEntity;
       mockRepo.findOne.mockResolvedValue(mockUser);
 
       const result = await service.getCurrentUser("1");
@@ -41,6 +47,8 @@ describe("UserService", () => {
         relations: ["talent_profile", "recruiter_profile"],
       });
       expect(result).toBeDefined();
+      expect(result).not.toHaveProperty("dashboard");
+      expect(result).not.toHaveProperty("notification_summary");
     });
 
     it("should throw NotFoundError if user not found", async () => {

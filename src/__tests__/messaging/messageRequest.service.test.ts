@@ -13,6 +13,18 @@ import { NotFoundError } from "@src/exceptions/notFoundError";
 import { MessageRequestService } from "@src/messaging/services/messageRequest.service";
 import config from "config";
 
+const mockMessagingEngagementService = {
+  onMessageRequestCreated: jest.fn(),
+  onMessageRequestAccepted: jest.fn(),
+  onMessageRequestDeclined: jest.fn(),
+};
+
+jest.mock("@src/messaging/services/messagingEngagement.service", () => ({
+  MessagingEngagementService: jest
+    .fn()
+    .mockImplementation(() => mockMessagingEngagementService),
+}));
+
 jest.mock("@src/datasource", () => ({
   __esModule: true,
   default: {
@@ -197,6 +209,9 @@ describe("MessageRequestService", () => {
         status: MessageRequestStatus.PENDING,
       });
       expect(mockRequestRepo.save).toHaveBeenCalled();
+      expect(
+        mockMessagingEngagementService.onMessageRequestCreated,
+      ).toHaveBeenCalledWith(savedRequest);
       expect(result).toEqual({
         id: savedRequest.id,
         intro_note: "Hello there",
@@ -373,6 +388,9 @@ describe("MessageRequestService", () => {
           source_request_id: request.id,
         }),
       );
+      expect(
+        mockMessagingEngagementService.onMessageRequestAccepted,
+      ).toHaveBeenCalledWith(expect.objectContaining({ id: request.id }));
     });
 
     it("accepts a request without an intro note without creating an initial message", async () => {
@@ -449,6 +467,9 @@ describe("MessageRequestService", () => {
       expect(mockMessageRepo.save).not.toHaveBeenCalled();
       expect(result.status).toBe(MessageRequestStatus.DECLINED);
       expect(result.responded_at).toEqual(now);
+      expect(
+        mockMessagingEngagementService.onMessageRequestDeclined,
+      ).toHaveBeenCalledWith(expect.objectContaining({ id: request.id }));
     });
   });
 

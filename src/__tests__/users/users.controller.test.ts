@@ -26,14 +26,6 @@ describe("UserController", () => {
       const mockUser = {
         id: "123",
         email: "talent@example.com",
-        dashboard: {
-          profile_status: "pending",
-          profile_views: 0,
-          recruiter_saves: 0,
-          search_appearances: 0,
-          total_upvotes: 0,
-          notifications: [],
-        },
       };
 
       jest

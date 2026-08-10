@@ -10,6 +10,16 @@ import { ConflictError } from "@src/exceptions/conflictError";
 import { NotFoundError } from "@src/exceptions/notFoundError";
 import { ConversationService } from "@src/messaging/services/conversation.service";
 
+const mockMessagingEngagementService = {
+  onMessageSent: jest.fn(),
+};
+
+jest.mock("@src/messaging/services/messagingEngagement.service", () => ({
+  MessagingEngagementService: jest
+    .fn()
+    .mockImplementation(() => mockMessagingEngagementService),
+}));
+
 jest.mock("@src/datasource", () => ({
   __esModule: true,
   default: {
@@ -254,6 +264,12 @@ describe("ConversationService", () => {
         expect.objectContaining({
           latest_message_at: later,
           talent_last_seen_at: later,
+        }),
+      );
+      expect(mockMessagingEngagementService.onMessageSent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sender: talent,
+          body,
         }),
       );
       expect(result.message.body).toBe(body);
