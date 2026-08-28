@@ -2,6 +2,18 @@ import { HiringFor } from "@src/entities/recruiterProfile.entity";
 import { z } from "zod";
 
 export const recruiterOnboardingSchema = z.object({
+  first_name: z
+    .string()
+    .min(1, "First name is required")
+    .max(50, "First name must be 50 characters or fewer")
+    .optional(),
+
+  last_name: z
+    .string()
+    .min(1, "Last name is required")
+    .max(50, "Last name must be 50 characters or fewer")
+    .optional(),
+
   state: z.string().min(1, "State is required"),
 
   country: z.string().min(1, "Country is required"),

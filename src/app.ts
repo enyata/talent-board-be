@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/node";
 import compression from "compression";
 import config from "config";
 import cookieParser from "cookie-parser";
@@ -7,6 +8,30 @@ import helmet from "helmet";
 import hpp from "hpp";
 import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
+
+const sentryIntegrations: Parameters<typeof Sentry.init>[0]["integrations"] =
+  [];
+const sentryProfilingEnabled = config.get<boolean>("SENTRY_PROFILING_ENABLED");
+let sentryProfilesSampleRate = 0;
+
+if (sentryProfilingEnabled) {
+  try {
+    const { nodeProfilingIntegration } = require("@sentry/profiling-node");
+    sentryIntegrations.push(nodeProfilingIntegration());
+    sentryProfilesSampleRate = 1.0;
+  } catch (error) {
+    console.warn(
+      "Sentry profiling disabled: profiler bindings failed to load.",
+    );
+  }
+}
+
+Sentry.init({
+  dsn: config.get<string>("SENTRY_DSN") || "",
+  integrations: sentryIntegrations,
+  tracesSampleRate: 1.0,
+  profilesSampleRate: sentryProfilesSampleRate,
+});
 
 import "@src/auth/loadStrategies";
 import { MethodNotAllowedError } from "@src/exceptions/methodNotAllowedError";
@@ -100,6 +125,7 @@ app.all("*", (req: Request, res: Response, next: NextFunction) => {
   next(new NotFoundError(`Can't find ${req.originalUrl} on this server!`));
 });
 
+Sentry.setupExpressErrorHandler(app);
 app.use(globalErrorHandler);
 
 export default app;

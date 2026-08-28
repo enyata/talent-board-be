@@ -3,7 +3,7 @@
 Welcome to the **Talent Board API** repository.  
 This project provides the backend server to manage **authentication (Google/LinkedIn OAuth)**, **user onboarding**, and **future recruiter-talent matching features**.
 
-Built with **Node.js**, **Express**, **TypeScript**, **PostgreSQL**, **TypeORM**, **Passport.js**, and **Jest** for testing.
+Built with **Node.js**, **Express**, **TypeScript**, **PostgreSQL**, **TypeORM**, **Passport.js**, **Docker**, **Jest** for testing.
 
 ---
 
@@ -134,9 +134,28 @@ GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 LINKEDIN_CLIENT_ID=your-linkedin-client-id
 LINKEDIN_CLIENT_SECRET=your-linkedin-client-secret
-BASE_URL=https://localhost:8000
+TALENTS_BASE_URL=http://localhost:8000
 API_PREFIX=api/v1
+EMAIL_PROVIDER=gmail
+EMAIL_FROM=no-reply@yourdomain.com
+GMAIL_USER=your_gmail_address@gmail.com
+GMAIL_PASSWORD=your_gmail_app_password
 ```
+
+For local email testing with Gmail, set `EMAIL_PROVIDER=gmail`, and use an App Password if your Google account has 2FA enabled.
+
+If you prefer a local SMTP sandbox, use Mailtrap or another SMTP provider and set:
+
+```env
+EMAIL_PROVIDER=smtp
+SMTP_HOST=smtp.mailtrap.io
+SMTP_PORT=2525
+SMTP_SECURE=false
+SMTP_USER=your_mailtrap_user
+SMTP_PASSWORD=your_mailtrap_password
+```
+
+The email sender is implemented in `src/utils/email.ts`, so changing the env values lets you swap providers without changing the signup flow.
 
 ### 4. Database Setup
 

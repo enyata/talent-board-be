@@ -158,3 +158,324 @@ export const linkedInOAuthCallback = `
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 `;
+
+export const localSignup = `
+/**
+ * @swagger
+ * /api/v1/auth/signup:
+ *   post:
+ *     summary: Create a local user account
+ *     tags: [Authentication]
+ *     description: Registers a new user using email and password. This endpoint is used for the local signup flow.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: jane.doe@example.com
+ *               password:
+ *                 type: string
+ *                 example: Password1!
+ *               confirm_password:
+ *                 type: string
+ *                 example: Password1!
+ *             required:
+ *               - email
+ *               - password
+ *               - confirm_password
+ *     responses:
+ *       201:
+ *         description: Signup successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Signup successful.
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: a1b2c3d4-uuid
+ *                     email:
+ *                       type: string
+ *                       example: jane.doe@example.com
+ *                     is_email_verified:
+ *                       type: boolean
+ *                       example: false
+ *       400:
+ *         description: Invalid signup payload or passwords do not match
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       409:
+ *         description: User already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+`;
+
+export const localVerifyEmail = `
+/**
+ * @swagger
+ * /api/v1/auth/verify-email:
+ *   post:
+ *     summary: Verify a local user's email address
+ *     tags: [Authentication]
+ *     description: Confirms the OTP sent to the user's email and issues auth tokens when verification succeeds.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: jane.doe@example.com
+ *               otp:
+ *                 type: string
+ *                 example: 123456
+ *             required:
+ *               - email
+ *               - otp
+ *     responses:
+ *       200:
+ *         description: Email verified and tokens issued
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Email verified
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     access_token:
+ *                       $ref: '#/components/schemas/AccessToken'
+ *                     refresh_token:
+ *                       $ref: '#/components/schemas/RefreshToken'
+ *       400:
+ *         description: Invalid or expired OTP
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+`;
+
+export const localResendOtp = `
+/**
+ * @swagger
+ * /api/v1/auth/resend-otp:
+ *   post:
+ *     summary: Resend email verification OTP
+ *     tags: [Authentication]
+ *     description: Sends a new verification OTP to the user's email if the account exists and is not yet verified. Incorporates a cooldown period to prevent spam.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: jane.doe@example.com
+ *             required:
+ *               - email
+ *     responses:
+ *       200:
+ *         description: Success message (generic to prevent email enumeration)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: If an account exists for this email, a new verification code has been sent.
+ *       400:
+ *         description: Cooldown active or email already verified
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+`;
+
+export const localLogin = `
+/**
+ * @swagger
+ * /api/v1/auth/login:
+ *   post:
+ *     summary: Login a local user
+ *     tags: [Authentication]
+ *     description: Authenticates a user with email and password, returning auth tokens.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: jane.doe@example.com
+ *               password:
+ *                 type: string
+ *                 example: Password1!
+ *             required:
+ *               - email
+ *               - password
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Login successful
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     access_token:
+ *                       $ref: '#/components/schemas/AccessToken'
+ *                     refresh_token:
+ *                       $ref: '#/components/schemas/RefreshToken'
+ *       401:
+ *         description: Invalid credentials or unverified email
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+`;
+
+export const localForgotPassword = `
+/**
+ * @swagger
+ * /api/v1/auth/forgot-password:
+ *   post:
+ *     summary: Request a password reset link
+ *     tags: [Authentication]
+ *     description: Initiates the password reset process. Sends an email with a reset link if the account exists and uses the local provider. Returns a generic success message to prevent user enumeration.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: jane.doe@example.com
+ *             required:
+ *               - email
+ *     responses:
+ *       200:
+ *         description: Success message (generic to prevent enumeration)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: If an account exists for this email, a password reset link has been sent.
+ *       400:
+ *         description: Cooldown active or validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+`;
+
+export const localResetPassword = `
+/**
+ * @swagger
+ * /api/v1/auth/reset-password:
+ *   post:
+ *     summary: Reset password using a token
+ *     tags: [Authentication]
+ *     description: Verifies the password reset token and updates the user's password in a single transaction.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: jane.doe@example.com
+ *               token:
+ *                 type: string
+ *                 example: your-secure-token-here
+ *               password:
+ *                 type: string
+ *                 example: NewSecurePassword1!
+ *               confirm_password:
+ *                 type: string
+ *                 example: NewSecurePassword1!
+ *             required:
+ *               - email
+ *               - token
+ *               - password
+ *               - confirm_password
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Password reset successful. You can now log in with your new password.
+ *       400:
+ *         description: Invalid or expired token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+`;

@@ -16,6 +16,7 @@ export class NotificationService {
     type: NotificationType,
     senderId: string,
     recipientId: string,
+    customMessage?: string,
   ): Promise<NotificationEntity> {
     const sender = await this.userRepository.findOneBy({ id: senderId });
     const recipient = await this.userRepository.findOneBy({ id: recipientId });
@@ -24,10 +25,12 @@ export class NotificationService {
       throw new NotFoundError("Sender or recipient not found");
     }
 
-    const message = generateNotificationMessage(
-      type,
-      `${sender.first_name} ${sender.last_name}`,
-    );
+    const message =
+      customMessage ||
+      generateNotificationMessage(
+        type,
+        `${sender.first_name} ${sender.last_name}`,
+      );
 
     const notification = this.notificationRepository.create({
       type,

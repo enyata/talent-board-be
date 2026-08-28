@@ -111,4 +111,18 @@ describe("deserializeUser middleware", () => {
     expect(mockNext).toHaveBeenCalledWith(expect.any(Error));
     expect(mockNext.mock.calls[0][0].message).toMatch(/Invalid refresh token/);
   });
+
+  it("should throw if access token is invalid and refresh token is missing", async () => {
+    (verifyToken as jest.Mock).mockReturnValue(null);
+
+    const req = {
+      headers: { authorization: "Bearer invalid-access" },
+      cookies: {},
+    } as unknown as Request;
+
+    await deserializeUser(req, mockRes, mockNext);
+
+    expect(mockNext).toHaveBeenCalledWith(expect.any(Error));
+    expect(mockNext.mock.calls[0][0].message).toMatch(/Invalid access token/);
+  });
 });

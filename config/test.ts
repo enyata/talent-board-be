@@ -4,7 +4,11 @@ export default {
   PORT: 8001,
   NODE_ENV: "test",
   API_PREFIX: "api/v1",
+  APP_NAME: "Talent Board",
 
+  PASSWORD_RESET_TOKEN_TTL_MINUTES: 5,
+  PASSWORD_RESET_COOLDOWN_SECONDS: 10,
+  MESSAGE_REQUEST_DECLINE_COOLDOWN_DAYS: 30,
   DB_USER: "test_user",
   DB_HOST: "localhost",
   DB_PORT: isDocker ? 5432 : 5433,

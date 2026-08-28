@@ -1,3 +1,4 @@
+import { MessageRequestStatus } from "@src/entities/messageRequest.entity";
 import { NotificationType } from "@src/entities/notification.entity";
 import { UserRole } from "@src/entities/user.entity";
 import { RecruiterOnboardingDTO } from "@src/onboarding/schemas/recruiterOnboarding.schema";
@@ -26,6 +27,8 @@ export interface CreateSendTokenOptions {
 }
 
 export interface SharedFields {
+  first_name?: string;
+  last_name?: string;
   state: string;
   country: string;
   linkedin_profile: string;
@@ -48,6 +51,108 @@ export interface MetricsJobData {
     | "profile_views"
     | "recruiter_saves"
     | "weekly_search_appearances";
+}
+
+export interface IncompleteSignupReminderJobData {
+  userId: string;
+}
+
+export interface MessageRequestUserSummary {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  avatar: string | null;
+  role: UserRole | null;
+}
+
+export type LatestMessageSeenStatus = "seen" | "unseen" | "no_messages";
+
+export interface MessageRequestSummary {
+  id: string;
+  intro_note: string | null;
+  status: MessageRequestStatus;
+  responded_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
+  recruiter: MessageRequestUserSummary;
+  talent: MessageRequestUserSummary;
+}
+
+export interface ConversationThreadSummary {
+  id: string;
+  recruiter_last_seen_at: Date | null;
+  talent_last_seen_at: Date | null;
+  latest_message_at: Date | null;
+  latest_message_seen_at: Date | null;
+  latest_message_seen_status: LatestMessageSeenStatus;
+  created_at: Date;
+  updated_at: Date;
+  accepted_request_id: string | null;
+  recruiter: MessageRequestUserSummary;
+  talent: MessageRequestUserSummary;
+}
+
+export interface MessageSummary {
+  id: string;
+  body: string;
+  created_at: Date;
+  updated_at: Date;
+  sender: MessageRequestUserSummary;
+  source_request_id: string | null;
+}
+
+export interface AcceptedMessageRequestSummary {
+  request: MessageRequestSummary;
+  thread: ConversationThreadSummary;
+  initial_message: MessageSummary | null;
+}
+
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface MessageRequestPagination extends PaginationMeta {}
+
+export interface PaginatedMessageRequestSummary {
+  requests: MessageRequestSummary[];
+  pagination: MessageRequestPagination;
+}
+
+export interface ConversationInboxItemSummary
+  extends ConversationThreadSummary {
+  conversation_partner: MessageRequestUserSummary;
+  latest_message: MessageSummary | null;
+}
+
+export interface PaginatedConversationInboxSummary {
+  threads: ConversationInboxItemSummary[];
+  pagination: PaginationMeta;
+}
+
+export interface PaginatedMessageSummary {
+  messages: MessageSummary[];
+  pagination: PaginationMeta;
+}
+
+export interface SentConversationMessageSummary {
+  thread: ConversationThreadSummary;
+  message: MessageSummary;
+}
+
+export interface MessageTemplateSummary {
+  id: string;
+  title: string;
+  body: string;
+  use_cases: string[];
+}
+
+export interface MessageTemplateLibrarySummary {
+  templates: MessageTemplateSummary[];
 }
 
 export interface TalentSearchResult {

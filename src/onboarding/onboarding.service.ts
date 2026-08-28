@@ -8,9 +8,11 @@ import {
   ProfileStatus,
   TalentProfileEntity,
 } from "@src/entities/talentProfile.entity";
-import { UserEntity, UserRole } from "@src/entities/user.entity";
+import { UserEntity, UserProvider, UserRole } from "@src/entities/user.entity";
+import { ClientError } from "@src/exceptions/clientError";
 import { ConflictError } from "@src/exceptions/conflictError";
 import { NotFoundError } from "@src/exceptions/notFoundError";
+import { UnauthorizedError } from "@src/exceptions/unauthorizedError";
 import {
   OnboardingPayload,
   RecruiterPayload,
@@ -36,6 +38,22 @@ export class OnboardingService {
     if (user.profile_completed)
       throw new ConflictError("Onboarding already completed");
 
+    if (user.provider === UserProvider.LOCAL && !user.is_email_verified) {
+      throw new UnauthorizedError(
+        "Please verify your email before completing onboarding",
+      );
+    }
+
+    if (!user.first_name || !user.last_name) {
+      if (!payload.first_name || !payload.last_name) {
+        throw new ClientError(
+          "First name and last name are required to complete onboarding",
+        );
+      }
+      user.first_name = payload.first_name;
+      user.last_name = payload.last_name;
+    }
+
     // Use transaction to ensure atomicity
     return await manager.transaction(async (transactionalEntityManager) => {
       user.state = payload.state;
@@ -43,6 +61,8 @@ export class OnboardingService {
       user.linkedin_profile = payload.linkedin_profile;
       user.role = role;
       user.profile_completed = true;
+      user.incomplete_signup_next_reminder_at = null;
+      user.incomplete_signup_last_reminder_at = null;
 
       await transactionalEntityManager.save(user);
 

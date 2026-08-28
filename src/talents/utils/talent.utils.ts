@@ -185,7 +185,7 @@ export const formatTalentResult = (
     // TalentProfileEntity (searchTalents)
     user = (input as TalentProfileEntity).user;
     profile = input as TalentProfileEntity;
-    metrics = user.metrics;
+    metrics = user?.metrics;
   } else {
     // UserEntity
     user = input as UserEntity;

@@ -10,6 +10,9 @@ import {
 } from "class-validator";
 import { Column, Entity, OneToMany, OneToOne } from "typeorm";
 import ExtendedBaseEntity from "./base.entity";
+import { ConversationThreadEntity } from "./conversationThread.entity";
+import { MessageEntity } from "./message.entity";
+import { MessageRequestEntity } from "./messageRequest.entity";
 import { MetricsEntity } from "./metrics.entity";
 import { NotificationEntity } from "./notification.entity";
 import { RecruiterProfileEntity } from "./recruiterProfile.entity";
@@ -19,6 +22,7 @@ import { TalentProfileEntity } from "./talentProfile.entity";
 export enum UserProvider {
   GOOGLE = "google",
   LINKEDIN = "linkedin",
+  LOCAL = "local",
 }
 
 export enum UserRole {
@@ -28,17 +32,19 @@ export enum UserRole {
 
 @Entity({ name: "users" })
 export class UserEntity extends ExtendedBaseEntity {
-  @Column()
+  @Column({ nullable: true })
   @Expose()
+  @IsOptional()
   @IsString()
   @Length(1, 50)
-  first_name: string;
+  first_name: string | null;
 
-  @Column()
+  @Column({ nullable: true })
   @Expose()
+  @IsOptional()
   @IsString()
   @Length(1, 50)
-  last_name: string;
+  last_name: string | null;
 
   @Column({ unique: true })
   @Expose()
@@ -85,6 +91,21 @@ export class UserEntity extends ExtendedBaseEntity {
   @IsUrl()
   linkedin_profile: string;
 
+  @Column({ nullable: true })
+  password: string;
+
+  @Column({ nullable: true })
+  is_email_verified: boolean;
+
+  @Column({ type: "timestamp", nullable: true })
+  incomplete_signup_last_reminder_at: Date | null;
+
+  @Column({ type: "timestamp", nullable: true })
+  incomplete_signup_next_reminder_at: Date | null;
+
+  @Column({ type: "int", default: 0 })
+  incomplete_signup_reminder_count: number;
+
   @OneToMany(() => RefreshToken, (refresh) => refresh.user)
   refresh_tokens: RefreshToken[];
 
@@ -104,4 +125,19 @@ export class UserEntity extends ExtendedBaseEntity {
 
   @OneToOne(() => MetricsEntity, (m) => m.user)
   metrics: MetricsEntity;
+
+  @OneToMany(() => MessageRequestEntity, (request) => request.recruiter)
+  sent_message_requests: MessageRequestEntity[];
+
+  @OneToMany(() => MessageRequestEntity, (request) => request.talent)
+  received_message_requests: MessageRequestEntity[];
+
+  @OneToMany(() => ConversationThreadEntity, (thread) => thread.recruiter)
+  recruiter_conversation_threads: ConversationThreadEntity[];
+
+  @OneToMany(() => ConversationThreadEntity, (thread) => thread.talent)
+  talent_conversation_threads: ConversationThreadEntity[];
+
+  @OneToMany(() => MessageEntity, (message) => message.sender)
+  sent_messages: MessageEntity[];
 }
