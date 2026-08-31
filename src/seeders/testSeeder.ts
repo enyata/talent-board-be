@@ -240,5 +240,5 @@ if (require.main === module) {
       await seedTestDatabase(dataSource, { skipIfExists: false });
       await dataSource.destroy();
     })
-    .catch((error) => console.error("Seeding failed:", error));
+    .catch((error) => log.error({ err: error }, "Seeding failed"));
 }

@@ -3,11 +3,10 @@ services:
     image: postgres:17
     container_name: postgres-dev
     profiles: ["dev"]
-    env_file: .env
     environment:
-      POSTGRES_USER: ${TALENTS_DB_USER}
-      POSTGRES_PASSWORD: ${TALENTS_DB_PASSWORD}
-      POSTGRES_DB: ${TALENTS_DB_NAME}
+      POSTGRES_USER: ${TALENTS_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${TALENTS_DB_PASSWORD:-password123}
+      POSTGRES_DB: ${TALENTS_DB_NAME:-talent_board}
     ports:
       - "5452:5432"
     volumes:
@@ -78,7 +77,6 @@ services:
         - NODE_ENV=development
     ports:
       - "8000:8000"
-    env_file: .env
     environment:
       NODE_ENV: development
       DB_HOST: postgres
@@ -100,6 +98,7 @@ services:
         - action: rebuild
           path: package.json
 
+
   backend_test:
     container_name: talentboard-backend-test
     build:
@@ -120,5 +119,22 @@ services:
       - redis
     profiles: ["test"]
 
+  alloy:
+    image: grafana/alloy:latest
+    container_name: talentboard-alloy
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/cloud.alloy
+    volumes:
+      - ./observability/alloy/cloud.alloy:/etc/alloy/cloud.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy_data:/var/lib/alloy/data
+    ports:
+      - "127.0.0.1:12345:12345"
+    restart: unless-stopped
+
 volumes:
+  alloy_data:
   redis_data:

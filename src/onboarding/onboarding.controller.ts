@@ -58,7 +58,12 @@ export const createOnboardingHandler = <T extends OnboardingPayload>(
       if (req.file) {
         const fs = require("fs");
         fs.unlink(req.file.path, (err: any) => {
-          if (err) console.error("Failed to delete file:", err);
+          if (err) {
+            log.error(
+              { err, filePath: req.file.path, userId },
+              "Failed to delete uploaded file after onboarding error",
+            );
+          }
         });
       }
       throw error;

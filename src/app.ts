@@ -6,7 +6,6 @@ import cors from "cors";
 import express, { Express, NextFunction, Request, Response } from "express";
 import helmet from "helmet";
 import hpp from "hpp";
-import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
 
 const sentryIntegrations: Parameters<typeof Sentry.init>[0]["integrations"] =
@@ -14,13 +13,26 @@ const sentryIntegrations: Parameters<typeof Sentry.init>[0]["integrations"] =
 const sentryProfilingEnabled = config.get<boolean>("SENTRY_PROFILING_ENABLED");
 let sentryProfilesSampleRate = 0;
 
+import "@src/auth/loadStrategies";
+import { MethodNotAllowedError } from "@src/exceptions/methodNotAllowedError";
+import { NotFoundError } from "@src/exceptions/notFoundError";
+import globalErrorHandler from "@src/middlewares/errorHandler";
+import router from "@src/routes/index.route";
+import log, { logHttpRequests } from "@src/utils/logger";
+import corsOptions from "../config/corsOptions";
+import helmetOptions from "../config/helmetOptions";
+import hppOptions from "../config/hppOptions";
+import swaggerSpec from "../config/swaggerConfig";
+import AppDataSource from "./datasource";
+
 if (sentryProfilingEnabled) {
   try {
     const { nodeProfilingIntegration } = require("@sentry/profiling-node");
     sentryIntegrations.push(nodeProfilingIntegration());
     sentryProfilesSampleRate = 1.0;
   } catch (error) {
-    console.warn(
+    log.warn(
+      { err: error },
       "Sentry profiling disabled: profiler bindings failed to load.",
     );
   }
@@ -32,17 +44,6 @@ Sentry.init({
   tracesSampleRate: 1.0,
   profilesSampleRate: sentryProfilesSampleRate,
 });
-
-import "@src/auth/loadStrategies";
-import { MethodNotAllowedError } from "@src/exceptions/methodNotAllowedError";
-import { NotFoundError } from "@src/exceptions/notFoundError";
-import globalErrorHandler from "@src/middlewares/errorHandler";
-import router from "@src/routes/index.route";
-import corsOptions from "../config/corsOptions";
-import helmetOptions from "../config/helmetOptions";
-import hppOptions from "../config/hppOptions";
-import swaggerSpec from "../config/swaggerConfig";
-import AppDataSource from "./datasource";
 
 const app: Express = express();
 app.disable("x-powered-by");
@@ -68,11 +69,8 @@ app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser());
 
-if (config.get<string>("NODE_ENV") === "development") {
-  app.use(morgan("dev"));
-}
-
 app.use(compression());
+app.use(logHttpRequests);
 app.get("/", (_req, res) => {
   res.status(200).json({ status: "success", message: "API is running" });
 });

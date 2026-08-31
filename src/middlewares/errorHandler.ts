@@ -1,6 +1,6 @@
 import { AppError } from "@src/exceptions/appError";
 import { IResponseError } from "@src/interfaces";
-import log from "@src/utils/logger";
+import log, { buildRequestContext } from "@src/utils/logger";
 import config from "config";
 import type { NextFunction, Request, Response } from "express";
 import { JsonWebTokenError } from "jsonwebtoken";
@@ -8,9 +8,31 @@ import { JsonWebTokenError } from "jsonwebtoken";
 const handleJWTError = (err: any) =>
   new AppError("Invalid or expired token", 401);
 
+const serializeError = (err: any) => ({
+  name: err?.name,
+  message: err?.message,
+  stack: err?.stack,
+  statusCode: err?.statusCode,
+  status: err?.status,
+  code: err?.code,
+  cause: err?.cause
+    ? {
+        name: err.cause.name,
+        message: err.cause.message,
+      }
+    : undefined,
+  details: err?.issues || err?.errors || err?.details,
+});
+
 export const sendErrorDev = (err: any, req: Request, res: Response) => {
-  log.error(`💥: ${err}`);
-  log.error(`💥: ${err.stack}`);
+  log.error(
+    {
+      event: "request_failed",
+      request: buildRequestContext(req),
+      error: serializeError(err),
+    },
+    "Request failed",
+  );
 
   return res.status(err.statusCode).json({
     status: err.status,
@@ -30,13 +52,26 @@ export const sendErrorProd = (err: any, req: Request, res: Response) => {
       status_code: appError.statusCode,
     } as IResponseError;
 
-    log.error(`💥 Operational Error: ${appError.message}`);
+    log.warn(
+      {
+        event: "operational_request_error",
+        request: buildRequestContext(req),
+        error: serializeError(appError),
+      },
+      "Operational request error",
+    );
 
     return res.status(appError.statusCode).json(response);
   }
 
-  log.error(`💥: ${err}`);
-  log.error(`💥: ${err.stack}`);
+  log.error(
+    {
+      event: "unhandled_request_error",
+      request: buildRequestContext(req),
+      error: serializeError(err),
+    },
+    "Unhandled request error",
+  );
 
   return res.status(500).json({
     status: "error",
@@ -58,7 +93,7 @@ const errorHandler = (
 
   if (env === "development") {
     sendErrorDev(err, req, res);
-  } else if (env === "production") {
+  } else {
     if (err instanceof JsonWebTokenError) err = handleJWTError(err);
     sendErrorProd(err, req, res);
   }
