@@ -4,6 +4,7 @@ export const ExperienceLevelEnum = z.enum(["entry", "intermediate", "expert"]);
 
 export const searchTalentsSchema = z.object({
   q: z.string().optional(),
+  jobtitle: z.string().optional(),
 
   skills: z
     .union([z.string(), z.array(z.string())])

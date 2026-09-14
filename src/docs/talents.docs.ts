@@ -106,6 +106,11 @@ export const searchTalents = `
    *           type: string
    *         description: Full-text search on name or skills
    *       - in: query
+   *         name: jobtitle
+   *         schema:
+   *           type: string
+   *         description: Filter by job title (case-insensitive partial match)
+   *       - in: query
    *         name: skills
    *         schema:
    *           type: string
