@@ -63,6 +63,15 @@ export const applyTalentFilters = (
     );
   }
 
+  /**
+   * Filter talents by job title.
+   */
+  if (query.jobtitle) {
+    qb.andWhere(`${alias}.job_title ILIKE :jobtitle`, {
+      jobtitle: `%${query.jobtitle}%`,
+    });
+  }
+
   if (query.skills?.length) {
     const skillQuery = query.skills;
 
