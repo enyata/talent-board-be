@@ -56,7 +56,7 @@ export const welcomeEmail = (
       teamLabel: "The Enyata Talentboard team",
       copyrightLabel: "Talentboard 2026",
       helpLabel: "Questions? Reply to this email or visit",
-      helpUrl: "http://help.talentboard.ng",
+      helpUrl: "community@enyata.com",
       supportEmail: undefined,
     },
   });
@@ -72,7 +72,7 @@ export const welcomeEmail = (
       Warmly,
       The Enyata Talentboard team
       Copyright Talentboard 2026
-      Questions? Reply to this email or visit help.talentboard.ng
+      Questions? Reply to this email or contact community@enyata.com
     `),
   };
 };

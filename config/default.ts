@@ -2,8 +2,8 @@ export default {
   SENTRY_DSN: process.env.TALENTS_SENTRY_DSN || "",
   SENTRY_PROFILING_ENABLED:
     String(process.env.TALENTS_SENTRY_PROFILING_ENABLED) === "true",
-  PORT: Number(process.env.TALENTS_PORT) ?? 8000,
-  NODE_ENV: process.env.TALENTS_NODE_ENV,
+  PORT: Number(process.env.TALENTS_PORT || process.env.PORT) || 8000,
+  NODE_ENV: process.env.TALENTS_NODE_ENV || process.env.NODE_ENV,
   API_PREFIX: process.env.TALENTS_API_PREFIX ?? "api/v1",
   APP_NAME: process.env.TALENTS_APP_NAME ?? "Talent Board",
   OTP_TTL_MINUTES: Number(process.env.TALENTS_OTP_TTL_MINUTES) || 10,
@@ -22,8 +22,14 @@ export default {
   DB_PASSWORD: process.env.TALENTS_DB_PASSWORD,
   DB_NAME: process.env.TALENTS_DB_NAME,
   DATABASE_URL: process.env.TALENTS_DATABASE_URL,
-  BASE_URL: process.env.TALENTS_BASE_URL ?? "http://localhost:8000",
-  FRONTEND_URL: process.env.TALENTS_FRONTEND_URL ?? "http://localhost:3000",
+  BASE_URL:
+    process.env.TALENTS_BASE_URL ||
+    process.env.BASE_URL ||
+    "http://localhost:8000",
+  FRONTEND_URL:
+    process.env.TALENTS_FRONTEND_URL ||
+    process.env.FRONTEND_URL ||
+    "http://localhost:3000",
 
   ACCESS_TOKEN_TTL: process.env.TALENTS_ACCESS_TOKEN_TTL,
   REFRESH_TOKEN_TTL: process.env.TALENTS_REFRESH_TOKEN_TTL,

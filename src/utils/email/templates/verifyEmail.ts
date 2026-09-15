@@ -46,7 +46,7 @@ export const verifyEmailTemplate = (
       teamLabel: "",
       copyrightLabel: "Talentboard 2026",
       helpLabel: "Need a hand?",
-      helpUrl: "http://help.talentboard.ng",
+      helpUrl: "community@enyata.com",
       supportEmail: undefined,
     },
   });
@@ -61,7 +61,7 @@ export const verifyEmailTemplate = (
       ${spacedOtp}
       This code expires in ${expiresInMinutes} minutes.
       Didn't request this? You can safely ignore this email. If you didn't initiate this action, someone may have entered your email address by mistake. Your account remains secure.
-      Need a hand? help.talentboard.ng
+      Need a hand? contact us at ${supportEmail}
     `),
   };
 };
